@@ -97,6 +97,9 @@ Custom Lit controls can extend [`FormElement`](./docs/form-element.md) to connec
 Contributors working on field behavior, components, or presentation should
 follow the [FDL design principles](./docs/design-principles.md).
 
+See [potential FDL user personas](./docs/user-personas.md) for the audiences
+and form-modeling problems the library is intended to support.
+
 The portfolio’s [modifier support matrix](./portfolio/app/reference/page.tsx)
 distinguishes demonstrated behavior, model-only behavior, and adapter work. See
 the [release guide](./docs/releases.md) and [changelog](./CHANGELOG.md) for the
