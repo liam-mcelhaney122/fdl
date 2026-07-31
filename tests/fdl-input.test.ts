@@ -2,6 +2,7 @@ import FieldType from '../field-type.js';
 import Record from '../record.js';
 import '../examples/fdl-input/fdl-field';
 import '../examples/fdl-input/fdl-input-demo';
+import '../examples/fdl-input/fdl-cookbook-page';
 
 describe('<fdl-field>', () => {
     it('creates and initializes the native input from the record field type', async () => {
@@ -149,8 +150,21 @@ describe('<fdl-field>', () => {
 });
 
 describe('<fdl-input-demo>', () => {
-    it('renders every public field type modifier once in alphabetical order', async () => {
+    it('presents the cookbook as a separate page', async () => {
         const element = document.createElement('fdl-input-demo') as HTMLElement & {
+            updateComplete: Promise<boolean>;
+        };
+        document.body.append(element);
+        await element.updateComplete;
+
+        expect(element.shadowRoot?.querySelector('fdl-modifier-catalog')).toBeNull();
+        expect(element.shadowRoot?.querySelector('a[href="./cookbook/"]')?.textContent).toContain('cookbook');
+        expect(element.shadowRoot?.querySelector('h1')?.textContent).toContain('Forms that adapt to the work.');
+        element.remove();
+    });
+
+    it('renders every public field type modifier once in alphabetical order', async () => {
+        const element = document.createElement('fdl-cookbook-page') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
         document.body.append(element);
@@ -245,7 +259,7 @@ describe('<fdl-input-demo>', () => {
     });
 
     it('keeps representative catalog examples interactive', async () => {
-        const element = document.createElement('fdl-input-demo') as HTMLElement & {
+        const element = document.createElement('fdl-cookbook-page') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
         document.body.append(element);
@@ -281,7 +295,7 @@ describe('<fdl-input-demo>', () => {
     });
 
     it('demonstrates formatted money input being parsed into the raw record value', async () => {
-        const element = document.createElement('fdl-input-demo') as HTMLElement & {
+        const element = document.createElement('fdl-cookbook-page') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
         document.body.append(element);
