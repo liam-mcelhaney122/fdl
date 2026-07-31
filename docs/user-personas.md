@@ -1,13 +1,14 @@
-# FDL user personas
+# Prospective FDL user personas
 
-These personas represent potential FDL users and give future documentation
-reviews a concrete reader to serve. They are not market claims. Each persona
+These are prospective users assessing whether FDL is worth trying. They are
+not descriptions of current customers or claims about market fit. Each persona
 has a distinct job, level of context, and standard for deciding whether FDL is
-a good fit.
+a good fit for their next project.
 
-When using these personas to evaluate documentation, assess whether the
-material lets the person answer their questions and complete their first
-meaningful task without relying on unstated knowledge of the repository.
+Use them to test the effectiveness of the home page and documentation. A
+successful evaluation lets the person recognize their problem on the home page,
+understand FDL's value and limits, and complete a first meaningful task from
+the documentation without relying on unstated repository knowledge.
 
 ## Maya Chen — Design-system engineer
 
@@ -34,8 +35,10 @@ between FDL, a form adapter, and CSS. She is wary of APIs that expose raw HTML
 attributes as supposedly reusable model features, or examples that imply a
 particular UI control is the only way to render a field.
 
-### Documentation evaluation lens
+### Evaluation tasks
 
+- On the home page, can Maya quickly tell that FDL models reusable field
+  behavior without replacing her design system or prescribing a visual theme?
 - Can Maya explain what FDL owns versus what her React components and CSS own?
 - Can she define validation, dependencies, parsing, formatting, and stable
   presentation intent once, then see how different consumers could interpret
@@ -71,8 +74,10 @@ table use case and need to understand lifecycle and mutation behavior before
 trusting the library. They will notice quickly if documentation confuses
 sorting, filtering, pagination, validation, aggregation, and UI rendering.
 
-### Documentation evaluation lens
+### Evaluation tasks
 
+- On the home page, can Jordan recognize editable, rule-heavy tables as a
+  plausible use case without mistaking FDL for a production data-grid library?
 - Can Jordan build a small editable recordset with field definitions,
   initial values, validation, filtering, sorting, and aggregation?
 - Is it clear which operations are performed by `FieldType`, `Record`, and
@@ -108,8 +113,10 @@ snippets, and troubleshooting guidance. She will abandon the evaluation if
 getting from a field definition to a displayed error requires guessing at
 hidden setup.
 
-### Documentation evaluation lens
+### Evaluation tasks
 
+- On the home page, can Priya understand in plain language what problem FDL
+  solves and decide whether it fits a changing customer workflow?
 - Does the README make the problem, core terms, installation, and smallest
   useful example immediately clear?
 - Can Priya model an onboarding flow with defaults, option lists, conditional
@@ -145,8 +152,10 @@ documentation to name invariants, ownership boundaries, extension points, and
 negative constraints—especially what an agent should not change when altering
 a business rule.
 
-### Documentation evaluation lens
+### Evaluation tasks
 
+- On the home page, can Eli see why an explicit field model gives coding
+  agents a safer change surface than scattered component logic?
 - Can an agent or reviewer locate the authoritative definition for a field's
   validation, dependency, formatting, and presentation intent?
 - Are terminology, API contracts, and examples consistent enough to turn into
@@ -183,8 +192,11 @@ She reads architecture documentation before API references and assesses
 examples for semantic omissions. She values candid limitations, because clear
 boundaries let her scope adapter work and accessibility testing honestly.
 
-### Documentation evaluation lens
+### Evaluation tasks
 
+- On the home page, can Samira see that FDL supports accessible implementations
+  by modeling behavior, while leaving semantic markup and interaction to
+  components?
 - Does the documentation clearly assign validation and conditional state to
   FDL, accessible structure and interaction to components, and appearance to
   CSS?
