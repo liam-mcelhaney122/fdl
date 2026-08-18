@@ -1,10 +1,11 @@
 const footerLinks = [
   { href: "/demo", label: "Demo" },
+  { href: "/cookbook", label: "Cookbook" },
   { href: "/case-study", label: "Case study" },
   { href: "/reference", label: "Reference" },
   { href: "/docs", label: "Docs" },
   { href: "/project-history", label: "Project history" },
-  { href: "https://github.com/Banno/FDL", label: "GitHub ↗" },
+  { href: "https://github.com/pmcelhaney/FDL", label: "GitHub ↗" },
 ];
 
 export function Footer() {
