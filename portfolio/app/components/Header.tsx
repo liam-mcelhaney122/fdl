@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const navigation = [
+  { href: "/cookbook", label: "Cookbook" },
   { href: "/case-study", label: "Case study" },
   { href: "/reference", label: "Reference" },
   { href: "/docs", label: "Docs" },
@@ -31,7 +32,7 @@ export function Header() {
             </a>
           ))}
           <a
-            href="https://github.com/Banno/FDL"
+            href="https://github.com/pmcelhaney/FDL"
             target="_blank"
             rel="noreferrer"
           >

@@ -54,3 +54,16 @@ test("server-renders the curated documentation gateway", async () => {
   assert.match(html, /npm run typecheck/);
   assert.match(html, /cd portfolio/);
 });
+
+test("server-renders the workflow cookbook with canonical repository links", async () => {
+  const response = await render("/cookbook");
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /Model a payment workflow without teaching every screen the rules\./);
+  assert.match(html, /Run the Lit modifier catalog locally\./);
+  assert.match(html, /npm run example:fdl-input/);
+  assert.match(html, /href="https:\/\/github\.com\/pmcelhaney\/FDL\/tree\/main\/examples\/fdl-input"/);
+  assert.match(html, /href="\/cookbook"[^>]*>Cookbook/);
+  assert.doesNotMatch(html, /github\.com\/Banno\/FDL/);
+});

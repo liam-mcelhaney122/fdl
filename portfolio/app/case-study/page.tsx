@@ -175,7 +175,7 @@ export default function CaseStudyPage() {
             </div>
             <div className="button-row">
               <a className="button button-light" href="/demo">Use the workflow <span aria-hidden="true">↗</span></a>
-              <a className="button button-dark-outline" href="https://github.com/Banno/FDL/blob/main/docs/design-principles.md" target="_blank" rel="noreferrer">Read the complete principles <span aria-hidden="true">↗</span></a>
+              <a className="button button-dark-outline" href="https://github.com/pmcelhaney/FDL/blob/main/docs/design-principles.md" target="_blank" rel="noreferrer">Read the complete principles <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>

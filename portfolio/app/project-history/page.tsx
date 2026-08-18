@@ -175,7 +175,7 @@ export default function ProjectHistoryPage() {
               individual contributions.
             </p>
             <div className="text-link-row">
-              <a className="text-link" href="https://github.com/Banno/FDL/blob/main/LICENSE" target="_blank" rel="noreferrer">Read the Apache-2.0 license <span aria-hidden="true">↗</span></a>
+              <a className="text-link" href="https://github.com/pmcelhaney/FDL/blob/main/LICENSE" target="_blank" rel="noreferrer">Read the Apache-2.0 license <span aria-hidden="true">↗</span></a>
               <a className="text-link" href="/case-study">Examine the architecture <span aria-hidden="true">→</span></a>
             </div>
           </div>

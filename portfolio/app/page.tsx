@@ -48,6 +48,9 @@ export default function Home() {
             <a className="button button-primary" href="/demo">
               Run the ACH workflow <span aria-hidden="true">↗</span>
             </a>
+            <a className="button button-secondary" href="/cookbook">
+              Follow the cookbook
+            </a>
             <a className="button button-secondary" href="/case-study">
               Read the case study
             </a>
