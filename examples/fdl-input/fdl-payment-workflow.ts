@@ -122,13 +122,13 @@ export class FdlPaymentWorkflow extends LitElement {
     }
 
     private renderField(field: keyof PaymentValues) {
-        const errors = this.reviewAttempted ? this.payment.readableFieldErrors(field) : [];
         return html`
             <div class="field-row">
-                <fdl-field .record=${this.payment} field=${field}></fdl-field>
-                ${errors.length
-                    ? html`<p class="field-error" role="alert">${errors.join('. ')}</p>`
-                    : nothing}
+                <fdl-field
+                    .record=${this.payment}
+                    .showValidationErrors=${this.reviewAttempted}
+                    field=${field}
+                ></fdl-field>
             </div>
         `;
     }
@@ -352,12 +352,6 @@ export class FdlPaymentWorkflow extends LitElement {
             --field-label-width: 100%;
             --field-control-width: 100%;
             --field-flex-wrap: wrap;
-        }
-
-        .field-error {
-            margin: -0.25rem 0 0.65rem;
-            color: #a42b20;
-            font-size: 0.8rem;
         }
 
         .error-summary {

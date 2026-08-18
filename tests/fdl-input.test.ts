@@ -391,8 +391,15 @@ describe('<fdl-payment-workflow>', () => {
 
         workflow.shadowRoot?.querySelector<HTMLButtonElement>('.primary')?.click();
         await settle(workflow);
+        await settle(routingField);
         expect(workflow.shadowRoot?.querySelector('.error-summary')?.textContent).toContain(
             'Routing number: must be a valid 9-digit ABA number'
+        );
+        const routingErrorId = routingInput.getAttribute('aria-describedby');
+        expect(routingInput.getAttribute('aria-invalid')).toBe('true');
+        expect(routingErrorId).toBeTruthy();
+        expect(routingField.shadowRoot?.getElementById(routingErrorId!)?.textContent).toContain(
+            'Routing number must be a valid 9-digit ABA number'
         );
         expect(workflow.shadowRoot?.querySelector('fdl-table')).toBeNull();
 

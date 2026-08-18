@@ -41,6 +41,21 @@ export class FdlField extends FormElement {
                 outline: 2px solid #7657ff;
                 outline-offset: 2px;
             }
+
+            input[aria-invalid='true'],
+            select[aria-invalid='true'],
+            textarea[aria-invalid='true'] {
+                border-color: #a42b20;
+                border-width: 2px;
+            }
+
+            .validation-error {
+                margin-top: 0.35rem;
+                color: #a42b20;
+                font-size: 0.8rem;
+                font-weight: 700;
+                line-height: 1.4;
+            }
         `;
     }
 }

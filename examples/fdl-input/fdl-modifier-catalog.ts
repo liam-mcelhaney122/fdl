@@ -288,12 +288,12 @@ export class FdlModifierCatalog extends LitElement {
     private renderField(
         field: string,
         record: Record<any> = this.record,
-        showValidation = false
+        showValidationErrors = false
     ) {
         return html`<fdl-field
             field=${field}
             .record=${record}
-            .showValidation=${showValidation}
+            .showValidationErrors=${showValidationErrors}
         ></fdl-field>`;
     }
 
@@ -308,8 +308,8 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     private renderValidation(field: string) {
-        const showValidation = this.validatedFields.has(field);
-        return html`${this.renderField(field, this.record, showValidation)}
+        const showValidationErrors = this.validatedFields.has(field);
+        return html`${this.renderField(field, this.record, showValidationErrors)}
             <button type="button" @click=${() => this.validateField(field)}>Check value</button>
             ${this.validationResult(field)}`;
     }
