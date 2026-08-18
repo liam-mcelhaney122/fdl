@@ -4,6 +4,14 @@ import '../examples/fdl-input/fdl-field';
 import '../examples/fdl-input/fdl-input-demo';
 import '../examples/fdl-input/fdl-cookbook-page';
 
+type TestElement = HTMLElement & { updateComplete: Promise<boolean> };
+
+const settle = async (element: TestElement) => {
+    await Promise.resolve();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await element.updateComplete;
+};
+
 describe('<fdl-field>', () => {
     it('creates and initializes the native input from the record field type', async () => {
         const record = new Record(
@@ -171,6 +179,16 @@ describe('<fdl-input-demo>', () => {
 
         await element.updateComplete;
 
+        const cookbookSections = [
+            ...(element.shadowRoot?.querySelectorAll(
+                'fdl-payment-workflow, fdl-modifier-catalog'
+            ) ?? []),
+        ];
+        expect(cookbookSections.map(section => section.localName)).toEqual([
+            'fdl-payment-workflow',
+            'fdl-modifier-catalog',
+        ]);
+
         const catalog = element.shadowRoot?.querySelector('fdl-modifier-catalog') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
@@ -323,4 +341,77 @@ describe('<fdl-input-demo>', () => {
         element.remove();
     });
 
+});
+
+describe('<fdl-payment-workflow>', () => {
+    it('lets the FDL record activate and deactivate ACH-only fields', async () => {
+        const workflow = document.createElement('fdl-payment-workflow') as TestElement;
+        document.body.append(workflow);
+        await settle(workflow);
+
+        const methodField = workflow.shadowRoot?.querySelector(
+            'fdl-field[field="method"]'
+        ) as TestElement;
+        const routingField = workflow.shadowRoot?.querySelector(
+            'fdl-field[field="routingNumber"]'
+        ) as TestElement;
+        await settle(methodField);
+        await settle(routingField);
+
+        const routingInput = routingField.shadowRoot?.querySelector('input');
+        expect(routingInput).not.toBeNull();
+        expect(routingInput?.required).toBe(true);
+        expect(workflow.shadowRoot?.textContent).toContain('ACH account rules are active.');
+
+        const methodSelect = methodField.shadowRoot?.querySelector('select') as HTMLSelectElement;
+        methodSelect.value = 'check';
+        methodSelect.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+        await settle(workflow);
+        await settle(routingField);
+
+        expect(routingField.shadowRoot?.querySelector('input')).toBeNull();
+        expect(workflow.shadowRoot?.textContent).toContain('ACH account rules are inactive.');
+
+        workflow.remove();
+    });
+
+    it('uses model validation to gate review and reuses formatting for table and export', async () => {
+        const workflow = document.createElement('fdl-payment-workflow') as TestElement;
+        document.body.append(workflow);
+        await settle(workflow);
+
+        const routingField = workflow.shadowRoot?.querySelector(
+            'fdl-field[field="routingNumber"]'
+        ) as TestElement;
+        await settle(routingField);
+        const routingInput = routingField.shadowRoot?.querySelector('input') as HTMLInputElement;
+        routingInput.value = '123';
+        routingInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await settle(workflow);
+
+        workflow.shadowRoot?.querySelector<HTMLButtonElement>('.primary')?.click();
+        await settle(workflow);
+        expect(workflow.shadowRoot?.querySelector('.error-summary')?.textContent).toContain(
+            'Routing number: must be a valid 9-digit ABA number'
+        );
+        expect(workflow.shadowRoot?.querySelector('fdl-table')).toBeNull();
+
+        routingInput.value = '021000021';
+        routingInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        await settle(workflow);
+        workflow.shadowRoot?.querySelector<HTMLButtonElement>('.primary')?.click();
+        await settle(workflow);
+
+        const reviewTable = workflow.shadowRoot?.querySelector('fdl-table') as TestElement;
+        expect(reviewTable).toBeTruthy();
+        await settle(reviewTable);
+        expect(reviewTable.shadowRoot?.querySelector('tbody')?.textContent).toContain('$2,450.00');
+        expect(reviewTable.shadowRoot?.querySelector('tbody')?.textContent).toContain('ACH transfer');
+
+        const exportPreview = workflow.shadowRoot?.querySelector('[data-export-preview]');
+        expect(exportPreview?.textContent).toContain('"$2,450.00"');
+        expect(exportPreview?.textContent).toContain('"ACH transfer"');
+
+        workflow.remove();
+    });
 });

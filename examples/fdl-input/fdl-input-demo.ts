@@ -14,7 +14,7 @@ export class FdlInputDemo extends LitElement {
                     </p>
                     <div class="actions">
                         <a class="button primary" href="./cookbook/">Explore the modifier cookbook <span aria-hidden="true">→</span></a>
-                        <a class="button secondary" href="https://github.com/Banno/FDL" target="_blank" rel="noreferrer">View FDL on GitHub <span aria-hidden="true">↗</span></a>
+                        <a class="button secondary" href="https://github.com/pmcelhaney/FDL" target="_blank" rel="noreferrer">View FDL on GitHub <span aria-hidden="true">↗</span></a>
                     </div>
                     <p class="rule-note"><span class="rule-dot"></span> Small definitions. Consistent behavior.</p>
                 </header>

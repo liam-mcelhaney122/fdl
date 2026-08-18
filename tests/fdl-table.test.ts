@@ -5,6 +5,7 @@ import { resizeColumnWidths } from '../examples/fdl-input/fdl-table';
 type TestTable = HTMLElement & {
     recordset: Recordset<any>;
     updateComplete: Promise<boolean>;
+    requestUpdate(): void;
 };
 
 const rows = (table: TestTable) =>
@@ -47,6 +48,83 @@ describe('<fdl-table>', () => {
                 -30
             )
         ).toEqual([140, 110]);
+    });
+
+    it('exposes column width constraints and supports keyboard resizing', async () => {
+        const recordset = new Recordset(
+            {
+                left: new FieldType().with
+                    .label('Amount')
+                    .and.minColumnWidth(100)
+                    .and.maxColumnWidth(180),
+                right: new FieldType().with.minColumnWidth(80).and.maxColumnWidth(120),
+            },
+            [{ left: 'Left', right: 'Right' }]
+        );
+        const table = document.createElement('fdl-table') as TestTable;
+        table.recordset = recordset;
+        table.innerHTML = `
+            <fdl-column field="left"></fdl-column>
+            <fdl-column field="right"></fdl-column>
+        `;
+        document.body.append(table);
+        await settle(table);
+
+        const headers = table.shadowRoot?.querySelectorAll<HTMLTableCellElement>('th');
+        headers![0].getBoundingClientRect = () => ({ width: 150 } as DOMRect);
+        headers![1].getBoundingClientRect = () => ({ width: 100 } as DOMRect);
+
+        const press = async (key: string, shiftKey = false) => {
+            const handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
+            const event = new KeyboardEvent('keydown', {
+                bubbles: true,
+                cancelable: true,
+                key,
+                shiftKey,
+            });
+            handle?.dispatchEvent(event);
+            await table.updateComplete;
+            return event;
+        };
+
+        expect(await press('ArrowRight')).toHaveProperty('defaultPrevented', true);
+        let handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
+        expect(handle?.tabIndex).toBe(0);
+        expect(handle?.getAttribute('role')).toBe('separator');
+        expect(handle?.getAttribute('aria-orientation')).toBe('vertical');
+        expect(handle?.getAttribute('aria-label')).toBe('Resize Amount column');
+        expect(handle?.getAttribute('aria-valuemin')).toBe('130');
+        expect(handle?.getAttribute('aria-valuemax')).toBe('170');
+        expect(handle?.getAttribute('aria-valuenow')).toBe('151');
+
+        await press('ArrowRight', true);
+        expect(table.shadowRoot?.querySelectorAll('col')[0].getAttribute('style')).toContain(
+            'width:161px'
+        );
+        expect(table.shadowRoot?.querySelectorAll('col')[1].getAttribute('style')).toContain(
+            'width:89px'
+        );
+
+        await press('End');
+        handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
+        expect(handle?.getAttribute('aria-valuenow')).toBe('170');
+        expect(table.shadowRoot?.querySelectorAll('col')[1].getAttribute('style')).toContain(
+            'width:80px'
+        );
+
+        await press('Home');
+        handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
+        expect(handle?.getAttribute('aria-valuenow')).toBe('130');
+        expect(table.shadowRoot?.querySelectorAll('col')[1].getAttribute('style')).toContain(
+            'width:120px'
+        );
+
+        await press('ArrowLeft');
+        expect(table.shadowRoot?.querySelectorAll('col')[0].getAttribute('style')).toContain(
+            'width:130px'
+        );
+
+        table.remove();
     });
 
     it('continues tracking a drag after rendering replaces the resize handle', async () => {
