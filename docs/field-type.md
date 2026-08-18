@@ -71,6 +71,12 @@ current `Record` unless the modifier states otherwise.
 
 ## Form behavior
 
+FDL describes reusable field behavior; it does not guarantee accessible markup
+or choose a component system. The current Lit/native example interprets some
+legacy renderer-oriented metadata for compatibility. See the
+[adapter contract](./adapter-contract.md) before mapping these values into a
+design system or another framework.
+
 Use the following modifiers to describe input controls:
 
 | Modifier | Purpose |
