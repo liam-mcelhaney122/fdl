@@ -96,6 +96,9 @@ Custom Lit controls can extend [`FormElement`](./docs/form-element.md) to connec
 
 Contributors working on field behavior, components, or presentation should
 follow the [FDL design principles](./docs/design-principles.md).
+Integrations should also follow the explicit
+[adapter contract](./docs/adapter-contract.md), which separates FDL-owned
+behavior from component semantics and application concerns.
 
 See [prospective FDL user personas](./docs/user-personas.md) for evaluation
 profiles that test the home page and documentation against realistic needs.

@@ -98,7 +98,7 @@ const entries: CatalogEntry[] = [
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 export class FdlModifierCatalog extends LitElement {
-    private messages: { [field: string]: string } = {};
+    private validatedFields = new Set<string>();
 
     private defaultRecord = new Record(
         { defaultId: new FieldType().with.label('Request ID').and.defaultValue('Pending assignment') },
@@ -285,24 +285,33 @@ export class FdlModifierCatalog extends LitElement {
         this.requestUpdate();
     };
 
-    private renderField(field: string, record: Record<any> = this.record) {
-        return html`<fdl-field field=${field} .record=${record}></fdl-field>`;
+    private renderField(
+        field: string,
+        record: Record<any> = this.record,
+        showValidation = false
+    ) {
+        return html`<fdl-field
+            field=${field}
+            .record=${record}
+            .showValidation=${showValidation}
+        ></fdl-field>`;
     }
 
-    private setMessage(field: string) {
-        this.messages = {
-            ...this.messages,
-            [field]: this.record.isValid(field) ? 'Valid.' : this.record.readableFieldErrors(field).join('; '),
-        };
+    private validateField(field: string) {
+        this.validatedFields.add(field);
         this.requestUpdate();
     }
 
-    private message(field: string) {
-        return this.messages[field] ? html`<p class="result" role="status">${this.messages[field]}</p>` : nothing;
+    private validationResult(field: string) {
+        if (!this.validatedFields.has(field) || !this.record.isValid(field)) return nothing;
+        return html`<p class="result valid" role="status">Valid.</p>`;
     }
 
     private renderValidation(field: string) {
-        return html`${this.renderField(field)}<button type="button" @click=${() => this.setMessage(field)}>Check value</button>${this.message(field)}`;
+        const showValidation = this.validatedFields.has(field);
+        return html`${this.renderField(field, this.record, showValidation)}
+            <button type="button" @click=${() => this.validateField(field)}>Check value</button>
+            ${this.validationResult(field)}`;
     }
 
     private renderWidth(name: 'maxColumnWidth' | 'minColumnWidth' | 'targetColumnWidth') {
@@ -413,7 +422,8 @@ export class FdlModifierCatalog extends LitElement {
         fdl-field { display: block; margin-bottom: .7rem; }
         button { border: 0; border-radius: .45rem; background: #10233f; color: white; cursor: pointer; font: inherit; font-weight: 700; padding: .65rem .9rem; }
         button:disabled { background: #aeb4c2; cursor: not-allowed; }
-        .result { color: #9b2c20; font-size: .85rem; font-weight: 700; margin: .7rem 0 0; }
+        .result { font-size: .85rem; font-weight: 700; margin: .7rem 0 0; }
+        .result.valid { color: #067647; }
         details { margin-top: .8rem; border: 1px solid #dfe3ee; border-radius: .65rem; background: #101629; color: #d8def0; }
         summary { cursor: pointer; font-size: .8rem; font-weight: 700; padding: .7rem .85rem; }
         pre { overflow-x: auto; border-top: 1px solid #29314a; margin: 0; padding: .85rem; }
