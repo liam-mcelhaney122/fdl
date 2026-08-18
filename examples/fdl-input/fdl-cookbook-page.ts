@@ -1,4 +1,5 @@
 import { LitElement, css, html } from 'lit';
+import './fdl-payment-workflow';
 import './fdl-modifier-catalog';
 
 export class FdlCookbookPage extends LitElement {
@@ -12,6 +13,7 @@ export class FdlCookbookPage extends LitElement {
                     <h1>Modifier cookbook</h1>
                     <p class="lede">A living reference for FDL’s public builder modifiers, with small examples that show what each one does.</p>
                 </header>
+                <fdl-payment-workflow></fdl-payment-workflow>
                 <fdl-modifier-catalog></fdl-modifier-catalog>
             </main>
         `;

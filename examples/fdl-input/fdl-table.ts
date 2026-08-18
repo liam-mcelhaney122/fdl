@@ -325,6 +325,55 @@ export class FdlTable extends LitElement {
         ].filter(Boolean).join(';');
     }
 
+    private resizeWidths() {
+        return this.columnWidths ?? this.measureColumnWidths() ?? this.columns.map(column => {
+            const limits = this.columnLimits(column);
+            const target = this.recordset?.getFieldType(column.field).properties.targetColumnWidth;
+            return Math.max(limits.min, Math.min(limits.max ?? Infinity, target ?? 160));
+        });
+    }
+
+    private resizeRange(widths: number[], leftIndex: number) {
+        const limits = this.columns.map(column => this.columnLimits(column));
+        const left = limits[leftIndex];
+        const current = widths[leftIndex];
+        const availableToGrow = limits.slice(leftIndex + 1).reduce((total, limit, index) => {
+            const width = widths[leftIndex + index + 1];
+            return total + (limit.max === undefined ? Infinity : limit.max - width);
+        }, 0);
+        const availableToShrink = limits.slice(leftIndex + 1).reduce((total, limit, index) => {
+            const width = widths[leftIndex + index + 1];
+            return total + width - limit.min;
+        }, 0);
+        return {
+            min: Math.max(left.min, current - availableToGrow),
+            max: Math.min(left.max ?? Infinity, current + availableToShrink),
+            now: current,
+        };
+    }
+
+    private resizeWithKeyboard(event: KeyboardEvent, leftIndex: number) {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const widths = this.resizeWidths();
+        if (leftIndex >= widths.length - 1) return;
+        const range = this.resizeRange(widths, leftIndex);
+        const step = event.shiftKey ? 10 : 1;
+        const target =
+            event.key === 'Home'
+                ? range.min
+                : event.key === 'End'
+                  ? range.max
+                  : range.now + (event.key === 'ArrowRight' ? step : -step);
+        this.columnWidths = resizeColumnWidths(
+            widths,
+            this.columns.map(column => this.columnLimits(column)),
+            leftIndex,
+            target - range.now
+        );
+        this.requestUpdate();
+        event.preventDefault();
+    }
+
     private startResize(
         event: MouseEvent | PointerEvent,
         leftIndex: number,
@@ -438,6 +487,7 @@ export class FdlTable extends LitElement {
         const heading = this.heading(column);
         const filterText = this.filterFor(column.field);
         const filterOpen = this.activeFilterField === column.field;
+        const resizeRange = this.resizeRange(this.resizeWidths(), index);
 
         return html`<th aria-sort=${ariaSort}>
             <div class="heading-actions">
@@ -520,8 +570,13 @@ export class FdlTable extends LitElement {
                 ? html`<div
                       class="resize-handle"
                       role="separator"
+                      tabindex="0"
                       aria-label=${`Resize ${this.heading(column)} column`}
                       aria-orientation="vertical"
+                      aria-valuemin=${resizeRange.min}
+                      aria-valuemax=${resizeRange.max}
+                      aria-valuenow=${resizeRange.now}
+                      @keydown=${(event: KeyboardEvent) => this.resizeWithKeyboard(event, index)}
                       @pointerdown=${(event: PointerEvent) => this.startResize(event, index, 'pointer')}
                       @mousedown=${(event: MouseEvent) => this.startResize(event, index, 'mouse')}
                   ></div>`
