@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, PropertyValues, html, css, nothing } from 'lit';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { property, state, customElement } from 'lit/decorators.js';
 import FieldType from './field-type.js';
@@ -8,11 +8,13 @@ import { ListeningElementMixin } from './utilities/listening-element';
 import { Events } from './types/events.types';
 
 const ListeningElement = ListeningElementMixin(LitElement);
+let nextFormElementId = 0;
 
 class FormElement extends ListeningElement {
     constructor() {
         super();
         this.field = '';
+        this.showValidationErrors = false;
     }
 
     dispatchEvent: any;
@@ -22,6 +24,19 @@ class FormElement extends ListeningElement {
 
     @property({ type: Object })
     public record?: Record;
+
+    /**
+     * Whether this adapter should expose the field's synchronous model validation errors.
+     * Applications own the interaction policy that decides when to enable it.
+     */
+    @property({ type: Boolean, attribute: 'show-validation-errors' })
+    public showValidationErrors: boolean;
+
+    private readonly controlId = `form-element-control-${++nextFormElementId}`;
+
+    private readonly labelId = `${this.controlId}-label`;
+
+    private readonly errorId = `${this.controlId}-error`;
 
     @state()
     private fieldType?: FieldType;
@@ -78,7 +93,7 @@ class FormElement extends ListeningElement {
          */
         // @ts-ignore
         this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
-        this.element.id = this.field;
+        this.element.id = this.controlId;
         if (this.element instanceof HTMLInputElement) {
             this.element.type = this.fieldType?.type();
         }
@@ -157,7 +172,41 @@ class FormElement extends ListeningElement {
             }
             this.element.loading = false;
         }
+        this.updateValidationAccessibility();
         this.requestUpdate();
+    }
+
+    protected updated(changedProperties: PropertyValues<this>) {
+        if (changedProperties.has('showValidationErrors')) {
+            this.updateValidationAccessibility();
+        }
+    }
+
+    private visibleValidationErrors() {
+        if (!this.showValidationErrors || !this.record || !this.fieldType) return [];
+        if (!this.fieldType.visible(this.record)) return [];
+        return this.record.readableFieldErrors(this.field);
+    }
+
+    private updateValidationAccessibility() {
+        if (!this.element) return;
+        const hasVisibleErrors = this.visibleValidationErrors().length > 0;
+        if (hasVisibleErrors) this.element.setAttribute('aria-invalid', 'true');
+        else this.element.removeAttribute('aria-invalid');
+
+        const describedBy = new Set(
+            (this.element.getAttribute('aria-describedby') ?? '')
+                .split(/\s+/)
+                .filter(Boolean)
+        );
+        describedBy.delete(this.errorId);
+        if (hasVisibleErrors) describedBy.add(this.errorId);
+
+        if (describedBy.size > 0) {
+            this.element.setAttribute('aria-describedby', [...describedBy].join(' '));
+        } else {
+            this.element.removeAttribute('aria-describedby');
+        }
     }
 
     renderRequired() {
@@ -172,9 +221,15 @@ class FormElement extends ListeningElement {
         if (!this.fieldType?.label(this.record)) return nothing;
         if (this.fieldType?.hideLabel()) return nothing;
         if (!this.fieldType?.visible(this.record)) return nothing;
-        return html`<label for=${this.field}
+        return html`<label id=${this.labelId} for=${this.controlId}
             >${this.fieldType?.label(this.record)}${this.renderRequired()}<slot name="label"></slot
         ></label>`;
+    }
+
+    renderValidationErrors() {
+        const errors = this.visibleValidationErrors();
+        if (errors.length === 0) return nothing;
+        return html`<div class="validation-error" id=${this.errorId}>${errors.join('. ')}</div>`;
     }
 
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -182,9 +237,21 @@ class FormElement extends ListeningElement {
         if (!this.record) return nothing;
         if (!this.element) return nothing;
         if (!this.fieldType?.visible(this.record)) return nothing;
-        if (this.element.readonly && !this.fieldType?.usesCustomPrint())
-            return html`<div class="control">${this.record.print(this.field)}</div>`;
-        return html`<div class="control" id=${this.field}>${this.element}</div>`;
+        if (this.element.readonly && !this.fieldType?.usesCustomPrint()) {
+            const hasVisibleErrors = this.visibleValidationErrors().length > 0;
+            return html`<div class="control">
+                <output
+                    id=${this.controlId}
+                    name=${this.field}
+                    aria-labelledby=${this.labelId}
+                    aria-invalid=${hasVisibleErrors ? 'true' : nothing}
+                    aria-describedby=${hasVisibleErrors ? this.errorId : nothing}
+                    >${this.record.print(this.field)}</output
+                >
+                ${this.renderValidationErrors()}
+            </div>`;
+        }
+        return html`<div class="control">${this.element}${this.renderValidationErrors()}</div>`;
     }
 
     render() {
