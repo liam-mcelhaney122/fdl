@@ -108,6 +108,9 @@ export class FdlModifierCatalog extends LitElement {
 
     private validatedFields = new Set<string>();
     private minimum = 4;
+    private optionsDepartment = '';
+    private assigneeChoices: {text: string; value: string}[] = [];
+    private optionsLoading = false;
 
     private defaultRecord = new Record(
         { defaultId: new FieldType().with.label('Request ID').and.defaultValue('Pending assignment') },
@@ -298,6 +301,7 @@ export class FdlModifierCatalog extends LitElement {
         this.record.addEventListener('change', this.onRecordChange);
         this.defaultRecord.addEventListener('change', this.onRecordChange);
         this.probes.addEventListener('change', this.onRecordChange);
+        if (this.modifier === 'options') this.loadAssigneeChoices();
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.addEventListener('page-changed', this.onRecordChange));
     }
 
@@ -309,7 +313,32 @@ export class FdlModifierCatalog extends LitElement {
         super.disconnectedCallback();
     }
 
-    private onRecordChange = () => this.requestUpdate();
+    private onRecordChange = () => {
+        if (this.modifier === 'options') this.loadAssigneeChoices();
+        this.requestUpdate();
+    };
+    private async loadAssigneeChoices() {
+        const department = this.record.getField('department');
+        if (department === this.optionsDepartment) return;
+        this.optionsDepartment = department;
+        this.optionsLoading = true;
+        this.requestUpdate();
+        const choices = await this.record.fieldTypeForField('assignee').options(this.record) as {text: string; value: string}[];
+        if (department !== this.optionsDepartment) return;
+        this.assigneeChoices = choices;
+        this.optionsLoading = false;
+        this.requestUpdate();
+    }
+    private selectionExplanation() {
+        const selected = this.record.getField('assignee');
+        const matches = this.assigneeChoices.some(choice => choice.value === selected);
+        return html`<div class="selection-explanation" role="status">
+            <p>Available choices: ${this.optionsLoading ? 'Loading…' : this.assigneeChoices.map(choice => `${choice.text} (${choice.value})`).join(', ')}.</p>
+            <p>Stored selection: <code>${selected || '(empty)'}</code>.</p>
+            ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected.' : matches ? 'The stored assignee is among the available choices.' : 'The stored assignee is no longer among the available choices. Refreshing choices preserves the stored selection; the application decides whether to clear it.'}</p>`}
+            <button class="clear-selection" ?disabled=${!selected || this.optionsLoading} @click=${() => this.record.setField('assignee', '')}>Clear stored selection</button>
+        </div>`;
+    }
 
     private clearDefaultRecord = () => {
         this.defaultRecord.clear();
@@ -390,7 +419,7 @@ export class FdlModifierCatalog extends LitElement {
                 this.requestUpdate();
             }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;
-            case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}`;
+            case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}${this.selectionExplanation()}`;
             case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p>${this.renderField('money')}<p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>`;
             case 'placeholder': return html`${this.renderField('projectName')}`;
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
@@ -472,6 +501,7 @@ export class FdlModifierCatalog extends LitElement {
         .state-label { color: #475569; font: .875rem monospace; letter-spacing: 1px; }
         .focused pre { padding: 0; border: 0; font: 1rem/1.7 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
         .limitation { padding: 20px; border-left: 3px solid #2563eb; background: #eff6ff; font-size: 1.125rem; line-height: 1.8; }
+        .selection-explanation { border-left:3px solid #2563eb; background:#eff6ff; padding:12px; margin-top:16px; line-height:1.6; }
         .model-assignment { margin-top: 12px; }
         .probe-result { display: inline-block; margin-right: 12px; }
         select { font:inherit; min-height:44px; max-width:100%; }

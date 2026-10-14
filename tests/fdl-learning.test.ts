@@ -119,3 +119,21 @@ it('explains actual sort precedence without requiring a JSON read', async () => 
     expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('4 of 4');
     expect(catalog.shadowRoot!.querySelector('.focused-state details')!.hasAttribute('open')).toBe(false);
 });
+
+it('exposes an out-of-list selection and clears it only on request', async () => {
+    const page = await openExplorer('#options');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    await editField(catalog.shadowRoot!, 'department', 'finance');
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await catalog.updateComplete;
+    const explanation = catalog.shadowRoot!.querySelector('.selection-explanation')!;
+    expect(explanation.textContent).toContain('no longer among the available choices');
+    expect(explanation.textContent).toContain('Katherine Johnson');
+    expect(explanation.textContent).toContain('grace');
+    catalog.shadowRoot!.querySelector<HTMLButtonElement>('.clear-selection')!.click();
+    await catalog.updateComplete;
+    expect(explanation.textContent).toContain('No assignee is selected');
+    const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
+    expect(state.assignee).toBe('');
+});
