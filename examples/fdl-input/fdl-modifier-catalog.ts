@@ -33,7 +33,7 @@ const placeholder = (name: string, intent: string, limitation: string): CatalogE
     name, intent, limitation,
 });
 
-const entries: CatalogEntry[] = [
+export const modifierEntries: CatalogEntry[] = [
     live('cellClass', 'Adds a CSS class to every table cell for this field.', 'cellClass', `.cellClass('amount-cell')`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `const people = new Recordset({
   firstName: new FieldType().with
@@ -98,6 +98,11 @@ const entries: CatalogEntry[] = [
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 export class FdlModifierCatalog extends LitElement {
+    static properties = { modifier: { type: String } };
+
+    /** A focused view reuses the cookbook example without rendering the catalog. */
+    modifier = '';
+
     private validatedFields = new Set<string>();
 
     private defaultRecord = new Record(
@@ -147,7 +152,7 @@ export class FdlModifierCatalog extends LitElement {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
             emptyCode: 'N/A', hiddenSearch: '', expenseType: 'travel', dynamicAmount: '',
             money: 1000,
-            shortCode: '', longCode: '', skills: 'design', quantity: 2, total: 50, department: 'engineering', assignee: 'grace',
+            shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'grace',
             projectName: '', fixedOwner: 'Ada Lovelace', phase: 'draft', conditionalOwner: 'Ada Lovelace', requiredName: '',
             followUp: 'no', followUpNotes: '', comments: '', dateType: '', projectCode: '',
             fulfillment: 'ship', address: '',
@@ -264,17 +269,39 @@ export class FdlModifierCatalog extends LitElement {
             [{ constrained: 'Preferred width: 140px', flexible: 'Makes up the difference' }]
         ),
     };
-    private sortableType = new FieldType().with.sortable(false);
+    private probes = new Record({
+        input: new FieldType<string>().with.label('Characters to test'),
+        firstId: new FieldType<string>().with.label('First employee ID'),
+        secondId: new FieldType<string>().with.label('Second employee ID'),
+        firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
+        secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
+        thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
+    }, { input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    private exampleOffset = 0;
+
+    private get tableRecordsets(): { [name: string]: Recordset<any> } {
+        return {
+            cellClass: this.cellClassRecordset, conditionalCellClass: this.conditionalClassRecordset,
+            compareFunction: this.compareRecordset, filter: this.filterRecordset,
+            formatter: this.formatterRecordset, rowClasses: this.rowClassRecordset,
+            template: this.templateRecordset, textAlign: this.alignRecordset,
+            sortable: this.compareRecordset, ...this.widthRecordsets,
+        };
+    }
 
     connectedCallback() {
         super.connectedCallback();
         this.record.addEventListener('change', this.onRecordChange);
         this.defaultRecord.addEventListener('change', this.onRecordChange);
+        this.probes.addEventListener('change', this.onRecordChange);
+        new Set(Object.values(this.tableRecordsets)).forEach(table => table.addEventListener('page-changed', this.onRecordChange));
     }
 
     disconnectedCallback() {
         this.record.removeEventListener('change', this.onRecordChange);
         this.defaultRecord.removeEventListener('change', this.onRecordChange);
+        this.probes.removeEventListener('change', this.onRecordChange);
+        new Set(Object.values(this.tableRecordsets)).forEach(table => table.removeEventListener('page-changed', this.onRecordChange));
         super.disconnectedCallback();
     }
 
@@ -343,14 +370,14 @@ export class FdlModifierCatalog extends LitElement {
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}`;
             case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderValidation('emptyCode')}`;
-            case 'exampleValue': return html`<p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index)).join(', ')}</p>`;
+            case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
             case 'filter': return html`<p class="try">Open the filter in the Name heading. This matcher uses “starts with,” so entering “gr” keeps Grace.</p><fdl-table .recordset=${this.filterRecordset}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
-            case 'hashFunction': return html`<p class="computed">Two separate employee objects hash to “${this.hashType.hashFunction()({ id: 'ada' })}” and “${this.hashType.hashFunction()({ id: 'ada' })}”, so a consumer can match their identity.</p>`;
-            case 'inputMask': return html`<p class="computed">Allowed: “7” ${String(this.maskType.allowInputChar('7'))}, “.” ${String(this.maskType.allowInputChar('.'))}; blocked: “A” ${String(this.maskType.allowInputChar('A'))}. The native adapter does not enforce this during typing.</p>`;
+            case 'hashFunction': return html`${this.renderField('firstId', this.probes)}${this.renderField('secondId', this.probes)}<p class="computed" role="status">Hash comparison: ${this.hashType.hashFunction()({ id: this.probes.getField('firstId') }) === this.hashType.hashFunction()({ id: this.probes.getField('secondId') }) ? 'same identity' : 'different identities'}. Separate objects match when their IDs match.</p>`;
+            case 'inputMask': return html`${this.renderField('input', this.probes)}<p class="computed" role="status">${[...this.probes.getField('input')].map(character => html`<span class="probe-result">“${character}”: ${this.maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>`)}</p><p class="try">This tests FieldType.allowInputChar(). The native adapter does not block typing.</p>`;
             case 'label': return html`<p class="try">Change the expense type and watch the amount label.</p>${this.renderField('expenseType')}${this.renderField('dynamicAmount')}`;
             case 'maxColumnWidth': return this.renderWidth('maxColumnWidth');
-            case 'maxLength': return this.renderValidation('shortCode');
+            case 'maxLength': return html`${this.renderValidation('shortCode')}${this.modifier ? html`<button class="model-assignment" @click=${() => { this.record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG'); this.validateField('shortCode'); }}>Assign an overlong model value</button>` : nothing}`;
             case 'minColumnWidth': return this.renderWidth('minColumnWidth');
             case 'minLength': return this.renderValidation('longCode');
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;
@@ -359,12 +386,12 @@ export class FdlModifierCatalog extends LitElement {
             case 'placeholder': return html`${this.renderField('projectName')}`;
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
             case 'readOnlyWhen': return html`<p class="try">Choose Submitted to replace the owner input with printed text.</p>${this.renderField('phase')}${this.renderField('conditionalOwner')}`;
-            case 'reducer': return html`<p class="computed">aggregate([1200, 800, 500]) → ${currency.format(this.reducerType.aggregate([1200, 800, 500]))}</p>`;
+            case 'reducer': return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p class="computed" role="status">Sum: ${currency.format(this.reducerType.aggregate([this.probes.getField('firstAmount'), this.probes.getField('secondAmount'), this.probes.getField('thirdAmount')]))}</p>`;
             case 'required': return this.renderValidation('requiredName');
             case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}`;
             case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('comments')}`;
-            case 'sortable': return html`<p class="computed">Sortable metadata: ${String((this.sortableType as any).properties.sortable)}. The disabled sort button represents the consuming table.</p><button type="button" disabled>Sort column</button>`;
+            case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.compareRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
             case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
@@ -390,19 +417,66 @@ export class FdlModifierCatalog extends LitElement {
         </article>`;
     }
 
+    private focusedState(name: string): unknown {
+        const fields: { [name: string]: string[] } = {
+            disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode'],
+            label: ['expenseType', 'dynamicAmount'], maxLength: ['shortCode'], minLength: ['longCode'],
+            multipleValues: ['skills'], options: ['department', 'assignee'], parser: ['money'],
+            placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
+            required: ['requiredName'], requiredWhen: ['followUp', 'followUpNotes'], rowCount: ['comments'],
+            type: ['dateType'], validator: ['projectCode'], visibleWhen: ['fulfillment', 'address'],
+        };
+        if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
+        if (name === 'defaultValue') return this.defaultRecord.values;
+        if (name === 'exampleValue') return [0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset));
+        if (name === 'hashFunction') return { firstObject: { id: this.probes.getField('firstId') }, secondObject: { id: this.probes.getField('secondId') } };
+        if (name === 'inputMask') return [...this.probes.getField('input')].map(character => ({ character, allowed: this.maskType.allowInputChar(character) }));
+        if (name === 'reducer') return { values: ['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.probes.getField(field as keyof typeof this.probes.values)), sum: this.reducerType.aggregate(['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.probes.getField(field as keyof typeof this.probes.values))) };
+        const table = this.tableRecordsets[name];
+        return table ? {
+            visibleRows: table.currentPage.map(record => record.values),
+            totalRecords: table.allRecords.length,
+            sortColumns: table.sortColumns,
+        } : undefined;
+    }
+
     render() {
+        if (this.modifier) {
+            const entry = modifierEntries.find(entry => entry.name === this.modifier);
+            if (!entry) return html`<p>Unknown modifier.</p>`;
+            return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
+                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p><pre aria-live="polite">${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></div>`
+                : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
+            </div>`;
+        }
         return html`<section aria-labelledby="modifier-catalog-heading">
             <p class="eyebrow">Modifier cookbook</p>
             <h2 id="modifier-catalog-heading">Every modifier, alphabetically.</h2>
             <p class="lede">Each entry isolates one supported modifier. Live examples exercise behavior this repository can demonstrate honestly; placeholders document the intended contract and the missing path for everything else.</p>
-            <p class="summary"><strong>${entries.filter(entry => entry.demo).length} live or computed examples</strong> · ${entries.filter(entry => !entry.demo).length} documented placeholders · ${entries.length} supported modifiers total</p>
-            <div class="catalog">${entries.map(entry => this.renderEntry(entry))}</div>
+            <p class="summary"><strong>${modifierEntries.filter(entry => entry.demo).length} live or computed examples</strong> · ${modifierEntries.filter(entry => !entry.demo).length} documented placeholders · ${modifierEntries.length} supported modifiers total</p>
+            <div class="catalog">${modifierEntries.map(entry => this.renderEntry(entry))}</div>
         </section>`;
     }
 
     static styles = css`
         :host { display: block; color: #172033; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         * { box-sizing: border-box; }
+        :host([modifier]) { color: #252c28; font-family: Arial, Helvetica, sans-serif; }
+        .focused { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 25px; align-items: start; }
+        .focused.full-width { grid-template-columns: minmax(0,1fr); }
+        @media(max-width:1000px) { .focused { grid-template-columns: minmax(0,1fr); } }
+        .focused-demo > .try:first-child { display: none; }
+        .focused-demo { min-width: 0; overflow-x: auto; }
+        .focused-demo fdl-field { --field-label-width: 100%; --field-control-width: 100%; font-size: 13px; }
+        .focused .try, .focused .computed { color: #626b63; font-size: 12px; line-height: 1.8; }
+        .focused button { background: #285a46; font-size: 12px; font-weight: 400; }
+        .focused-state { padding: 18px; border: 1px solid #d7ded0; border-radius: 4px; background: #edf0e8; }
+        .state-label { color: #626b63; font: 10px monospace; letter-spacing: 1px; }
+        .focused pre { padding: 0; border: 0; font: 12px/1.8 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
+        .limitation { padding: 20px; border-left: 3px solid #ad6438; background: #f4eee5; font-size: 13px; line-height: 1.8; }
+        .model-assignment { margin-top: 12px; }
+        .probe-result { display: inline-block; margin-right: 12px; }
+        button:focus-visible { outline: 3px solid #ad6438; outline-offset: 3px; }
         h2, h3, p { margin-top: 0; }
         h2 { color: #111a31; font-family: Georgia, serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 500; letter-spacing: -.035em; margin-bottom: .6rem; }
         h3 { color: #111a31; font-family: Georgia, serif; font-size: 1.2rem; font-weight: 500; margin: .65rem 0 1rem; }

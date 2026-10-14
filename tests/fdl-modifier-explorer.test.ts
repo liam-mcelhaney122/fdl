@@ -1,5 +1,9 @@
 import '../examples/fdl-input/fdl-modifier-explorer';
+import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
+import { modifierEntries, FdlModifierCatalog } from '../examples/fdl-input/fdl-modifier-catalog';
 import type { FdlModifierExplorer } from '../examples/fdl-input/fdl-modifier-explorer';
+
+beforeAll(() => { HTMLElement.prototype.scrollIntoView = jest.fn(); });
 
 const settle = async (page: FdlModifierExplorer) => {
     await page.updateComplete;
@@ -32,8 +36,12 @@ describe('modifier explorer', () => {
         root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');
-        expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(true);
+        expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(false);
         expect(window.location.hash).toBe('#visibleWhen');
+        window.location.hash = explorerRecipes[explorerRecipes.length - 1].name;
+        window.dispatchEvent(new Event('hashchange'));
+        await settle(page);
+        expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(true);
     });
 
     it('validates the actual FDL record and resets the demonstration', async () => {
@@ -86,5 +94,118 @@ describe('modifier explorer', () => {
         select.dispatchEvent(new Event('change'));
         await settle(page);
         expect(address.shadowRoot!.querySelector('input')!.value).toBe('42 Orchard Street');
+    });
+});
+
+
+describe('complete explorer', () => {
+    it('covers the cookbook inventory exactly once', () => {
+        expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(modifierEntries.map(entry => entry.name).sort());
+        expect(new Set(explorerRecipes.map(recipe => recipe.name)).size).toBe(explorerRecipes.length);
+    });
+
+    it.each(explorerRecipes.map(recipe => [recipe.name, recipe] as const))('opens the %s deep link with one focused example or explicit contract limit', async (name, recipe) => {
+        const page = await openPage(`#${name}`);
+        expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
+        expect(page.shadowRoot!.querySelector<HTMLSelectElement>('#modifier-jump')!.value).toBe(name);
+        expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
+        expect(page.shadowRoot!.querySelector('.code')!.textContent!.length).toBeGreaterThan(20);
+        if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
+            const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+            await catalog.updateComplete;
+            expect(catalog.shadowRoot!.querySelectorAll('[data-modifier]')).toHaveLength(1);
+            expect(catalog.shadowRoot!.querySelectorAll('.cookbook-recipe')).toHaveLength(0);
+            if (recipe.limitation) {
+                expect(catalog.shadowRoot!.querySelector('.limitation')!.textContent).toContain('Adapter support needed');
+            } else {
+                expect(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!.length).toBeGreaterThan(1);
+            }
+        }
+    });
+
+    it('filters the index without changing the current page or sequence', async () => {
+        const page = await openPage();
+        const root = page.shadowRoot!;
+        const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
+        search.value = 'width';
+        search.dispatchEvent(new Event('input'));
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(3);
+        expect(root.querySelector('h1')!.textContent).toContain('required');
+        root.querySelector<HTMLButtonElement>('.next')!.click();
+        await settle(page);
+        expect(root.querySelector('h1')!.textContent).toContain('formatter');
+        search.value = 'no matching modifier';
+        search.dispatchEvent(new Event('input'));
+        await settle(page);
+        expect(root.querySelector('.empty-search')!.textContent).toContain('No modifiers match');
+    });
+
+    it('jumps through the compact menu and resets an extended example', async () => {
+        const page = await openPage();
+        const root = page.shadowRoot!;
+        const jump = root.querySelector<HTMLSelectElement>('#modifier-jump')!;
+        jump.value = 'defaultValue';
+        jump.dispatchEvent(new Event('change'));
+        await settle(page);
+        let catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        await catalog.updateComplete;
+        catalog.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+        await catalog.updateComplete;
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Pending assignment');
+        root.querySelector<HTMLButtonElement>('.reset')!.click();
+        await settle(page);
+        catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        await catalog.updateComplete;
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('REQ-1042');
+    });
+});
+
+
+describe('extended model exercises', () => {
+    it('recomputes an aggregate when its FDL-backed input changes', async () => {
+        const page = await openPage('#reducer');
+        const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        await catalog.updateComplete;
+        const field = catalog.shadowRoot!.querySelector('fdl-field[field="secondAmount"]') as any;
+        await field.updateComplete;
+        const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
+        input.value = '300';
+        input.dispatchEvent(new Event('input'));
+        await catalog.updateComplete;
+        expect(catalog.shadowRoot!.querySelector('.computed')!.textContent).toContain('$2,000.00');
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('2000');
+    });
+
+    it('shows actual hydrated and sorted table rows in the state panel', async () => {
+        const page = await openPage('#sortable');
+        const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        await catalog.updateComplete;
+        const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+        await table.updateComplete;
+        await table.recordset.requestUpdate();
+        await catalog.updateComplete;
+        await table.updateComplete;
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Zulu');
+        const sort = table.shadowRoot.querySelector('button[title="Sort by Last name"]') as HTMLButtonElement;
+        sort.click();
+        await table.recordset.requestUpdate();
+        await catalog.updateComplete;
+        const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
+        expect(state.visibleRows[0].lastName).toBe('Alpha');
+        expect(state.sortColumns[0].field).toBe('lastName');
+        expect(state.totalRecords).toBe(4);
+    });
+
+    it('rejects an overlong value assigned directly to the model', async () => {
+        const page = await openPage('#maxLength');
+        const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        await catalog.updateComplete;
+        catalog.shadowRoot!.querySelector<HTMLButtonElement>('.model-assignment')!.click();
+        await catalog.updateComplete;
+        const field = catalog.shadowRoot!.querySelector('fdl-field') as any;
+        await field.updateComplete;
+        expect(field.shadowRoot.querySelector('[aria-invalid="true"]')).toBeTruthy();
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('THIS-CODE-IS-TOO-LONG');
     });
 });

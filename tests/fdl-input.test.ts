@@ -78,6 +78,34 @@ describe('<fdl-field>', () => {
         element.remove();
     });
 
+    it('round-trips every selected value between a multi-select and its record', async () => {
+        const record = new Record({ colors: new FieldType().with.tag('select').and.multipleValues().and.options([
+            { text: 'Blue', value: 'blue' }, { text: 'Green', value: 'green' },
+        ]) }, { colors: ['blue', 'green'] });
+        const element = document.createElement('fdl-field') as TestElement & { record: Record; field: string };
+        element.record = record;
+        element.field = 'colors';
+        document.body.append(element);
+        await settle(element);
+        const select = element.shadowRoot!.querySelector('select')!;
+        expect([...select.selectedOptions].map(option => option.value)).toEqual(['blue', 'green']);
+        select.options[0].selected = false;
+        select.dispatchEvent(new Event('input'));
+        select.dispatchEvent(new Event('change'));
+        await settle(element);
+        expect(record.values.colors).toEqual(['green']);
+        expect([...select.selectedOptions].map(option => option.value)).toEqual(['green']);
+        record.setField('colors', ['blue', 'green']);
+        await settle(element);
+        expect([...select.selectedOptions].map(option => option.value)).toEqual(['blue', 'green']);
+        select.options[0].selected = false;
+        select.options[1].selected = false;
+        select.dispatchEvent(new Event('change'));
+        await settle(element);
+        expect(record.values.colors).toEqual([]);
+        element.remove();
+    });
+
     it('creates a textarea without assigning an unsupported input type', async () => {
         const record = new Record(
             { notes: new FieldType().with.tag('textarea').and.rowCount(3) },
@@ -301,7 +329,8 @@ describe('<fdl-input-demo>', () => {
         const fulfillment = visibleCard?.querySelector(
             'fdl-field[field="fulfillment"]'
         ) as HTMLElement & { updateComplete: Promise<boolean> };
-        await fulfillment.updateComplete;
+        // The adapter finishes asynchronous options setup after its Lit render.
+        await settle(fulfillment);
         const select = fulfillment.shadowRoot?.querySelector('select') as HTMLSelectElement;
         select.value = 'pickup';
         select.dispatchEvent(new Event('change', { bubbles: true, composed: true }));

@@ -61,6 +61,8 @@ class FormElement extends ListeningElement {
                 let value;
                 if (event.detail) {
                     value = event.detail.value ?? event.detail.values ?? event.detail;
+                } else if (this.element instanceof HTMLSelectElement && this.element.multiple) {
+                    value = [...this.element.selectedOptions].map(option => option.value);
                 } else {
                     value = event.target.value;
                 }
@@ -91,12 +93,15 @@ class FormElement extends ListeningElement {
         /**
          * assign all standard properties we can from the modifiers
          */
-        // @ts-ignore
-        // Native select values use option identity, not the formatted option label.
-        // Keep that identity intact between the native input and change events.
-        this.element.value = this.element instanceof HTMLSelectElement
-            ? String((this.record as any)?.getField(this.field) ?? '')
-            : this.record?.getFormattedField(this.field, 'input-focus');
+        // Native selects use option identities, not formatted labels. Keep all
+        // selected identities intact between native input and change events.
+        if (this.element instanceof HTMLSelectElement) {
+            this.element.multiple = this.fieldType?.hasMultipleValues() ?? false;
+            this.syncSelectValue();
+        } else {
+            // @ts-ignore
+            this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
+        }
         this.element.id = this.controlId;
         if (this.element instanceof HTMLInputElement) {
             this.element.type = this.fieldType?.type();
@@ -168,7 +173,7 @@ class FormElement extends ListeningElement {
                         return nativeOption;
                     })
                 );
-                this.element.value = String((this.record as any)?.getField(this.field) ?? '');
+                this.syncSelectValue();
             } else {
                 this.element.options = options;
                 this.element.items = options; // should deprecate and use options
@@ -178,6 +183,17 @@ class FormElement extends ListeningElement {
         }
         this.updateValidationAccessibility();
         this.requestUpdate();
+    }
+
+    private syncSelectValue() {
+        const select = this.element as HTMLSelectElement;
+        const value = (this.record as any)?.getField(this.field);
+        if (select.multiple) {
+            const selectedValues = (Array.isArray(value) ? value : [value]).map(String);
+            [...select.options].forEach(option => { option.selected = selectedValues.includes(option.value); });
+        } else {
+            select.value = String(value ?? '');
+        }
     }
 
     protected updated(changedProperties: PropertyValues<this>) {
