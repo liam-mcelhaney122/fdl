@@ -196,8 +196,8 @@ export class FdlModifierExplorer extends LitElement {
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
                 </section>
-                ${source.styles ? html`<section class="css-section"><div class="detail-heading"><h3>Style the example</h3><span>CSS · fdl-table</span></div>
-                    <p class="markup-note">These rules live in <code>fdl-table</code>’s shadow-root stylesheet (<code>static styles</code>). The field definition supplies the class; these styles give it its appearance. A page-level stylesheet cannot reach these cells.</p>
+                ${source.styles ? html`<section class="css-section"><div class="detail-heading"><h3>Style the example</h3><span>CSS · ${source.stylesComponent}</span></div>
+                    <p class="markup-note">These rules live in <code>${source.stylesComponent}</code>’s shadow-root stylesheet (<code>static styles</code>). ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p>
                     <pre class="code example-css"><code>${source.styles}</code></pre>
                 </section>` : ''}
                 <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>

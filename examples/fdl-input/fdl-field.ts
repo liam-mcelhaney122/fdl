@@ -1,4 +1,5 @@
 import { css } from 'lit';
+import { disabledFieldStyles } from './field-example-styles';
 import { exampleTheme } from './example-theme';
 import FormElement from '../../form-element';
 
@@ -69,6 +70,7 @@ export class FdlField extends FormElement {
                 line-height: 1.4;
             }
             ${exampleTheme}
+            ${disabledFieldStyles}
         `;
     }
 }

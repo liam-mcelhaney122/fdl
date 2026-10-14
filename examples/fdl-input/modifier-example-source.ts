@@ -1,3 +1,4 @@
+import { disabledFieldStyles } from './field-example-styles';
 import { tableExampleStyles } from './table-example-styles';
 import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-markup';
 
@@ -132,6 +133,8 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;
     const adapters = exampleTables[name] ? "import './fdl-table';\n" : exampleFields[name] ? "import './fdl-field';\n" : '';
     const ui = `import { html, render } from 'lit';\nimport { ${exports.join(', ')} } from './${modelFile}';\n${adapters}\nconst container = document.createElement('div');\ndocument.body.append(container);\n${setup}\nconst view = () => html\`\n${markup!.split('\n').map(line => `  ${line}`).join('\n')}\n\`;\n\nconst update = () => render(view(), container);\n${model.name}.addEventListener('${kind === 'Recordset' ? 'page-changed' : 'change'}', update);\nupdate();`;
-    const styles = tableExampleStyles[name as keyof typeof tableExampleStyles]?.cssText.trim();
-    return {definition, ui, styles, modelFile, uiFile, modelName:model.name, fields:Object.keys(model.fields), kind, contract};
+    const fieldStyles = name === 'disabled' || name === 'disabledWhen';
+    const styles = (fieldStyles ? disabledFieldStyles : tableExampleStyles[name as keyof typeof tableExampleStyles])?.cssText.trim();
+    const stylesComponent = fieldStyles ? 'fdl-field' : 'fdl-table';
+    return {definition, ui, styles, stylesComponent, modelFile, uiFile, modelName:model.name, fields:Object.keys(model.fields), kind, contract};
 }
