@@ -1,3 +1,4 @@
+import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
@@ -73,7 +74,7 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
         const lesson = lessons[this.step];
         return html`<nav aria-label="Learning questions"><ol>${lessons.map((item, index) => html`<li><button class="question" aria-current=${index === this.step ? 'step' : 'false'} @click=${() => this.go(index)}>${item.question}</button></li>`)}</ol></nav>
             <section aria-labelledby="lesson-title"><p>Step ${this.step + 1} of ${lessons.length}</p><h2 id="lesson-title" tabindex="-1">${lesson.question}</h2><p>${lesson.explanation}</p>
-                <div class="lesson-grid"><div>${this.step >= 3 ? html`<fdl-field .record=${this.record} field="method"></fdl-field>` : ''}${keyed(this.record.fieldTypeForField('charge'), html`<fdl-field .record=${this.record} field="charge" .showValidationErrors=${true}></fdl-field>`)}</div><div class="lesson-state" role="status">${recordSummary(this.record, this.step >= 3 ? ['method','charge'] : ['charge'])}</div></div>
+                <div class="lesson-grid"><div class="lesson-controls">${this.step >= 3 ? html`<fdl-field .record=${this.record} field="method"></fdl-field>` : ''}${keyed(this.record.fieldTypeForField('charge'), html`<fdl-field .record=${this.record} field="charge" .showValidationErrors=${true}></fdl-field>`)}</div><div class="lesson-state" role="status">${recordSummary(this.record, this.step >= 3 ? ['method','charge'] : ['charge'])}</div></div>
                 ${this.step >= 4 ? html`<h3>Current delivery, another shipment, and a pickup</h3><fdl-table .recordset=${this.table}><fdl-column field="method"></fdl-column><fdl-column field="charge"></fdl-column></fdl-table>` : ''}
                 <details open><summary>Rules built so far</summary><ol>${lessons.slice(0, this.step + 1).map(item => html`<li>${item.rule}</li>`)}</ol></details>
                 <h3>The current definition</h3><pre><code>${highlightJavaScript(this.code())}</code></pre>
@@ -83,19 +84,22 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
     }
     static styles = css`
         :host { display:block; line-height:1.65; }
-        button { font:inherit; cursor:pointer; min-height:44px; padding:8px 12px; }
+        button { font:inherit; cursor:pointer; min-height:48px; padding:10px 16px; border:1px solid #cbd5e1; background:white; color:#1d4ed8; }
         button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
         button:disabled { opacity:.5; cursor:default; }
         .question { background:none; border:0; color:#1d4ed8; text-align:left; text-decoration:underline; }
         [aria-current="step"] { font-weight:bold; background:#eff6ff; }
         nav ol { padding-left:24px; } h2 { line-height:1.3; } h2:focus { outline:none; }
         .lesson-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
-        .lesson-state { padding:16px; background:#f1f5f9; } fdl-field { --field-label-width:100%; --field-control-width:100%; }
+        fdl-field { --field-label-width:100%; --field-control-width:100%; }
         pre { padding:16px; background:#0f172a; color:#e2e8f0; overflow:auto; font: .95rem/1.6 monospace; }
         .syntax-string,.syntax-regex { color:#a7f3d0; } .syntax-keyword { color:#c4b5fd; } .syntax-number { color:#fdba74; }
         details { margin:20px 0; } summary { cursor:pointer; padding:8px 0; }
+        .lesson-grid .lesson-controls { background:white; }
+        .lesson-controls fdl-field:last-child { margin-bottom:0; }
         .lesson-navigation { display:flex; justify-content:space-between; gap:12px; } a { color:#1d4ed8; }
         fdl-table { display:block; overflow-x:auto; }
+        ${exampleTheme}
     `;
 }
 customElements.define('fdl-learning-path', FdlLearningPath);

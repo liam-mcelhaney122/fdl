@@ -1,3 +1,4 @@
+import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
@@ -50,13 +51,20 @@ export class FdlSpecializationExperiment extends LitElement {
     static styles = css`
         :host { display:block; margin:28px 0; line-height:1.6; }
         .variants { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:20px 0; }
-        .variants section { border:1px solid #cbd5e1; padding:16px; min-width:0; }
+        .variants section { display:flex; flex-direction:column; border:1px solid var(--example-border); border-radius:var(--example-radius); padding:20px; min-width:0; }
         h2 { font-size:1.5rem; } h3 { margin:0 0 12px; font-size:1.1rem; }
-        code { display:block; min-height:3.5em; overflow-wrap:anywhere; font-size:.9rem; }
+        code { display:block; min-height:4.5em; overflow-wrap:anywhere; font-size:.9rem; }
         fdl-field { --field-label-width:100%; --field-control-width:100%; }
-        button { font:inherit; min-height:44px; padding:8px 12px; background:#2563eb; color:white; border:0; border-radius:4px; cursor:pointer; }
+        button { font:inherit; min-height:48px; padding:10px 16px; background:#2563eb; color:white; border:0; border-radius:4px; cursor:pointer; }
         button:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
-        .variant-state { background:#eff6ff; padding:8px; } fdl-table { display:block; overflow-x:auto; }
+        .variant-state { margin:auto 0 0; border-radius:6px; background:var(--example-surface); padding:12px; font-size:.875rem; } fdl-table { display:block; overflow-x:auto; }
+        @supports (grid-template-rows: subgrid) {
+            .variants section { display:grid; grid-template-rows:subgrid; grid-row:span 4; gap:12px; }
+            .variants section code { min-height:0; }
+            .variants section fdl-field,.variant-state { margin:0; }
+            .variants section fdl-field { align-self:start; }
+        }
+        ${exampleTheme}
     `;
 }
 customElements.define('fdl-specialization-experiment', FdlSpecializationExperiment);

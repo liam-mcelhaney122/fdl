@@ -1,3 +1,4 @@
+import { exampleTheme } from './example-theme';
 import { LitElement, css, html, nothing, type TemplateResult } from 'lit';
 import FieldType from '../../field-type.js';
 import Record from '../../record.js';
@@ -506,16 +507,13 @@ export class FdlModifierCatalog extends LitElement {
         @container(min-width:760px) { .focused:not(.full-width) { grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); } }
         .focused-demo > .try:first-child { display: none; }
         .focused-demo { min-width: 0; overflow-x: auto; }
-        .focused-demo fdl-field { --label: 1rem; --field-control-font-size: 1.125rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }
+        .focused-demo fdl-field { --label: .875rem; --field-control-font-size: 1rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }
         .focused .try, .focused .computed { color: #475569; font-size: 1.125rem; line-height: 1.8; }
-        .focused button { min-height: 44px; background: #2563eb; font-size: 1.125rem; font-weight: 400; }
+        .focused button { min-height:48px; background:#2563eb; font-size:1rem; font-weight:600; line-height:1.5; }
         summary { cursor:pointer; min-height:44px; padding:8px 0; }
         summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
-        .focused-state { padding: 18px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f1f5f9; }
-        .state-label { color: #475569; font: .875rem monospace; letter-spacing: 1px; }
         .focused pre { padding: 0; border: 0; font: 1rem/1.7 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
         .limitation { padding: 20px; border-left: 3px solid #2563eb; background: #eff6ff; font-size: 1.125rem; line-height: 1.8; }
-        .selection-explanation { border-left:3px solid #2563eb; background:#eff6ff; padding:12px; margin-top:16px; line-height:1.6; }
         .case-comparison { margin-top:24px; }
         .case-comparison table, table.case-comparison { border-collapse:collapse; width:100%; font-size:1rem; }
         .case-comparison th,.case-comparison td { padding:8px; text-align:left; border-bottom:1px solid #cbd5e1; overflow-wrap:anywhere; }
@@ -533,6 +531,7 @@ export class FdlModifierCatalog extends LitElement {
         .result.valid { color: #067647; }
         .width-table { border: 2px dashed #2563eb; border-radius: .4rem; overflow: hidden; }
         code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        ${exampleTheme}
     `;
 }
 

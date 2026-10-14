@@ -7,7 +7,7 @@ export function explainDependency(record: Record<any>, field: string, dependency
     const type = record.fieldTypeForField(field);
     const result = state === 'disabled' ? type.isDisabled(record) : type[state](record);
     const labels = { visible: ['Visible', 'Hidden'], required: ['Required', 'Optional'], disabled: ['Disabled', 'Enabled'], readonly: ['Read-only', 'Editable'] };
-    return html`<div class="dependency-trace" role="status" style="border-left:3px solid #2563eb;padding:12px;margin:16px 0;background:#eff6ff;overflow-wrap:anywhere">
+    return html`<div class="dependency-trace" role="status">
         <strong>Why did this field change?</strong>
         <p><code>${dependency} = ${JSON.stringify(record.getField(dependency))}</code> → <code>${expression}</code> → <strong>${String(result)}</strong> → ${labels[state][result ? 0 : 1]}</p>
         <p>Stored ${field}: <code>${JSON.stringify(record.getField(field))}</code>. ${state === 'visible' ? 'Visibility preserves the stored value and does not determine requiredness.' : 'This state does not erase the stored value.'}</p>

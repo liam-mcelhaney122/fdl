@@ -3,6 +3,7 @@ import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleMarkup } from './modifier-example-markup';
 import { highlightMarkup, highlightModifier } from './highlight-javascript';
 import { inputText, valuePipeline } from './value-pipeline';
+import { exampleTheme } from './example-theme';
 import { recordSummary } from './model-summary';
 import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
@@ -166,7 +167,6 @@ export class FdlModifierExplorer extends LitElement {
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
             `${entry.name} ${entry.category}`.toLowerCase().includes(this.query.toLowerCase().trim())
         );
-        const number = (index: number) => String(index + 1).padStart(2, '0');
         const model = this.selected === 0 ? this.person : this.selected === 1 ? this.money : this.delivery;
         return html`
         <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
@@ -190,7 +190,7 @@ export class FdlModifierExplorer extends LitElement {
             </fieldset></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p></div>
-            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span class="nav-number">${number(index)}</span><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
+            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
@@ -233,7 +233,7 @@ export class FdlModifierExplorer extends LitElement {
         .eyebrow { font-size:.875rem; font-weight:700; letter-spacing:.04em; color:var(--muted); margin:0 0 20px; }
         .search-label,.categories legend { font-size:1rem; font-weight:600; color:var(--muted); }
         .search-label { margin-bottom:8px; }
-        .modifier-search { width:100%; min-height:46px; padding:10px 12px; border:1px solid #64748b; border-radius:4px; background:#ffffff; color:#0f172a; font-size:1rem; }
+        .modifier-search { width:100%; height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:#ffffff; color:#0f172a; font-size:1rem; }
         .category-filters { margin-top:16px; }
         .category-filters summary { min-height:44px; padding:8px 0; font-size:1rem; font-weight:600; cursor:pointer; }
         .category-filters summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
@@ -248,11 +248,10 @@ export class FdlModifierExplorer extends LitElement {
         .clear-filters { align-self:flex-start; min-height:44px; padding:8px 0; border:0; background:none; color:var(--accent); font-size:1rem; text-decoration:underline; text-underline-offset:3px; }
         .match-count { margin:16px 0 10px; font-size:.875rem; color:var(--muted); }
         nav { display:grid; gap:6px; min-height:100px; overflow-y:auto; overscroll-behavior:contain; }
-        nav a { display:flex; align-items:center; gap:12px; min-height:64px; padding:10px; border:1px solid transparent; border-radius:4px; text-decoration:none; }
+        nav a { display:flex; align-items:center; min-height:60px; padding:10px 12px; border:1px solid transparent; border-radius:4px; text-decoration:none; }
         nav a:hover { background:#f1f5f9; }
         nav a[aria-current=page] { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; box-shadow:inset 3px 0 #2563eb; }
-        .nav-number { font: .875rem monospace; color:var(--muted); }
-        nav strong { font:600 1rem/1.5 monospace; overflow-wrap:anywhere; }
+        nav strong { font:600 .9375rem/1.5 monospace; overflow-wrap:anywhere; }
         nav small { display:block; font-size:.875rem; line-height:1.5; color:var(--muted); }
         .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #cbd5e1; gap:4px; }
         .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
@@ -275,19 +274,19 @@ export class FdlModifierExplorer extends LitElement {
         h1 span { color:#64748b; font-size:.75em; }
         h2 { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }
         .description { max-width:70ch; margin:0 0 28px; font-size:1.125rem; line-height:1.7; color:var(--muted); }
-        .playground { border:1px solid #cbd5e1; border-radius:6px; background:#ffffff; overflow:hidden; }
-        .section-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:12px 20px; border-bottom:1px solid #e2e8f0; font-size:.875rem; font-weight:600; }
+        .playground { border:1px solid var(--example-border); border-radius:var(--example-radius); background:#ffffff; overflow:hidden; }
+        .section-bar { min-height:64px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:12px 20px; border-bottom:1px solid #e2e8f0; font-size:.875rem; font-weight:600; }
         .section-bar i { display:inline-block; width:7px; height:7px; margin-right:8px; border-radius:50%; background:#2563eb; }
         .reset { min-height:44px; padding:8px; border:0; background:none; color:var(--accent); font-size:1rem; text-decoration:underline; text-underline-offset:3px; }
         .instruction { margin:20px; font-size:1.125rem; color:var(--muted); }
         .demo-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; padding:0 20px 24px; }
         .catalog-demo { display:block; }
         .controls { min-width:0; }
-        fdl-field { display:block; font-size:1.125rem; --field-label-width:100%; --field-control-width:100%; --label:1rem; --field-control-font-size:1.125rem; }
-        .primary { min-height:44px; margin-top:16px; padding:10px 18px; border:1px solid var(--accent); border-radius:4px; background:var(--accent); color:white; font-size:1rem; }
+        fdl-field { display:block; font-size:1.125rem; --field-label-width:100%; --field-control-width:100%; --label:.875rem; --field-control-font-size:1rem; }
+        .primary { min-height:48px; margin-top:0; padding:10px 18px; border:1px solid var(--accent); border-radius:4px; background:var(--accent); color:white; font-size:1rem; }
         .primary:hover { background:#1d4ed8; border-color:#1d4ed8; }
         .result { margin:16px 0 0; font-size:1rem; line-height:1.65; color:var(--muted); }
-        .model { min-width:0; align-self:start; padding:20px; border:1px solid #cbd5e1; border-radius:4px; background:#f1f5f9; }
+        .model { align-self:start; }
         .model .eyebrow { margin-bottom:16px; }
         .model pre { margin:0; font:1rem/1.7 monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
         .model-foot { margin-top:16px; padding-top:12px; border-top:1px solid #cbd5e1; font-size:.875rem; color:var(--muted); }
@@ -318,6 +317,9 @@ export class FdlModifierExplorer extends LitElement {
         .code:not(.markup) { padding-left:0; padding-right:0; }
         .markup-section { min-width:0; }
         .code-section,.explanation { min-width:0; }
+        .code-section { padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
+        .code-section .detail-heading { min-height:32px; }
+        .code-section .detail-heading h3 { margin:0; }
         .detail-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .detail-heading span { font-size:.875rem; color:var(--muted); }
         h3 { margin:0 0 16px; font-size:1.25rem; font-weight:600; line-height:1.4; }
@@ -362,6 +364,7 @@ export class FdlModifierExplorer extends LitElement {
             .code { padding:16px; }
             .pager small { display:none; }
         }
+        ${exampleTheme}
     `;
 }
 customElements.define('fdl-modifier-explorer', FdlModifierExplorer);
