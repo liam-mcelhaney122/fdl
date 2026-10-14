@@ -1,0 +1,32 @@
+import { html, type TemplateResult } from 'lit';
+
+const keywords = new Set(['async', 'await', 'const', 'let', 'var', 'new', 'return', 'if', 'else', 'throw', 'function', 'class', 'import', 'from', 'export', 'default', 'typeof', 'instanceof']);
+const builtins = new Set(['Intl', 'Number', 'String', 'Boolean', 'Promise', 'FieldType', 'Record', 'Recordset']);
+
+// A display-only tokenizer for the cookbook's JavaScript snippets. Render every
+// token through Lit text bindings, so code never becomes executable HTML.
+const tokens = /\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|\/(?![/*])(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\n\\])+\/[dgimsuvy]*|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*|=>|===|!==|[{}()[\].,;:?=+<>!-]/g;
+
+export function highlightJavaScript(source: string): Array<string | TemplateResult> {
+    const output: Array<string | TemplateResult> = [];
+    let cursor = 0;
+    for (const match of source.matchAll(tokens)) {
+        const value = match[0];
+        const index = match.index!;
+        output.push(source.slice(cursor, index));
+        let kind = 'plain';
+        if (value.startsWith('//') || value.startsWith('/*')) kind = 'comment';
+        else if (/^["'`]/.test(value)) kind = 'string';
+        else if (value.startsWith('/')) kind = 'regex';
+        else if (/^\d/.test(value)) kind = 'number';
+        else if (keywords.has(value)) kind = 'keyword';
+        else if (['true', 'false', 'null', 'undefined'].includes(value)) kind = 'literal';
+        else if (builtins.has(value)) kind = 'builtin';
+        else if (/^[A-Za-z_$]/.test(value) && /^\s*\(/.test(source.slice(index + value.length))) kind = 'function';
+        else if (/^[^\w$]+$/.test(value)) kind = 'punctuation';
+        output.push(html`<span class=${`syntax-${kind}`}>${value}</span>`);
+        cursor = index + value.length;
+    }
+    output.push(source.slice(cursor));
+    return output;
+}

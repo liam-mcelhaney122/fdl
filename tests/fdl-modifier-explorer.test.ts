@@ -109,7 +109,8 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
         expect(page.shadowRoot!.querySelector<HTMLSelectElement>('#modifier-jump')!.value).toBe(name);
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
-        expect(page.shadowRoot!.querySelector('.code')!.textContent!.length).toBeGreaterThan(20);
+        expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(recipe.code);
+        expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
         if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
             const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
             await catalog.updateComplete;
@@ -207,5 +208,45 @@ describe('extended model exercises', () => {
         await field.updateComplete;
         expect(field.shadowRoot.querySelector('[aria-invalid="true"]')).toBeTruthy();
         expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('THIS-CODE-IS-TOO-LONG');
+    });
+});
+
+describe('category navigation filters', () => {
+    it('combines categories with OR and search with AND, and clears both filters', async () => {
+        const page = await openPage('#formatter');
+        const root = page.shadowRoot!;
+        const checkbox = (category: string) => [...root.querySelectorAll<HTMLLabelElement>('.category-options label')]
+            .find(label => label.textContent!.includes(category))!.querySelector<HTMLInputElement>('input')!;
+        checkbox('Validation').click();
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => recipe.category === 'Validation').length);
+        expect(root.querySelector('h1')!.textContent).toContain('formatter');
+        expect(root.querySelector<HTMLSelectElement>('#modifier-jump')!.value).toBe('formatter');
+        expect(root.querySelector<HTMLOptionElement>('#modifier-jump option:checked')!.disabled).toBe(true);
+        checkbox('Tables').click();
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => ['Validation', 'Tables'].includes(recipe.category)).length);
+        const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
+        search.value = 'required';
+        search.dispatchEvent(new Event('input'));
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(2);
+        root.querySelector<HTMLButtonElement>('.clear-filters')!.click();
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.length);
+        expect(root.querySelectorAll('.category-options input:checked')).toHaveLength(0);
+        expect(search.value).toBe('');
+    });
+
+    it('shows all categories again when the last selected category is unchecked', async () => {
+        const page = await openPage();
+        const root = page.shadowRoot!;
+        const input = root.querySelector<HTMLInputElement>('.category-options input')!;
+        input.click();
+        await settle(page);
+        expect(root.querySelectorAll('nav a').length).toBeLessThan(explorerRecipes.length);
+        input.click();
+        await settle(page);
+        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.length);
     });
 });
