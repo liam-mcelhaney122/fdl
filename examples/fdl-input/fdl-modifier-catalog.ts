@@ -402,21 +402,6 @@ export class FdlModifierCatalog extends LitElement {
         return html``;
     }
 
-    private renderEntry(entry: CatalogEntry) {
-        const id = `modifier-${entry.name.toLowerCase()}`;
-        const status = entry.demo ? 'live' : 'placeholder';
-        return html`<article class="cookbook-recipe" data-modifier=${entry.name} data-status=${status} aria-labelledby=${id}>
-            <div class="entry-heading">
-                <code class="modifier-name">${entry.name}()</code>
-                <span class="status ${status}">${status === 'live' ? 'Live example' : 'Placeholder'}</span>
-            </div>
-            <h3 id=${id}>${entry.intent}</h3>
-            ${entry.demo
-                ? html`<div class="demo">${this.renderDemo(entry.demo)}</div>${entry.snippet ? html`<details><summary>View the focused definition</summary><pre><code>${entry.snippet}</code></pre></details>` : nothing}`
-                : html`<div class="placeholder-body"><p><strong>Intent:</strong> ${entry.intent}</p><p><strong>Why there is no live example:</strong> ${entry.limitation}</p></div>`}
-        </article>`;
-    }
-
     private focusedState(name: string): unknown {
         const fields: { [name: string]: string[] } = {
             disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode'],
@@ -441,21 +426,12 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     render() {
-        if (this.modifier) {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
-            if (!entry) return html`<p>Unknown modifier.</p>`;
+            if (!entry) return nothing;
             return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
                 ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p><pre aria-live="polite">${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;
-        }
-        return html`<section aria-labelledby="modifier-catalog-heading">
-            <p class="eyebrow">Modifier cookbook</p>
-            <h2 id="modifier-catalog-heading">Every modifier, alphabetically.</h2>
-            <p class="lede">Each entry isolates one supported modifier. Live examples exercise behavior this repository can demonstrate honestly; placeholders document the intended contract and the missing path for everything else.</p>
-            <p class="summary"><strong>${modifierEntries.filter(entry => entry.demo).length} live or computed examples</strong> · ${modifierEntries.filter(entry => !entry.demo).length} documented placeholders · ${modifierEntries.length} supported modifiers total</p>
-            <div class="catalog">${modifierEntries.map(entry => this.renderEntry(entry))}</div>
-        </section>`;
     }
 
     static styles = css`
@@ -478,34 +454,13 @@ export class FdlModifierCatalog extends LitElement {
         .model-assignment { margin-top: 12px; }
         .probe-result { display: inline-block; margin-right: 12px; }
         button:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
-        h2, h3, p { margin-top: 0; }
-        h2 { color: #111a31; font-family: Georgia, serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 500; letter-spacing: -.035em; margin-bottom: .6rem; }
-        h3 { color: #111a31; font-family: Georgia, serif; font-size: 1.2rem; font-weight: 500; margin: .65rem 0 1rem; }
-        .eyebrow { margin-bottom: .6rem; color: #5b52d6; font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-        .lede { max-width: 50rem; color: #586174; font-size: 1.05rem; line-height: 1.65; }
-        .summary { color: #586174; font-size: .9rem; margin-bottom: 2rem; }
-        .catalog { display: grid; gap: 1rem; }
-        .cookbook-recipe { border: 1px solid #dfe3ee; border-radius: 1rem; background: #fff; box-shadow: 0 8px 24px rgba(34,45,78,.04); padding: 1.25rem; }
-        .entry-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .modifier-name { border-radius: .35rem; background: #eeecff; color: #7657ff; font-size: .8rem; font-weight: 800; padding: .35rem .6rem; }
-        .status { border-radius: 100px; font-size: .7rem; font-weight: 800; letter-spacing: .06em; padding: .3rem .55rem; text-transform: uppercase; }
-        .status.live { background: #e8f7ef; color: #067647; } .status.placeholder { background: #f1f3f7; color: #586174; }
-        .demo, .placeholder-body { border-radius: .75rem; background: #f7f8fc; padding: 1rem; }
-        .placeholder-body { border-left: 4px solid #a7adbb; color: #4d5668; line-height: 1.55; }
-        .placeholder-body p:last-child { margin-bottom: 0; }
-        .try, .computed { color: #586174; font-size: .88rem; line-height: 1.55; }
-        fdl-field { display: block; margin-bottom: .7rem; }
-        button { border: 0; border-radius: .45rem; background: #10233f; color: white; cursor: pointer; font: inherit; font-weight: 700; padding: .65rem .9rem; }
+        p { margin-top: 0; }
+        button { border: 0; border-radius: .45rem; color: white; cursor: pointer; font: inherit; padding: .65rem .9rem; }
         button:disabled { background: #aeb4c2; cursor: not-allowed; }
-        .result { font-size: .85rem; font-weight: 700; margin: .7rem 0 0; }
+        .result { font-size: 1rem; font-weight: 700; margin: .7rem 0 0; }
         .result.valid { color: #067647; }
-        details { margin-top: .8rem; border: 1px solid #dfe3ee; border-radius: .65rem; background: #101629; color: #d8def0; }
-        summary { cursor: pointer; font-size: .8rem; font-weight: 700; padding: .7rem .85rem; }
-        pre { overflow-x: auto; border-top: 1px solid #29314a; margin: 0; padding: .85rem; }
-        pre code { color: #d8def0; font-size: .76rem; white-space: pre-wrap; }
-        .width-table { border: 2px dashed #7657ff; border-radius: .4rem; overflow: hidden; }
+        .width-table { border: 2px dashed #2563eb; border-radius: .4rem; overflow: hidden; }
         code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-        @media (min-width: 58rem) { .catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
     `;
 }
 

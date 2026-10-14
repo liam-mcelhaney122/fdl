@@ -83,12 +83,12 @@ person.isValid(); // true`)}</code></pre>
             <p>The root checkout is reserved for integration. Check its status and existing worktrees before starting, preserve other tasks’ changes, and develop on a linked worktree and its own branch. The contributor guide describes the full workflow.</p>
             <h2>Install and run locally</h2>
             <pre class="code markup"><code>npm install
-npm run example:fdl-input</code></pre>
-            <p>Open <code>/explorer/</code> on the local server to view this site. Changes to the example source update the preview.</p>
+npm run docs:dev</code></pre>
+            <p>Open the root URL printed by the local server to view this site. Changes to the example source update the preview.</p>
             <h2>Verify your changes</h2>
             <pre class="code markup"><code>npm test
 npm run typecheck
-npm run example:fdl-input:build</code></pre>
+npm run docs:build</code></pre>
             <p>Add focused coverage for behavior changes. If an exported API changes, update its public behavior, declarations, and documentation together. Check live examples in the browser, including keyboard interaction and narrow screens.</p>
             <h2>Keep the boundaries clear</h2>
             <ul><li>Put reusable model rules in field types, records, or recordsets.</li><li>Keep DOM structure, focus, and event handling in components.</li><li>Use CSS for visual expression.</li><li>Document adapter limitations instead of simulating unsupported behavior.</li></ul>

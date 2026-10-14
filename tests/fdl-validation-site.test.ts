@@ -1,31 +1,24 @@
-import '../examples/fdl-input/fdl-cookbook-page';
+import '../examples/fdl-input/fdl-modifier-explorer';
 
-describe('cookbook validation examples', () => {
+describe('documentation-site validation examples', () => {
     it('connects a model validation error to the rendered control after validation is requested', async () => {
-        const page = document.createElement('fdl-cookbook-page') as HTMLElement & {
+        window.location.hash = 'required';
+        const page = document.createElement('fdl-modifier-explorer') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
         document.body.append(page);
         await page.updateComplete;
 
-        const catalog = page.shadowRoot?.querySelector('fdl-modifier-catalog') as HTMLElement & {
+        const field = page.shadowRoot?.querySelector('fdl-field') as HTMLElement & {
             updateComplete: Promise<boolean>;
         };
-        await catalog.updateComplete;
-
-        const requiredCard = catalog.shadowRoot?.querySelector<HTMLElement>(
-            '[data-modifier="required"]'
-        );
-        const field = requiredCard?.querySelector('fdl-field') as HTMLElement & {
-            updateComplete: Promise<boolean>;
-        };
-        const button = requiredCard?.querySelector<HTMLButtonElement>('button');
+        const button = page.shadowRoot?.querySelector<HTMLButtonElement>('.primary');
 
         await field.updateComplete;
         expect(field.shadowRoot?.querySelector('input')?.hasAttribute('aria-invalid')).toBe(false);
 
         button?.click();
-        await catalog.updateComplete;
+        await page.updateComplete;
         await field.updateComplete;
 
         const input = field.shadowRoot?.querySelector<HTMLInputElement>('input');
@@ -37,5 +30,6 @@ describe('cookbook validation examples', () => {
         );
 
         page.remove();
+        window.location.hash = '';
     });
 });

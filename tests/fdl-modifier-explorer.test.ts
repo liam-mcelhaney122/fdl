@@ -1,3 +1,4 @@
+import FieldType from '../field-type.js';
 import '../examples/fdl-input/fdl-modifier-explorer';
 import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
 import { modifierEntries, FdlModifierCatalog } from '../examples/fdl-input/fdl-modifier-catalog';
@@ -99,9 +100,23 @@ describe('modifier explorer', () => {
 
 
 describe('complete explorer', () => {
-    it('covers the cookbook inventory exactly once', () => {
+    it('covers the documented modifier inventory exactly once', () => {
         expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(modifierEntries.map(entry => entry.name).sort());
         expect(new Set(explorerRecipes.map(recipe => recipe.name)).size).toBe(explorerRecipes.length);
+    });
+
+    it('covers all public builder modifiers outside the compatibility-only surface', () => {
+        const builder = new FieldType().with as unknown as { [name: string]: unknown };
+        const omitted = new Set([
+            'accept', 'additionalProperties', 'autofocus', 'autocomplete', 'field', 'formElement',
+            'filtering', 'formatOnChange', 'hideLabel', 'iconMessage', 'list', 'max', 'onValueChange',
+            'description', 'hasSearch', 'inline', 'inlineWhen', 'parseDynamicRange', 'pattern',
+            'readOnlyExceptionWhen', 'schema', 'segmented', 'selectionDisabledFunctions', 'step', 'tag', 'usesCustomPrint',
+        ]);
+        const expected = Object.getOwnPropertyNames(Object.getPrototypeOf(builder))
+            .filter(name => !['constructor', 'copy'].includes(name) && !omitted.has(name))
+            .filter(name => typeof builder[name] === 'function').sort();
+        expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(expected);
     });
 
     it.each(explorerRecipes.map(recipe => [recipe.name, recipe] as const))('opens the %s deep link with one focused example or explicit contract limit', async (name, recipe) => {
@@ -284,4 +299,19 @@ describe('FDL site pages', () => {
         expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
         expect(document.title).toBe('Home — FDL');
     });
+});
+
+
+it('parses formatted money input in the surviving documentation example', async () => {
+    const page = await openPage('#parser');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const field = catalog.shadowRoot!.querySelector('fdl-field') as any;
+    await field.updateComplete;
+    const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
+    expect(input.value).toBe('$1,000.00');
+    input.value = '$1,500.00';
+    input.dispatchEvent(new Event('input'));
+    await catalog.updateComplete;
+    expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('1500');
 });

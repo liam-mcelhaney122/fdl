@@ -23,18 +23,18 @@ rendering. The published package is `digital-fdl`.
 
 - Install dependencies with `npm install`.
 - Run tests with `npm test` and static type checks with `npm run typecheck`.
-- Use `npm run example:fdl-input` to run the interactive example.
+- Use `npm run docs:dev` to run the documentation site.
 - Keep public behavior, documentation, and type declarations aligned when
   changing exported APIs.
 - Add or update focused Jest coverage for behavior changes.
 
-## Portfolio site
+## Documentation site
 
-- Treat `portfolio/` as local-only unless the user explicitly requests a
-  deployment in the current task. Building or previewing the site does not
-  authorize publishing it.
-- Run `npm run portfolio:setup` once, then `npm run portfolio:dev` from the
-  repository root. Use `npm run portfolio:build` for production-build checks.
+- `examples/fdl-input/` contains the single documentation website, including
+  Home, How it Works, Contributing, and one page per modifier.
+- Run `npm run docs:dev` from the repository root and open the printed root URL.
+  Use `npm run docs:build` for production-build checks.
+- Keep the site local unless the user explicitly requests deployment.
 
 ## Architecture and design principles
 

@@ -45,7 +45,7 @@ separately when they cannot all be verified.
 - Update focused tests, public documentation, examples, ADR inventories, and
   migration guidance for every affected API.
 - Run `npm ci`, `npm test`, and `npm run typecheck` from the repository root.
-- Run `npm ci` and `npm run build` from `portfolio/`.
+- Run `npm run docs:build` from the repository root.
 - Review CI on the exact release commit.
 - Check the changelog category, release date, version, and comparison link.
 - Inspect packed package contents before publication when publishing is enabled.
@@ -72,8 +72,8 @@ Removal belongs in a major release and must update the complete inventory in
 
 ## Current automation boundary
 
-GitHub Actions verifies tests, type checking, and the portfolio build. Registry
-credentials, trusted publishing, release-tag automation, and hosted portfolio
+GitHub Actions verifies tests, type checking, and the documentation-site build. Registry
+credentials, trusted publishing, release-tag automation, and hosted documentation-site
 deployment are not configured in this repository. Until they are deliberately
 added and reviewed, releases and deployment remain manual, approval-gated
 operations. The current work should be described as portfolio rehabilitation,
