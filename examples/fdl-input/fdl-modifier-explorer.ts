@@ -47,6 +47,8 @@ export class FdlModifierExplorer extends LitElement {
     private selected = 0;
     private page: SitePage | 'modifier' = 'home';
     private checked = false;
+    private requiredRule = true;
+    private liveDefinition = '';
     private query = '';
     private resetVersion = 0;
     private selectedCategories = new Set<string>();
@@ -99,6 +101,7 @@ export class FdlModifierExplorer extends LitElement {
         if (index < 0 || index >= recipes.length) return;
         this.page = 'modifier';
         this.selected = index;
+        this.liveDefinition = '';
         this.requestUpdate();
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
@@ -112,17 +115,24 @@ export class FdlModifierExplorer extends LitElement {
         document.title = `${recipes[index].name} — FDL Modifier explorer`;
     }
     private field(record: Record<any>, field: string) {
-        return html`<fdl-field .record=${record} field=${field} .showValidationErrors=${this.checked}></fdl-field>`;
+        return keyed(record.fieldTypeForField(field), html`<fdl-field .record=${record} field=${field} .showValidationErrors=${this.checked}></fdl-field>`);
     }
     private reset() {
         this.resetVersion += 1;
-        if (this.selected === 0) { this.checked = false; this.person.setField('name', ''); }
+        if (this.selected === 0) { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
+        this.liveDefinition = '';
         if (this.selected === 1) this.money.setField('amount', 1250);
         if (this.selected === 2) { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
     }
     private demo() {
         if (this.selected === 0) return html`
+            <label class="rule-control"><input type="checkbox" .checked=${this.requiredRule} @change=${(event: Event) => {
+                this.requiredRule = (event.target as HTMLInputElement).checked;
+                const base = new FieldType<string>().with.label('Legal name');
+                this.person.addField('name', this.requiredRule ? base.with.required() : base, this.person.getField('name'));
+                this.requestUpdate();
+            }}> Require a value</label>
             ${this.field(this.person, 'name')}
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record </button>
             <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'Ready to validate. Try an empty value first.'}</p>`;
@@ -130,7 +140,7 @@ export class FdlModifierExplorer extends LitElement {
             ${this.field(this.money, 'amount')}
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>`;
-        if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name}></fdl-modifier-catalog>`;
+        if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @definition-change=${(event: CustomEvent<string>) => { this.liveDefinition = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
     render() {
@@ -178,7 +188,7 @@ export class FdlModifierExplorer extends LitElement {
                     <p class="instruction">${recipe.prompt}</p>
                     <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p><pre aria-live="polite">${JSON.stringify(model.values, null, 2)}</pre><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
-                <div class="details"><section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(recipe.code, recipe.name)}</code></pre><p class="code-caption">Highlighted lines define <code>.${recipe.name}()</code>.</p></section>
+                <div class="details"><section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(this.liveDefinition || (recipe.name === 'required' && !this.requiredRule ? recipe.code.replace('.and.required()', '// required rule removed') : recipe.code), recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the same value is now checked without it.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render the example</h3><span>HTML / Lit template</span></div>
                     ${markup ? html`<p class="markup-note">The <code>.record</code> and <code>.recordset</code> bindings pass JavaScript objects to FDL components. Expressions inside <code>\${…}</code> are evaluated by Lit.</p><pre class="code markup"><code>${highlightMarkup(markup)}</code></pre>` : html`<p class="markup-note">This modifier needs a compatible adapter. The native example has no supported HTML binding for this interaction.</p>`}
                 </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>

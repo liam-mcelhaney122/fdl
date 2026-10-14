@@ -72,3 +72,29 @@ it('explains conditional requiredness as the dependency changes', async () => {
     await catalog.updateComplete;
     expect(catalog.shadowRoot!.querySelector('.dependency-trace')!.textContent).toContain('false → Optional');
 });
+
+it('removes requiredness from both model validation and the displayed definition', async () => {
+    const page = await openExplorer('#required');
+    const root = page.shadowRoot!;
+    root.querySelector<HTMLButtonElement>('.primary')!.click();
+    await page.updateComplete;
+    expect(root.querySelector('.result')!.textContent).toContain('required');
+    root.querySelector<HTMLInputElement>('.rule-control input')!.click();
+    await page.updateComplete;
+    expect(root.querySelector('.result')!.textContent).toContain('record is valid');
+    expect(root.querySelector('.code')!.textContent).toContain('required rule removed');
+});
+it('changes the minimum-length definition while retaining the value', async () => {
+    const page = await openExplorer('#minLength');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    await editField(catalog.shadowRoot!, 'longCode', 'ABC');
+    catalog.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    await catalog.updateComplete;
+    const rule = catalog.shadowRoot!.querySelector<HTMLSelectElement>('.minimum-rule')!;
+    rule.value = '2'; rule.dispatchEvent(new Event('change'));
+    await catalog.updateComplete; await page.updateComplete;
+    expect(catalog.shadowRoot!.querySelector('.result')!.textContent).toContain('Valid');
+    expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('ABC');
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
+});

@@ -3,6 +3,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
+import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
 import './fdl-table';
 
@@ -105,6 +106,7 @@ export class FdlModifierCatalog extends LitElement {
     modifier = '';
 
     private validatedFields = new Set<string>();
+    private minimum = 4;
 
     private defaultRecord = new Record(
         { defaultId: new FieldType().with.label('Request ID').and.defaultValue('Pending assignment') },
@@ -318,11 +320,11 @@ export class FdlModifierCatalog extends LitElement {
         record: Record<any> = this.record,
         showValidationErrors = false
     ) {
-        return html`<fdl-field
+        return keyed(record.fieldTypeForField(field), html`<fdl-field
             field=${field}
             .record=${record}
             .showValidationErrors=${showValidationErrors}
-        ></fdl-field>`;
+        ></fdl-field>`);
     }
 
     private validateField(field: string) {
@@ -380,7 +382,12 @@ export class FdlModifierCatalog extends LitElement {
             case 'maxColumnWidth': return this.renderWidth('maxColumnWidth');
             case 'maxLength': return html`${this.renderValidation('shortCode')}${this.modifier ? html`<button class="model-assignment" @click=${() => { this.record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG'); this.validateField('shortCode'); }}>Assign an overlong model value</button>` : nothing}`;
             case 'minColumnWidth': return this.renderWidth('minColumnWidth');
-            case 'minLength': return this.renderValidation('longCode');
+            case 'minLength': return html`<label>Minimum length <select class="minimum-rule" .value=${String(this.minimum)} @change=${(event: Event) => {
+                this.minimum = Number((event.target as HTMLSelectElement).value);
+                this.record.addField('longCode', new FieldType().with.label('Access code').and.minLength(this.minimum), this.record.getField('longCode'));
+                this.dispatchEvent(new CustomEvent('definition-change', { detail: `new FieldType().with\n  .minLength(${this.minimum})`, bubbles: true, composed: true }));
+                this.requestUpdate();
+            }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;
             case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}`;
             case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p>${this.renderField('money')}<p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>`;
@@ -454,7 +461,8 @@ export class FdlModifierCatalog extends LitElement {
         .limitation { padding: 20px; border-left: 3px solid #2563eb; background: #eff6ff; font-size: 1.125rem; line-height: 1.8; }
         .model-assignment { margin-top: 12px; }
         .probe-result { display: inline-block; margin-right: 12px; }
-        button:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+        select { font:inherit; min-height:44px; max-width:100%; }
+        button:focus-visible,select:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
         p { margin-top: 0; }
         button { border: 0; border-radius: .45rem; color: white; cursor: pointer; font: inherit; padding: .65rem .9rem; }
         button:disabled { background: #aeb4c2; cursor: not-allowed; }
