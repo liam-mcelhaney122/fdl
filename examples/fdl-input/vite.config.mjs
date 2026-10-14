@@ -9,7 +9,6 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 home: resolve(directory, 'index.html'),
-                cookbook: resolve(directory, 'cookbook/index.html'),
             },
         },
     },

@@ -8,9 +8,9 @@ All notable changes to FDL will be documented in this file. The format follows
 
 ### Added
 
-- A narrative portfolio site with curated documentation and a complete,
-  evidence-based modifier support matrix.
-- Continuous integration for tests, static type checking, and the portfolio
+- A single documentation site with an introduction, contributor guidance, and
+  one page per modifier with examples and explicit adapter limitations.
+- Continuous integration for tests, static type checking, and the documentation-site
   production build.
 - A documented release and compatibility checklist.
 
@@ -18,6 +18,11 @@ All notable changes to FDL will be documented in this file. The format follows
 
 - The repository landing page now leads with the product problem FDL solves and
   includes a reproducible first-run path.
+
+### Removed
+
+- The separate portfolio application, original example home page, and all-in-one
+  cookbook page. The documentation site is now served at the root URL.
 
 ### Deprecated
 

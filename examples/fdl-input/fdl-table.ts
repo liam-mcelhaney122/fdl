@@ -668,7 +668,7 @@ export class FdlTable extends LitElement {
             gap: 0.45rem;
             margin-bottom: 0.65rem;
             color: #586174;
-            font-size: 0.78rem;
+            font-size: var(--fdl-table-label-font-size, 0.78rem);
             font-weight: 700;
         }
 
@@ -731,7 +731,7 @@ export class FdlTable extends LitElement {
         th {
             position: relative;
             color: #586174;
-            font-size: 0.75rem;
+            font-size: var(--fdl-table-label-font-size, 0.75rem);
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
@@ -863,7 +863,7 @@ export class FdlTable extends LitElement {
 
         .filter-popover label span {
             margin-bottom: 0.4rem;
-            font-size: 0.78rem;
+            font-size: var(--fdl-table-label-font-size, 0.78rem);
             font-weight: 800;
         }
 
@@ -873,7 +873,7 @@ export class FdlTable extends LitElement {
             border: 1px solid #b8bfcc;
             border-radius: 0.4rem;
             color: #172033;
-            font: 400 0.9rem/1.3 system-ui, sans-serif;
+            font: 400 var(--fdl-table-control-font-size, 0.9rem)/1.3 system-ui, sans-serif;
             padding: 0.55rem 0.65rem;
         }
 
@@ -888,7 +888,7 @@ export class FdlTable extends LitElement {
             border: 0;
             border-radius: 0.4rem;
             cursor: pointer;
-            font: 700 0.78rem/1 system-ui, sans-serif;
+            font: 700 var(--fdl-table-control-font-size, 0.78rem)/1 system-ui, sans-serif;
             padding: 0.5rem 0.65rem;
         }
 

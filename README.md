@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/pmcelhaney/FDL/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/tests.yml)
 [![Type check](https://github.com/pmcelhaney/FDL/actions/workflows/typecheck.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/typecheck.yml)
-[![Portfolio build](https://github.com/pmcelhaney/FDL/actions/workflows/portfolio-build.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/portfolio-build.yml)
+[![Documentation build](https://github.com/pmcelhaney/FDL/actions/workflows/docs-build.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/docs-build.yml)
 
 FDL (pronounced “fiddle”) solves a recurring problem in complex forms: the same
 business rule is often rewritten in input handlers, validation, review tables,
@@ -14,10 +14,10 @@ Renderers remain responsible for accessible controls and presentation; FDL owns
 reusable behavior such as parsing, formatting, validation, dependencies,
 comparison, filtering, and aggregation.
 
-Explore the portfolio locally through the narrative `/demo`, engineering
-`/case-study`, complete `/reference`, and documentation `/docs` routes. The
-portfolio is local-only by default and must not be deployed without explicit
-authorization.
+The single documentation site includes Home, How it Works, Contributing, and
+one page per modifier with live examples, model state, and highlighted code.
+Run it locally with `npm run docs:dev` and open the root URL printed by Vite.
+Building or previewing the site does not publish it.
 
 ## Example: Dog Walking Service
 
@@ -103,14 +103,13 @@ behavior from component semantics and application concerns.
 See [prospective FDL user personas](./docs/user-personas.md) for evaluation
 profiles that test the home page and documentation against realistic needs.
 
-The portfolio’s [modifier support matrix](./portfolio/app/reference/page.tsx)
-distinguishes demonstrated behavior, model-only behavior, and adapter work. See
-the [release guide](./docs/releases.md) and [changelog](./CHANGELOG.md) for the
-current rehabilitation and versioning discipline.
+The documentation site's modifier pages distinguish live examples, model-level
+exercises, and adapter limitations. See the [release guide](./docs/releases.md)
+and [changelog](./CHANGELOG.md) for release and versioning discipline.
 
 ## Run locally
 
-Use Node 22.13 or newer so the library and portfolio share one runtime baseline.
+Use Node 22.13 or newer.
 
 ```sh
 git clone https://github.com/pmcelhaney/FDL.git
@@ -120,21 +119,20 @@ npm test
 npm run typecheck
 ```
 
-Start the interactive Lit form-control example with:
+Start the documentation site:
 
 ```sh
-npm run example:fdl-input
+npm run docs:dev
 ```
 
-Set up and run the portfolio from the repository root:
+Open the root URL printed by Vite. Verify the production build with:
 
 ```sh
-npm run portfolio:setup
-npm run portfolio:dev
+npm run docs:build
 ```
 
-Open the local URL printed by the development server. Create a production
-portfolio build with `npm run portfolio:build`.
+The site source is in `examples/fdl-input/`. The repository's Markdown API
+references and architecture records remain under `docs/`.
 
 ## Project status
 

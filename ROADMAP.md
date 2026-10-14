@@ -3,6 +3,14 @@
 This is a future-facing backlog, captured July 30, 2026. It records product
 intent only; it does not authorize implementation on its own.
 
+## Documentation site consolidation
+
+As of October 14, 2026, FDL has one documentation site in
+`examples/fdl-input/`, served at the root URL with `npm run docs:dev`. It includes
+Home, How it Works, Contributing, and the modifier reference. The separate
+portfolio app and older example pages have been removed. The dated backlog
+below is historical intent, not a request to restore those separate sites.
+
 ## Product direction
 
 The first impression should be a solved product problem, rather than a library
