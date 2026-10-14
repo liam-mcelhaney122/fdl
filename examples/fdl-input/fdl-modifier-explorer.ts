@@ -52,7 +52,6 @@ export class FdlModifierExplorer extends LitElement {
     private checked = false;
     private requiredRule = true;
     private liveDefinition = '';
-    private linked = false;
     private amountInput?: string;
     private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
@@ -108,7 +107,7 @@ export class FdlModifierExplorer extends LitElement {
         const changed = this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
         this.selected = index;
-        if (changed) { this.liveDefinition = ''; this.linked = false; }
+        if (changed) this.liveDefinition = '';
         this.requestUpdate();
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
@@ -123,15 +122,6 @@ export class FdlModifierExplorer extends LitElement {
     }
     private field(record: Record<any>, field: string) {
         return keyed(record.fieldTypeForField(field), html`<fdl-field .record=${record} field=${field} .showValidationErrors=${this.checked}></fdl-field>`);
-    }
-    private linkView(target: 'definition' | 'effect') {
-        this.linked = true;
-        this.requestUpdate();
-        this.updateComplete.then(() => {
-            const element = this.shadowRoot?.querySelector<HTMLElement>(target === 'definition' ? '#definition-title' : '#modifier-effect');
-            element?.focus({preventScroll: true});
-            element?.scrollIntoView?.({block: 'nearest', behavior: 'smooth'});
-        });
     }
     private reset() {
         this.resetVersion += 1;
@@ -198,12 +188,12 @@ export class FdlModifierExplorer extends LitElement {
                 <div class="chapter"><span>${recipe.category}</span></div>
                 <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                 <h2>${recipe.title}</h2><p class="description">${recipe.description}</p>
-                <div class="exploration-workspace"><section class="playground" ?data-linked=${this.linked} aria-label="Interactive example">
-                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<span class="example-actions"><button class="link-view" aria-controls="definition-title" @click=${() => this.linkView('definition')}>Show its definition</button><button class="reset" @click=${this.reset}>Reset example ↺</button></span>`}</div>
+                <div class="exploration-workspace"><section class="playground" aria-label="Interactive example">
+                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
-                    <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" id="modifier-effect" tabindex="-1" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
+                    <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
-                <section class="code-section" ?data-linked=${this.linked}><div class="detail-heading"><h3 id="definition-title" tabindex="-1">The definition</h3><span>JavaScript</span></div>${!recipe.limitation ? html`<button class="link-view" aria-controls="modifier-effect" @click=${() => this.linkView('effect')}>Highlight its effect</button>` : ''}<pre class="code"><code>${highlightModifier(this.liveDefinition || (recipe.name === 'required' && !this.requiredRule ? recipe.code.replace('.and.required()', '// required rule removed').replace('// false until a name is entered', '// true: the field is optional') : recipe.code), recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the same value is now checked without it.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p>${this.linked ? html`<p class="relationship" role="status">The highlighted definition supplies the behavior in the highlighted example. <button class="link-view" @click=${() => { this.linked = false; this.requestUpdate(); }}>Clear highlight</button></p>` : ''}</section></div>
+                <section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(this.liveDefinition || (recipe.name === 'required' && !this.requiredRule ? recipe.code.replace('.and.required()', '// required rule removed').replace('// false until a name is entered', '// true: the field is optional') : recipe.code), recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the same value is now checked without it.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section></div>
                 <div class="details"><section class="markup-section"><div class="detail-heading"><h3>Render the example</h3><span>HTML / Lit template</span></div>
                     ${markup ? html`<p class="markup-note">The <code>.record</code> and <code>.recordset</code> bindings pass JavaScript objects to FDL components. Expressions inside <code>\${…}</code> are evaluated by Lit.</p><pre class="code markup"><code>${highlightMarkup(markup)}</code></pre>` : html`<p class="markup-note">This modifier needs a compatible adapter. The native example has no supported HTML binding for this interaction.</p>`}
                 </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
@@ -292,12 +282,6 @@ export class FdlModifierExplorer extends LitElement {
         .model-foot { margin-top:16px; padding-top:12px; border-top:1px solid #cbd5e1; font-size:.875rem; color:var(--muted); }
         .exploration-workspace { display:grid; gap:24px; align-items:start; }
         .exploration-workspace > * { min-width:0; }
-        [data-linked] { outline:3px solid #2563eb; outline-offset:3px; }
-        #modifier-effect:focus,#definition-title:focus { outline:3px solid #2563eb; outline-offset:3px; }
-        .example-actions { display:flex; flex-wrap:wrap; gap:8px; }
-        .link-view { background:none; border:0; color:#1d4ed8; font:inherit; font-size:1rem; text-decoration:underline; min-height:44px; padding:8px; cursor:pointer; }
-        .code-section > .link-view { padding-left:0; }
-        .relationship { font-size:1rem; line-height:1.5; }
         summary { cursor:pointer; min-height:44px; padding:8px 0; }
         summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
         @media(min-width:1200px) {

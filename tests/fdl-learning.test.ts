@@ -233,18 +233,3 @@ it('builds a single example through parsing, validation, dependencies, and a col
     expect(root.querySelector('details ol')!.children).toHaveLength(5);
     expect(root.querySelector<HTMLButtonElement>('.next-lesson')!.disabled).toBe(true);
 });
-
-it('links the active rule and effect with keyboard focus and a clear action', async () => {
-    const page = await openExplorer('#required');
-    const root = page.shadowRoot!;
-    root.querySelector<HTMLButtonElement>('.playground .link-view')!.click();
-    await page.updateComplete; await Promise.resolve();
-    expect(root.activeElement?.id).toBe('definition-title');
-    expect(root.querySelector('.playground')!.hasAttribute('data-linked')).toBe(true);
-    root.querySelector<HTMLButtonElement>('.code-section > .link-view')!.click();
-    await page.updateComplete; await Promise.resolve();
-    expect(root.activeElement?.id).toBe('modifier-effect');
-    root.querySelector<HTMLButtonElement>('.relationship .link-view')!.click();
-    await page.updateComplete;
-    expect(root.querySelector('[data-linked]')).toBeNull();
-});

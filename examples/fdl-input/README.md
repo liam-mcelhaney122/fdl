@@ -47,9 +47,8 @@ Repository API references and architecture decision records remain in `docs/`.
 - Validator, filter, and comparator examples compare several cases at once.
   Parser and formatter pages trace original input through stored and display values.
 - On wide screens, the active definition sits beside the experiment and stays
-  visible while scrolling. **Show its definition** and **Highlight its effect**
-  connect the two regions and move keyboard focus; **Clear highlight** removes
-  the emphasis. Narrow screens stack the same regions in reading order.
+  visible while scrolling. Narrow screens stack the same regions in reading
+  order.
 
 Keep explanations connected to actual FDL behavior. Configuration controls may
 change the example's rule, but every editable domain value remains bound through
