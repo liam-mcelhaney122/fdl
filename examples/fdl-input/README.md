@@ -48,7 +48,9 @@ Repository API references and architecture decision records remain in `docs/`.
   Parser and formatter pages trace original input through stored and display values.
 - Every modifier page shows two connected code examples below its demo: the
   complete record or recordset definition, followed by the Lit UI using that
-  same model. Run them in order in the same module with this site’s adapters.
+  same model. Save the labeled files in the same folder: the model file exports
+  its record and any shared helpers; the Lit file imports them explicitly.
+  Component imports refer to this site’s adapters.
   Teaching panels and rule selectors are omitted from the snippets. Unsupported
   adapter interactions remain explicit.
 

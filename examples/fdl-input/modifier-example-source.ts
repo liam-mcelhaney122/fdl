@@ -100,7 +100,14 @@ const validationFields: {[key: string]: string} = {required:'name',emptyWhen:'em
 export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const model = modelFor(name, settings);
     const kind = model.kind ?? 'Record';
-    const definition = `import { FieldType, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(/\.and\./g, '\n    .and.')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});`;
+    const helpers: {[key: string]: string[]} = {
+        hashFunction: ['hashType'], inputMask: ['maskType'],
+        reducer: ['currency', 'reducerType'], exampleValue: ['exampleType'],
+    };
+    const exports = [model.name, ...(helpers[name] ?? [])];
+    const modelFile = `${name}-model.js`;
+    const uiFile = `${name}-view.js`;
+    const definition = `import { FieldType, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(/\.and\./g, '\n    .and.')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
     let markup = exampleMarkup(name);
     let setup = '';
     const validation = validationFields[name];
@@ -123,6 +130,6 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const contract = !markup;
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;
     const adapters = exampleTables[name] ? "import './fdl-table';\n" : exampleFields[name] ? "import './fdl-field';\n" : '';
-    const ui = `import { html, render } from 'lit';\n${adapters}\n// Continue in the same module, below the model definition.\nconst container = document.createElement('div');\ndocument.body.append(container);\n${setup}\nconst view = () => html\`\n${markup!.split('\n').map(line => `  ${line}`).join('\n')}\n\`;\n\nconst update = () => render(view(), container);\n${model.name}.addEventListener('${kind === 'Recordset' ? 'page-changed' : 'change'}', update);\nupdate();`;
-    return {definition, ui, modelName:model.name, fields:Object.keys(model.fields), kind, contract};
+    const ui = `import { html, render } from 'lit';\nimport { ${exports.join(', ')} } from './${modelFile}';\n${adapters}\nconst container = document.createElement('div');\ndocument.body.append(container);\n${setup}\nconst view = () => html\`\n${markup!.split('\n').map(line => `  ${line}`).join('\n')}\n\`;\n\nconst update = () => render(view(), container);\n${model.name}.addEventListener('${kind === 'Recordset' ? 'page-changed' : 'change'}', update);\nupdate();`;
+    return {definition, ui, modelFile, uiFile, modelName:model.name, fields:Object.keys(model.fields), kind, contract};
 }

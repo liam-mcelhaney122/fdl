@@ -1,4 +1,5 @@
 import { html, render } from 'lit';
+import * as ts from 'typescript';
 import FieldType from '../field-type.js';
 import Record from '../record.js';
 import Recordset from '../recordset.js';
@@ -7,15 +8,33 @@ import { exampleSource, type ExampleSettings } from '../examples/fdl-input/modif
 
 function runExample(name: string, settings: ExampleSettings = {}) {
     const source = exampleSource(name, settings);
-    const code = `${source.definition}\n${source.ui}`.replace(/^import .*;\n/gm, '');
-    const run = new Function('FieldType', 'Record', 'Recordset', 'html', 'render',
-        `${code}\nreturn {model: ${source.modelName}, container, update};`);
-    return run(FieldType, Record, Recordset, html, render) as {model: any; container: HTMLElement; update: () => void};
+    const modules: {[path: string]: any} = {
+        'digital-fdl': {FieldType, Record, Recordset},
+        lit: {html, render},
+        './fdl-field': {}, './fdl-table': {},
+    };
+    function execute(code: string) {
+        const compiled = ts.transpileModule(code, {
+            compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020},
+        }).outputText;
+        const exports = {};
+        new Function('require', 'exports', compiled)((path: string) => {
+            if (!(path in modules)) throw new Error(`Unresolved example import: ${path}`);
+            return modules[path];
+        }, exports);
+        return exports as any;
+    }
+    const modelModule = execute(source.definition);
+    expect(modelModule[source.modelName]).toBeDefined();
+    modules[`./${source.modelFile}`] = modelModule;
+    // Separate module scopes ensure the UI can only see explicitly imported names.
+    const uiModule = execute(`${source.ui}\nexport {container, update};`);
+    return {model: modelModule[source.modelName], ...uiModule} as {model: any; container: HTMLElement; update: () => void};
 }
 
 afterEach(() => { document.body.innerHTML = ''; });
 
-it.each(explorerRecipes.map(recipe => recipe.name))('runs the %s definition and Lit UI together', async name => {
+it.each(explorerRecipes.map(recipe => recipe.name))('runs the %s model and Lit UI as separate modules', async name => {
     const {model, container} = runExample(name);
     expect(model).toBeInstanceOf(exampleSource(name).kind === 'Recordset' ? Recordset : Record);
     expect(container.textContent!.trim().length + container.querySelectorAll('fdl-field, fdl-table').length).toBeGreaterThan(0);
