@@ -130,8 +130,11 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.chapter')!.textContent).not.toContain('MODIFIER');
         expect(page.shadowRoot!.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
+        const css = page.shadowRoot!.querySelector('.example-css');
+        if (exampleSource(name).styles) expect(css!.textContent).toBe(exampleSource(name).styles);
+        else expect(css).toBeNull();
         const demo = page.shadowRoot!.querySelector('.playground')!;
-        for (const section of page.shadowRoot!.querySelectorAll('.code-section, .markup-section')) {
+        for (const section of page.shadowRoot!.querySelectorAll('.code-section, .markup-section, .css-section')) {
             expect(demo.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         }
         if (!['required', 'formatter', 'visibleWhen'].includes(name)) {

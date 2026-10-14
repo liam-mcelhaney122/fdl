@@ -195,7 +195,12 @@ export class FdlModifierExplorer extends LitElement {
                 <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
-                </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
+                </section>
+                ${source.styles ? html`<section class="css-section"><div class="detail-heading"><h3>Style the example</h3><span>CSS · fdl-table</span></div>
+                    <p class="markup-note">These rules live in <code>fdl-table</code>’s shadow-root stylesheet (<code>static styles</code>). The field definition supplies the class; these styles give it its appearance. A page-level stylesheet cannot reach these cells.</p>
+                    <pre class="code example-css"><code>${source.styles}</code></pre>
+                </section>` : ''}
+                <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
                 <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
                 `}
@@ -285,10 +290,10 @@ export class FdlModifierExplorer extends LitElement {
         .code-line { display:inline-block; min-width:100%; width:max-content; padding:0 20px; border-left:4px solid transparent; }
         .code .focused-line { border-left-color:#60a5fa; background:#1e3a5f; }
         .markup-note { font-size:1rem; line-height:1.65; margin:0 0 16px; max-width:70ch; }
-        .code:not(.markup) { padding-left:0; padding-right:0; }
+        .code-section .code { padding-left:0; padding-right:0; }
         .source-intro { margin:0; max-width:70ch; font-size:1rem; }
         .code-section,.explanation { min-width:0; }
-        .code-section,.markup-section { min-width:0; padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
+        .code-section,.markup-section,.css-section { min-width:0; padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
         .detail-heading h3 { margin:0; }
         .detail-heading { min-height:32px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .detail-heading span { font-size:.875rem; color:var(--muted); }

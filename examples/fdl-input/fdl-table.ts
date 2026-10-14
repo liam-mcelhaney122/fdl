@@ -1,4 +1,5 @@
 import { LitElement, css, html, nothing } from 'lit';
+import { tableExampleStyles } from './table-example-styles';
 import type Record from '../../record.js';
 import Recordset from '../../recordset.js';
 
@@ -707,26 +708,9 @@ export class FdlTable extends LitElement {
             text-align: left;
         }
 
-        .amount-cell {
-            border-left: 0.3rem solid #5b52d6;
-            background: #e9edff;
-            color: #34308f;
-            font-family: Georgia, serif;
-            font-size: 1.08rem;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .high-value {
-            background: #fff4d6;
-            color: #8a4b00;
-            font-weight: 800;
-        }
-
-        tr.disputed-row {
-            background: #fffdf7;
-            box-shadow: inset 0.25rem 0 #ff695b;
-        }
+        ${tableExampleStyles.cellClass}
+        ${tableExampleStyles.conditionalCellClass}
+        ${tableExampleStyles.rowClasses}
 
         th {
             position: relative;
