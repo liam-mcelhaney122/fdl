@@ -192,7 +192,7 @@ export class FdlModifierExplorer extends LitElement {
                 </section>
                 <div class="details">
                 <p class="source-intro">Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
-                <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the field is optional.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section>
+                <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
                 </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
@@ -284,8 +284,7 @@ export class FdlModifierExplorer extends LitElement {
         .details { display:grid; grid-template-columns:minmax(0,1fr); gap:28px; margin:32px 0; }
         .code-line { display:inline-block; min-width:100%; width:max-content; padding:0 20px; border-left:4px solid transparent; }
         .code .focused-line { border-left-color:#60a5fa; background:#1e3a5f; }
-        .code-caption,.markup-note { font-size:1rem; line-height:1.65; margin:12px 0 0; max-width:70ch; }
-        .markup-note { margin:0 0 16px; }
+        .markup-note { font-size:1rem; line-height:1.65; margin:0 0 16px; max-width:70ch; }
         .code:not(.markup) { padding-left:0; padding-right:0; }
         .source-intro { margin:0; max-width:70ch; font-size:1rem; }
         .code-section,.explanation { min-width:0; }
