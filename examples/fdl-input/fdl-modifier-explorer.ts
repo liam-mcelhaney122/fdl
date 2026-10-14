@@ -1,4 +1,5 @@
 import { LitElement, css, html } from 'lit';
+import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleMarkup } from './modifier-example-markup';
 import { highlightMarkup, highlightModifier } from './highlight-javascript';
 import { keyed } from 'lit/directives/keyed.js';
@@ -43,6 +44,7 @@ const recipes = explorerRecipes;
 
 export class FdlModifierExplorer extends LitElement {
     private selected = 0;
+    private page: SitePage | 'modifier' = 'home';
     private checked = false;
     private query = '';
     private resetVersion = 0;
@@ -55,9 +57,31 @@ export class FdlModifierExplorer extends LitElement {
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     private readLocation = () => {
-        const index = recipes.findIndex(recipe => `#${recipe.name}` === window.location.hash);
-        this.select(index < 0 ? 0 : index, false);
+        const hash = window.location.hash.slice(1);
+        const page = sitePages.find(page => page.id === hash);
+        if (page || !hash) this.showPage(page?.id ?? 'home', false);
+        else {
+            const index = recipes.findIndex(recipe => recipe.name === hash);
+            if (index >= 0) this.select(index, false);
+            else this.showPage('home', false);
+        }
     };
+    private showPage(page: SitePage, updateUrl = true) {
+        this.page = page;
+        this.requestUpdate();
+        document.title = `${sitePages.find(entry => entry.id === page)!.title} — FDL`;
+        if (updateUrl) {
+            window.location.hash = page;
+            this.focusHeading();
+        }
+    }
+    private focusHeading() {
+        this.updateComplete.then(() => {
+            const heading = this.shadowRoot?.querySelector<HTMLElement>('h1');
+            heading?.focus({ preventScroll: true });
+            heading?.scrollIntoView?.({ block: 'start' });
+        });
+    }
 
     connectedCallback() {
         super.connectedCallback();
@@ -72,9 +96,10 @@ export class FdlModifierExplorer extends LitElement {
     }
     private select(index: number, updateUrl = true) {
         if (index < 0 || index >= recipes.length) return;
+        this.page = 'modifier';
         this.selected = index;
         this.requestUpdate();
-        this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('nav [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
+        this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
             window.location.hash = recipes[index].name;
             this.updateComplete.then(() => {
@@ -118,9 +143,12 @@ export class FdlModifierExplorer extends LitElement {
         const number = (index: number) => String(index + 1).padStart(2, '0');
         const model = this.selected === 0 ? this.person : this.selected === 1 ? this.money : this.delivery;
         return html`
-        <header class="masthead"><a class="brand" href="../" aria-label="FDL home">f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span><a href="../cookbook/" class="catalog-link">Full cookbook</a></header>
+        <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
         <div class="shell">
-            <aside><p class="eyebrow">THE MODIFIER EXPLORER</p>
+            <aside>
+            <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
+            <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
+            <h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
             <label class="search-label" for="modifier-search">Find a modifier</label>
             <input id="modifier-search" class="modifier-search" type="search" placeholder="Name or category…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}>
             <fieldset class="categories">
@@ -134,10 +162,11 @@ export class FdlModifierExplorer extends LitElement {
             </fieldset>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p>
-            <nav aria-label="Jump to a modifier">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span class="nav-number">${number(index)}</span><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
+            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span class="nav-number">${number(index)}</span><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
-            </aside>
+            </section></aside>
             <main>
+                ${this.page !== 'modifier' ? renderSitePage(this.page) : html`
                 <div class="chapter"><span>${recipe.category}</span></div>
                 <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                 <h2>${recipe.title}</h2><p class="description">${recipe.description}</p>
@@ -152,6 +181,7 @@ export class FdlModifierExplorer extends LitElement {
                 </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
                 <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
+                `}
             </main>
         </div>`;
     }
@@ -191,6 +221,18 @@ export class FdlModifierExplorer extends LitElement {
         .nav-number { font: .875rem monospace; color:var(--muted); }
         nav strong { font:600 1rem/1.5 monospace; overflow-wrap:anywhere; }
         nav small { display:block; font-size:.875rem; line-height:1.5; color:var(--muted); }
+        .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #c4cebe; gap:4px; }
+        .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
+        .modifier-navigation { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
+        .modifier-navigation > :not(nav) { flex-shrink:0; }
+        .site-page { max-width:75ch; }
+        .site-page h1 { font-family:Arial,Helvetica,sans-serif; font-size:clamp(30px,3vw,42px); font-weight:650; }
+        .site-page h2 { margin-top:32px; font-size:1.5rem; }
+        .site-page p,.site-page li,.site-page dd { font-size:1.125rem; line-height:1.75; }
+        .site-page a { color:var(--green); text-underline-offset:3px; }
+        .site-page .code { margin:20px 0; }
+        .concepts dt { margin-top:20px; font:600 1.125rem monospace; }
+        .concepts dd { margin:8px 0 0; }
         .empty-search { font-size:1rem; }
         main { min-width:0; padding:32px 0 32px 40px; }
         .chapter { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:.875rem; color:var(--muted); }
@@ -247,7 +289,7 @@ export class FdlModifierExplorer extends LitElement {
         .syntax-function { color:#b8dba3; }
         .syntax-number,.syntax-literal { color:#f1b999; }
         .syntax-punctuation { color:#c2cdc5; }
-        @media(max-height:850px) and (min-width:801px) { aside { overflow-y:auto; } nav { flex-shrink:0; max-height:260px; } }
+        @media(max-height:850px) and (min-width:801px) { aside { overflow-y:auto; } .modifier-navigation { flex-shrink:0; } .modifier-list { max-height:260px; } }
         @media(max-width:1100px) { .shell { grid-template-columns:260px minmax(0,1fr); padding:0 24px; } main { padding-left:28px; } .demo-grid { grid-template-columns:minmax(0,1fr); } }
         @media(max-width:800px) {
             .masthead { padding:16px 20px; }
@@ -256,7 +298,8 @@ export class FdlModifierExplorer extends LitElement {
             aside { position:static; max-height:none; padding:24px 0; border-right:0; border-bottom:1px solid #d8dcd3; }
             .category-options { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; }
             .category-options label { min-height:44px; }
-            nav { max-height:240px; min-height:0; }
+            .modifier-list { max-height:240px; min-height:0; }
+            .site-nav { max-height:none; }
             main { padding:28px 0; }
             h1 { font-size:clamp(24px,5.5vw,36px); }
             h1 span { display:block; margin-top:8px; }

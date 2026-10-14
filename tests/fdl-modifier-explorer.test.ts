@@ -134,7 +134,7 @@ describe('complete explorer', () => {
         search.value = 'width';
         search.dispatchEvent(new Event('input'));
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(3);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
         expect(root.querySelector('h1')!.textContent).toContain('required');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
@@ -220,20 +220,20 @@ describe('category navigation filters', () => {
             .find(label => label.textContent!.includes(category))!.querySelector<HTMLInputElement>('input')!;
         checkbox('Validation').click();
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => recipe.category === 'Validation').length);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.filter(recipe => recipe.category === 'Validation').length);
         expect(root.querySelector('h1')!.textContent).toContain('formatter');
         expect(root.querySelector('#modifier-jump')).toBeNull();
         checkbox('Tables').click();
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => ['Validation', 'Tables'].includes(recipe.category)).length);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.filter(recipe => ['Validation', 'Tables'].includes(recipe.category)).length);
         const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
         search.value = 'required';
         search.dispatchEvent(new Event('input'));
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(2);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(2);
         root.querySelector<HTMLButtonElement>('.clear-filters')!.click();
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.length);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
         expect(root.querySelectorAll('.category-options input:checked')).toHaveLength(0);
         expect(search.value).toBe('');
     });
@@ -244,9 +244,44 @@ describe('category navigation filters', () => {
         const input = root.querySelector<HTMLInputElement>('.category-options input')!;
         input.click();
         await settle(page);
-        expect(root.querySelectorAll('nav a').length).toBeLessThan(explorerRecipes.length);
+        expect(root.querySelectorAll('.modifier-list a').length).toBeLessThan(explorerRecipes.length);
         input.click();
         await settle(page);
-        expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.length);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
+    });
+});
+
+
+describe('FDL site pages', () => {
+    it('opens Home by default and separates site pages from the modifier reference', async () => {
+        const page = await openPage('');
+        const root = page.shadowRoot!;
+        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
+        expect(root.querySelector('.site-page')!.textContent).toContain('Recordset');
+        expect(root.querySelectorAll('.site-nav a')).toHaveLength(3);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
+        expect(root.querySelector('a[href="../cookbook/"]')).toBeNull();
+        expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    });
+
+    it('navigates between documentation and modifiers, and responds to history changes', async () => {
+        const page = await openPage('');
+        const root = page.shadowRoot!;
+        root.querySelector<HTMLAnchorElement>('.site-nav a[href="#how-it-works"]')!.click();
+        await settle(page);
+        expect(root.querySelector('h1')!.textContent).toBe('How it Works');
+        expect(window.location.hash).toBe('#how-it-works');
+        root.querySelector<HTMLAnchorElement>('.site-nav a[href="#contributing"]')!.click();
+        await settle(page);
+        expect(root.querySelector('h1')!.textContent).toBe('Contributing');
+        root.querySelector<HTMLAnchorElement>('.modifier-list a[href="#formatter"]')!.click();
+        await settle(page);
+        expect(root.querySelector('h1')!.textContent).toBe('.formatter(fn)');
+        expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+        window.location.hash = 'home';
+        window.dispatchEvent(new Event('hashchange'));
+        await settle(page);
+        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
+        expect(document.title).toBe('Home — FDL');
     });
 });
