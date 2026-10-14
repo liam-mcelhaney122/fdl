@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import './fdl-delivery-experiment';
 import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 
 export const sitePages = [
@@ -27,6 +28,7 @@ export function renderSitePage(page: SitePage) {
         <article class="site-page">
             <h1 tabindex="-1">Field Definition Language</h1>
             <p class="description">FDL (pronounced “fiddle”) is a JavaScript and TypeScript library for modeling fields, records, and collections of records independently of the interface that displays them.</p>
+            <fdl-delivery-experiment></fdl-delivery-experiment>
             <h2>What belongs in FDL?</h2>
             <p>A complex form often repeats the same rules in input handlers, validation, review screens, and tables. FDL puts reusable behavior in field definitions: how to parse an input, format a value, validate it, or determine its state from other fields.</p>
             <p>A component reads those definitions to render an accessible control. The application chooses the layout and workflow, and CSS controls the appearance.</p>
