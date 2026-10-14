@@ -3,6 +3,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
+import { validatorCases, filterCases, sortCases, prefixFilter, substringFilter } from './comparison-examples';
 import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
@@ -171,7 +172,7 @@ export class FdlModifierCatalog extends LitElement {
         {
             name: new FieldType<string>().with
                 .label('Name')
-                .and.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase())),
+                .and.filter((text, value) => (this.probes.getField('matchRule') === 'contains' ? substringFilter : prefixFilter).match(text, value)),
             team: new FieldType().with.label('Team'),
         },
         [
@@ -278,12 +279,14 @@ export class FdlModifierCatalog extends LitElement {
     };
     private probes = new Record({
         input: new FieldType<string>().with.label('Characters to test'),
+        filterProbe: new FieldType<string>().with.label('Compare filter text'),
+        matchRule: new FieldType<string>().with.label('Filter matching rule').and.tag('select').and.options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
         firstId: new FieldType<string>().with.label('First employee ID'),
         secondId: new FieldType<string>().with.label('Second employee ID'),
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
     private exampleOffset = 0;
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
@@ -300,7 +303,7 @@ export class FdlModifierCatalog extends LitElement {
         super.connectedCallback();
         this.record.addEventListener('change', this.onRecordChange);
         this.defaultRecord.addEventListener('change', this.onRecordChange);
-        this.probes.addEventListener('change', this.onRecordChange);
+        this.probes.addEventListener('change', this.onProbeChange);
         if (this.modifier === 'options') this.loadAssigneeChoices();
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.addEventListener('page-changed', this.onRecordChange));
     }
@@ -308,13 +311,22 @@ export class FdlModifierCatalog extends LitElement {
     disconnectedCallback() {
         this.record.removeEventListener('change', this.onRecordChange);
         this.defaultRecord.removeEventListener('change', this.onRecordChange);
-        this.probes.removeEventListener('change', this.onRecordChange);
+        this.probes.removeEventListener('change', this.onProbeChange);
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.removeEventListener('page-changed', this.onRecordChange));
         super.disconnectedCallback();
     }
 
     private onRecordChange = () => {
         if (this.modifier === 'options') this.loadAssigneeChoices();
+
+        this.requestUpdate();
+    };
+    private onProbeChange = () => {
+        if (this.modifier === 'filter') {
+            const method = this.probes.getField('matchRule') === 'contains' ? 'includes' : 'startsWith';
+            this.dispatchEvent(new CustomEvent('definition-change', {detail: `new FieldType().with\n  .filter((text, value) => value.toLowerCase().${method}(text.toLowerCase()))`, bubbles: true, composed: true}));
+            this.filterRecordset.requestUpdate();
+        }
         this.requestUpdate();
     };
     private async loadAssigneeChoices() {
@@ -396,7 +408,7 @@ export class FdlModifierCatalog extends LitElement {
                         <fdl-column field="firstName"></fdl-column>
                         <fdl-column field="lastName"></fdl-column>
                         <fdl-column field="team"></fdl-column>
-                    </fdl-table>`;
+                    </fdl-table>${sortCases(this.compareRecordset)}`;
             }
             case 'conditionalCellClass': return html`<p class="try">Only 12000 receives the <code>high-value</code> class.</p><fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="label"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('defaultId', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('defaultId')}</p>`;
@@ -404,7 +416,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
             case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderValidation('emptyCode')}`;
             case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
-            case 'filter': return html`<p class="try">Open the filter in the Name heading. This matcher uses “starts with,” so entering “gr” keeps Grace.</p><fdl-table .recordset=${this.filterRecordset}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
+            case 'filter': return html`<p class="try">Open the Name filter and compare matching rules.</p>${this.renderField('matchRule', this.probes)}<fdl-table .recordset=${this.filterRecordset}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>${this.renderField('filterProbe', this.probes)}${filterCases(this.probes.getField('filterProbe'))}`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
             case 'hashFunction': return html`${this.renderField('firstId', this.probes)}${this.renderField('secondId', this.probes)}<p class="computed" role="status">Hash comparison: ${this.hashType.hashFunction()({ id: this.probes.getField('firstId') }) === this.hashType.hashFunction()({ id: this.probes.getField('secondId') }) ? 'same identity' : 'different identities'}. Separate objects match when their IDs match.</p>`;
             case 'inputMask': return html`${this.renderField('input', this.probes)}<p class="computed" role="status">${[...this.probes.getField('input')].map(character => html`<span class="probe-result">“${character}”: ${this.maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>`)}</p><p class="try">This tests FieldType.allowInputChar(). The native adapter does not block typing.</p>`;
@@ -434,7 +446,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
             case 'type': return html`${this.renderField('dateType')}`;
-            case 'validator': return this.renderValidation('projectCode');
+            case 'validator': return html`${this.renderValidation('projectCode')}${validatorCases(this.record.fieldTypeForField('projectCode'))}`;
             case 'visibleWhen': return html`<p class="try">Choose Pickup to remove Shipping address.</p>${this.renderField('fulfillment')}${this.renderField('address')}`;
         }
         return html``;
@@ -502,6 +514,12 @@ export class FdlModifierCatalog extends LitElement {
         .focused pre { padding: 0; border: 0; font: 1rem/1.7 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
         .limitation { padding: 20px; border-left: 3px solid #2563eb; background: #eff6ff; font-size: 1.125rem; line-height: 1.8; }
         .selection-explanation { border-left:3px solid #2563eb; background:#eff6ff; padding:12px; margin-top:16px; line-height:1.6; }
+        .case-comparison { margin-top:24px; }
+        .case-comparison table, table.case-comparison { border-collapse:collapse; width:100%; font-size:1rem; }
+        .case-comparison th,.case-comparison td { padding:8px; text-align:left; border-bottom:1px solid #cbd5e1; overflow-wrap:anywhere; }
+        caption { text-align:left; font-weight:bold; padding:8px 0; }
+        .comparison-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+        h4 { margin:8px 0; }
         .model-assignment { margin-top: 12px; }
         .probe-result { display: inline-block; margin-right: 12px; }
         select { font:inherit; min-height:44px; max-width:100%; }

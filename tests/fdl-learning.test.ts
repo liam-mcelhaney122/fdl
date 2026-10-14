@@ -137,3 +137,25 @@ it('exposes an out-of-list selection and clears it only on request', async () =>
     const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
     expect(state.assignee).toBe('');
 });
+
+it('compares validator boundary cases using the same FDL rule', async () => {
+    const page = await openExplorer('#validator');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const rows = [...catalog.shadowRoot!.querySelectorAll('.case-comparison tbody tr')];
+    expect(rows).toHaveLength(5);
+    expect(rows[2].textContent).toContain('PRJ-1234Valid');
+    expect(rows[3].textContent).toContain('must look like PRJ-1234');
+});
+it('compares prefix and substring matching and updates the executable rule', async () => {
+    const page = await openExplorer('#filter');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const rows = catalog.shadowRoot!.querySelectorAll('.case-comparison tbody tr');
+    expect(rows[2].textContent).toBe('MargaretNo matchMatch');
+    await editField(catalog.shadowRoot!, 'matchRule', 'contains');
+    await catalog.updateComplete; await page.updateComplete;
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.includes(');
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    expect(table.recordset.getFieldType('name').match('ar', 'Margaret')).toBe(true);
+});
