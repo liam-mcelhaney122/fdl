@@ -2,6 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleMarkup } from './modifier-example-markup';
 import { highlightMarkup, highlightModifier } from './highlight-javascript';
+import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
 import Record from '../../record.js';
@@ -130,7 +131,7 @@ export class FdlModifierExplorer extends LitElement {
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>`;
         if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name}></fdl-modifier-catalog>`;
-        return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
+        return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
     render() {
         const recipe = recipes[this.selected];

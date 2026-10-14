@@ -3,6 +3,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
+import { explainDependency } from './dependency-explanation';
 import './fdl-table';
 
 type DemoName =
@@ -368,7 +369,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'conditionalCellClass': return html`<p class="try">Only 12000 receives the <code>high-value</code> class.</p><fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="label"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('defaultId', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('defaultId')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
-            case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}`;
+            case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
             case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderValidation('emptyCode')}`;
             case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
             case 'filter': return html`<p class="try">Open the filter in the Name heading. This matcher uses “starts with,” so entering “gr” keeps Grace.</p><fdl-table .recordset=${this.filterRecordset}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
@@ -385,10 +386,10 @@ export class FdlModifierCatalog extends LitElement {
             case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p>${this.renderField('money')}<p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>`;
             case 'placeholder': return html`${this.renderField('projectName')}`;
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
-            case 'readOnlyWhen': return html`<p class="try">Choose Submitted to replace the owner input with printed text.</p>${this.renderField('phase')}${this.renderField('conditionalOwner')}`;
+            case 'readOnlyWhen': return html`<p class="try">Choose Submitted to replace the owner input with printed text.</p>${this.renderField('phase')}${this.renderField('conditionalOwner')}${explainDependency(this.record, 'conditionalOwner', 'phase', `phase === 'submitted'`, 'readonly')}`;
             case 'reducer': return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p class="computed" role="status">Sum: ${currency.format(this.reducerType.aggregate([this.probes.getField('firstAmount'), this.probes.getField('secondAmount'), this.probes.getField('thirdAmount')]))}</p>`;
             case 'required': return this.renderValidation('requiredName');
-            case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}`;
+            case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('comments')}`;
             case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.compareRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
