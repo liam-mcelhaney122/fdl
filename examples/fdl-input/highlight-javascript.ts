@@ -30,3 +30,40 @@ export function highlightJavaScript(source: string): Array<string | TemplateResu
     output.push(source.slice(cursor));
     return output;
 }
+
+/** Locate the complete modifier call, treating strings and comments as tokens. */
+export function modifierLineRange(source: string, modifier: string): [number, number] | undefined {
+    const start = source.indexOf(`.${modifier}(`);
+    if (start < 0) return undefined;
+    const opening = start + modifier.length + 1;
+    let depth = 0;
+    let end = source.length;
+    for (const token of source.matchAll(tokens)) {
+        if (token.index! < opening) continue;
+        if (token[0] === '(') depth++;
+        if (token[0] === ')' && --depth === 0) { end = token.index!; break; }
+    }
+    return [source.slice(0, start).split('\n').length - 1, source.slice(0, end).split('\n').length - 1];
+}
+
+export function highlightModifier(source: string, modifier: string) {
+    const range = modifierLineRange(source, modifier);
+    const lines = source.split('\n');
+    return lines.map((line, index) => html`<span class=${`code-line${range && index >= range[0] && index <= range[1] ? ' focused-line' : ''}`}>${highlightJavaScript(line)}</span>${index < lines.length - 1 ? '\n' : ''}`);
+}
+
+export function highlightMarkup(source: string) {
+    const pattern = /<!--[\s\S]*?-->|\$\{[^}]*\}|<\/?[\w-]+|[.\w-]+(?=\s*=)|"[^"]*"|'[^']*'|[<>=/]/g;
+    const output: Array<string | TemplateResult> = [];
+    let cursor = 0;
+    for (const match of source.matchAll(pattern)) {
+        const value = match[0];
+        const kind = value.startsWith('<!--') ? 'comment'
+            : value.startsWith('<') || value.startsWith('${') ? 'builtin'
+            : /^["']/.test(value) ? 'string' : 'keyword';
+        output.push(source.slice(cursor, match.index), html`<span class=${`syntax-${kind}`}>${value}</span>`);
+        cursor = match.index! + value.length;
+    }
+    output.push(source.slice(cursor));
+    return output;
+}

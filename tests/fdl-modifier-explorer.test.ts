@@ -111,6 +111,9 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
         expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(recipe.code);
         expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
+        expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
+        expect(page.shadowRoot!.querySelector('.chapter')!.textContent).not.toContain('MODIFIER');
+        if (!recipe.limitation) expect(page.shadowRoot!.querySelector('.markup')!.textContent).toContain('<');
         if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
             const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
             await catalog.updateComplete;

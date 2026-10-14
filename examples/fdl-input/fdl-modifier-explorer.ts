@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit';
-import { highlightJavaScript } from './highlight-javascript';
+import { exampleMarkup } from './modifier-example-markup';
+import { highlightMarkup, highlightModifier } from './highlight-javascript';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
 import Record from '../../record.js';
@@ -21,7 +22,7 @@ export const explorerRecipes: ExplorerRecipe[] = [
         name: 'formatter', signature: '(fn)', category: 'Display', title: 'Format a stored value for display.',
         description: 'Apply a display transformation without changing the stored value. This example formats a number as US dollars.',
         prompt: 'Change the amount. Compare the raw number in the model with its formatted output.',
-        code: `const currency = new Intl.NumberFormat('en-US', {\n  style: 'currency', currency: 'USD',\n});\n\nconst amount = new FieldType().with\n  .label('Amount')\n  .and.type('number')\n  .and.parser(value => Number(value))\n  .and.formatter((value, _record, context) =>\n    context === 'input-focus'\n      ? String(value)\n      : currency.format(value)\n  );`,
+        code: `const currency = new Intl.NumberFormat('en-US', {\n  style: 'currency', currency: 'USD',\n});\n\nconst amount = new FieldType().with\n  .label('Amount')\n  .and.type('number')\n  .and.parser(value => Number(value))\n  .and.formatter((value, _record, context) =>\n    context === 'input-focus'\n      ? String(value)\n      : currency.format(value)\n  );\n\nconst money = new Record({ amount }, { amount: 1250 });`,
         steps: ['Store a number in the record.', 'The formatter transforms it when a consumer requests a display value.', 'Calculations can continue to use the original number.'],
         note: 'Formatting is one-way. This formatter leaves the input-focus value numeric for the number control and formats the printed output. The separate parser converts edited text back into a number.',
         use: 'Currency, dates, percentages, and other human-readable representations.',
@@ -108,6 +109,7 @@ export class FdlModifierExplorer extends LitElement {
     }
     render() {
         const recipe = recipes[this.selected];
+        const markup = exampleMarkup(recipe.name);
         const categories = [...new Set(recipes.map(entry => entry.category))].sort();
         const filtered = recipes.map((entry, index) => ({ entry, index })).filter(({ entry }) =>
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
@@ -136,7 +138,7 @@ export class FdlModifierExplorer extends LitElement {
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </aside>
             <main>
-                <div class="chapter"><span>${recipe.category}</span><span>MODIFIER ${number(this.selected)} / ${recipes.length}</span></div>
+                <div class="chapter"><span>${recipe.category}</span></div>
                 <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                 <h2>${recipe.title}</h2><p class="description">${recipe.description}</p>
                 <section class="playground" aria-label="Interactive example">
@@ -144,7 +146,10 @@ export class FdlModifierExplorer extends LitElement {
                     <p class="instruction">${recipe.prompt}</p>
                     <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p><pre aria-live="polite">${JSON.stringify(model.values, null, 2)}</pre><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
-                <div class="details"><section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightJavaScript(recipe.code)}</code></pre></section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
+                <div class="details"><section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(recipe.code, recipe.name)}</code></pre><p class="code-caption">Highlighted lines define <code>.${recipe.name}()</code>.</p></section>
+                <section class="markup-section"><div class="detail-heading"><h3>Render the example</h3><span>HTML / Lit template</span></div>
+                    ${markup ? html`<p class="markup-note">The <code>.record</code> and <code>.recordset</code> bindings pass JavaScript objects to FDL components. Expressions inside <code>\${…}</code> are evaluated by Lit.</p><pre class="code markup"><code>${highlightMarkup(markup)}</code></pre>` : html`<p class="markup-note">This modifier needs a compatible adapter. The native example has no supported HTML binding for this interaction.</p>`}
+                </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
                 <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
             </main>
@@ -210,6 +215,12 @@ export class FdlModifierExplorer extends LitElement {
         .model pre { margin:0; font:1rem/1.7 monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
         .model-foot { margin-top:16px; padding-top:12px; border-top:1px solid #c4cebe; font-size:.875rem; color:var(--muted); }
         .details { display:grid; grid-template-columns:minmax(0,1fr); gap:28px; margin:32px 0; }
+        .code-line { display:inline-block; min-width:100%; width:max-content; padding:0 20px; border-left:4px solid transparent; }
+        .code .focused-line { border-left-color:#f1ce75; background:#3e503d; }
+        .code-caption,.markup-note { font-size:1rem; line-height:1.65; margin:12px 0 0; max-width:70ch; }
+        .markup-note { margin:0 0 16px; }
+        .code:not(.markup) { padding-left:0; padding-right:0; }
+        .markup-section { min-width:0; }
         .code-section,.explanation { min-width:0; }
         .detail-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .detail-heading span { font-size:.875rem; color:var(--muted); }
