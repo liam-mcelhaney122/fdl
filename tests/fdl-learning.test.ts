@@ -159,3 +159,26 @@ it('compares prefix and substring matching and updates the executable rule', asy
     const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
     expect(table.recordset.getFieldType('name').match('ar', 'Margaret')).toBe(true);
 });
+
+it('connects original currency text to parsed, stored, and formatted representations', async () => {
+    const page = await openExplorer('#parser');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const field = catalog.shadowRoot!.querySelector('fdl-field[field="money"]') as any;
+    await field.updateComplete;
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
+    input.value = '$2345.670';
+    input.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+    await catalog.updateComplete;
+    const stages = [...catalog.shadowRoot!.querySelectorAll('.value-pipeline li')].map(item => item.textContent);
+    expect(stages[0]).toContain('$2345.670');
+    expect(stages[1]).toContain('2345.67 (number)');
+    expect(stages[2]).toContain('2345.67 (number)');
+    expect(stages[4]).toContain('$2,345.67');
+    input.value = 'bad money';
+    input.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+    await catalog.updateComplete;
+    expect(catalog.shadowRoot!.querySelector('.value-pipeline')!.textContent).toContain('NaN (number)');
+    expect(catalog.shadowRoot!.querySelector('.value-pipeline')!.textContent).toContain('Parsing alone does not validate');
+});

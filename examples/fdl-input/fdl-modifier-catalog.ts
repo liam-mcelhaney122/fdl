@@ -3,6 +3,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
+import { inputText, valuePipeline } from './value-pipeline';
 import { validatorCases, filterCases, sortCases, prefixFilter, substringFilter } from './comparison-examples';
 import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
@@ -109,6 +110,8 @@ export class FdlModifierCatalog extends LitElement {
 
     private validatedFields = new Set<string>();
     private minimum = 4;
+    private moneyInput?: string;
+    private captureMoneyInput = {capture: true, handleEvent: (event: Event) => { this.moneyInput = inputText(event); this.requestUpdate(); }};
     private optionsDepartment = '';
     private assigneeChoices: {text: string; value: string}[] = [];
     private optionsLoading = false;
@@ -432,7 +435,7 @@ export class FdlModifierCatalog extends LitElement {
             }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;
             case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}${this.selectionExplanation()}`;
-            case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p>${this.renderField('money')}<p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>`;
+            case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p><div @input=${this.captureMoneyInput}>${this.renderField('money')}</div><p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>${valuePipeline(this.record, 'money', this.moneyInput)}`;
             case 'placeholder': return html`${this.renderField('projectName')}`;
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
             case 'readOnlyWhen': return html`<p class="try">Choose Submitted to replace the owner input with printed text.</p>${this.renderField('phase')}${this.renderField('conditionalOwner')}${explainDependency(this.record, 'conditionalOwner', 'phase', `phase === 'submitted'`, 'readonly')}`;

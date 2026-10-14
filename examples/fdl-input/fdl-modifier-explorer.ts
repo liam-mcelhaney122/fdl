@@ -2,6 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleMarkup } from './modifier-example-markup';
 import { highlightMarkup, highlightModifier } from './highlight-javascript';
+import { inputText, valuePipeline } from './value-pipeline';
 import { recordSummary } from './model-summary';
 import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
@@ -50,6 +51,8 @@ export class FdlModifierExplorer extends LitElement {
     private checked = false;
     private requiredRule = true;
     private liveDefinition = '';
+    private amountInput?: string;
+    private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
     private resetVersion = 0;
     private selectedCategories = new Set<string>();
@@ -122,7 +125,7 @@ export class FdlModifierExplorer extends LitElement {
         this.resetVersion += 1;
         if (this.selected === 0) { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
         this.liveDefinition = '';
-        if (this.selected === 1) this.money.setField('amount', 1250);
+        if (this.selected === 1) { this.amountInput = undefined; this.money.setField('amount', 1250); }
         if (this.selected === 2) { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
     }
@@ -138,9 +141,9 @@ export class FdlModifierExplorer extends LitElement {
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record </button>
             <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'Ready to validate. Try an empty value first.'}</p>`;
         if (this.selected === 1) return html`
-            ${this.field(this.money, 'amount')}
+            <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
-            <p class="result">The formatter leaves the stored number unchanged.</p>`;
+            <p class="result">The formatter leaves the stored number unchanged.</p>${valuePipeline(this.money, 'amount', this.amountInput)}`;
         if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @definition-change=${(event: CustomEvent<string>) => { this.liveDefinition = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
