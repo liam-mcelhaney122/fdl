@@ -3,6 +3,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
+import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
 import './fdl-table';
@@ -424,7 +425,7 @@ export class FdlModifierCatalog extends LitElement {
         if (name === 'exampleValue') return [0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset));
         if (name === 'hashFunction') return { firstObject: { id: this.probes.getField('firstId') }, secondObject: { id: this.probes.getField('secondId') } };
         if (name === 'inputMask') return [...this.probes.getField('input')].map(character => ({ character, allowed: this.maskType.allowInputChar(character) }));
-        if (name === 'reducer') return { values: ['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.probes.getField(field as keyof typeof this.probes.values)), sum: this.reducerType.aggregate(['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.probes.getField(field as keyof typeof this.probes.values))) };
+        if (name === 'reducer') return { values: (['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field)), sum: this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))) };
         const table = this.tableRecordsets[name];
         return table ? {
             visibleRows: table.currentPage.map(record => record.values),
@@ -433,11 +434,21 @@ export class FdlModifierCatalog extends LitElement {
         } : undefined;
     }
 
+    private stateSummary(name: string) {
+        const table = this.tableRecordsets[name];
+        if (table) return tableSummary(table);
+        if (name === 'defaultValue') return recordSummary(this.defaultRecord);
+        const state = this.focusedState(name);
+        if (state && !['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(name)) return recordSummary(this.record, Object.keys(state as object));
+        if (name === 'reducer') return html`<p class="state-summary">Three values aggregate to ${currency.format(this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))))}.</p>`;
+        return html`<p class="state-summary">${describeValue(state)}</p>`;
+    }
+
     render() {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
             if (!entry) return nothing;
             return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
-                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p><pre aria-live="polite">${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></div>`
+                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;
     }
@@ -455,6 +466,8 @@ export class FdlModifierCatalog extends LitElement {
         .focused-demo fdl-field { --label: 1rem; --field-control-font-size: 1.125rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }
         .focused .try, .focused .computed { color: #475569; font-size: 1.125rem; line-height: 1.8; }
         .focused button { min-height: 44px; background: #2563eb; font-size: 1.125rem; font-weight: 400; }
+        summary { cursor:pointer; min-height:44px; padding:8px 0; }
+        summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
         .focused-state { padding: 18px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f1f5f9; }
         .state-label { color: #475569; font: .875rem monospace; letter-spacing: 1px; }
         .focused pre { padding: 0; border: 0; font: 1rem/1.7 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }

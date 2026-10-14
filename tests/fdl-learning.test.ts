@@ -98,3 +98,24 @@ it('changes the minimum-length definition while retaining the value', async () =
     expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('ABC');
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
 });
+
+it('summarizes semantic state and keeps the JSON inspector collapsed', async () => {
+    const page = await openExplorer('#visibleWhen');
+    await editField(page.shadowRoot!, 'fulfillment', 'pickup');
+    await page.updateComplete;
+    expect(page.shadowRoot!.querySelector('.model .state-summary')!.textContent).toContain('Hidden · Optional');
+    expect(page.shadowRoot!.querySelector('.model details')!.hasAttribute('open')).toBe(false);
+});
+it('explains actual sort precedence without requiring a JSON read', async () => {
+    const page = await openExplorer('#compareFunction');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    await table.updateComplete;
+    await table.recordset.requestUpdate();
+    table.shadowRoot.querySelector('button[title="Sort by Last name"]').click();
+    await table.recordset.requestUpdate(); await catalog.updateComplete;
+    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('Sorted by Last name ↑');
+    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('4 of 4');
+    expect(catalog.shadowRoot!.querySelector('.focused-state details')!.hasAttribute('open')).toBe(false);
+});

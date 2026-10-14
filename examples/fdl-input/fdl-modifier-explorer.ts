@@ -2,6 +2,7 @@ import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleMarkup } from './modifier-example-markup';
 import { highlightMarkup, highlightModifier } from './highlight-javascript';
+import { recordSummary } from './model-summary';
 import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
@@ -186,7 +187,7 @@ export class FdlModifierExplorer extends LitElement {
                 <section class="playground" aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
-                    <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p><pre aria-live="polite">${JSON.stringify(model.values, null, 2)}</pre><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
+                    <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
                 <div class="details"><section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(this.liveDefinition || (recipe.name === 'required' && !this.requiredRule ? recipe.code.replace('.and.required()', '// required rule removed') : recipe.code), recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the same value is now checked without it.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render the example</h3><span>HTML / Lit template</span></div>
