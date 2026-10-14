@@ -92,7 +92,11 @@ class FormElement extends ListeningElement {
          * assign all standard properties we can from the modifiers
          */
         // @ts-ignore
-        this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
+        // Native select values use option identity, not the formatted option label.
+        // Keep that identity intact between the native input and change events.
+        this.element.value = this.element instanceof HTMLSelectElement
+            ? String((this.record as any)?.getField(this.field) ?? '')
+            : this.record?.getFormattedField(this.field, 'input-focus');
         this.element.id = this.controlId;
         if (this.element instanceof HTMLInputElement) {
             this.element.type = this.fieldType?.type();
