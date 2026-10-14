@@ -23,7 +23,7 @@ export class FdlField extends FormElement {
             select,
             textarea {
                 width: 100%;
-                border: 1px solid #cbd2df;
+                border: 1px solid #64748b;
                 border-radius: 0.45rem;
                 background: white;
                 padding: 0.5rem 0.625rem;
@@ -38,7 +38,7 @@ export class FdlField extends FormElement {
             input:focus-visible,
             select:focus-visible,
             textarea:focus-visible {
-                outline: 2px solid #7657ff;
+                outline: 2px solid #2563eb;
                 outline-offset: 2px;
             }
 
