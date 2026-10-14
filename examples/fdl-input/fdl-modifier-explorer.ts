@@ -148,20 +148,22 @@ export class FdlModifierExplorer extends LitElement {
             <aside>
             <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
             <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
-            <h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
+            <div class="modifier-tools"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
             <label class="search-label" for="modifier-search">Find a modifier</label>
             <input id="modifier-search" class="modifier-search" type="search" placeholder="Name or category…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}>
-            <fieldset class="categories">
-                <legend>Categories</legend>
+            <details class="category-filters">
+                <summary>Categories${this.selectedCategories.size ? html` <span class="filter-count">(${this.selectedCategories.size} selected)</span>` : ''}</summary>
+                <fieldset class="categories">
+                <legend class="visually-hidden">Filter modifiers by category</legend>
                 <p class="category-hint">No selection shows all categories.</p>
                 <div class="category-options">${categories.map(category => html`<label><input type="checkbox" .checked=${this.selectedCategories.has(category)} @change=${(event: Event) => {
                     if ((event.target as HTMLInputElement).checked) this.selectedCategories.add(category);
                     else this.selectedCategories.delete(category);
                     this.requestUpdate();
                 }}><span>${category}</span></label>`)}</div>
-            </fieldset>
+            </fieldset></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
-            <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p>
+            <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p></div>
             <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span class="nav-number">${number(index)}</span><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
@@ -201,13 +203,17 @@ export class FdlModifierExplorer extends LitElement {
         .mast-label { font-size:.875rem; letter-spacing:.06em; }
         .catalog-link { margin-left:auto; font-size:1rem; text-underline-offset:4px; }
         .shell { display:grid; grid-template-columns:280px minmax(0,1fr); max-width:1480px; margin:auto; padding:0 32px; }
-        aside { position:sticky; top:0; max-height:100vh; padding:28px 24px 24px 0; display:flex; flex-direction:column; align-self:start; border-right:1px solid #e2e8f0; }
-        aside > :not(nav) { flex-shrink:0; }
+        aside { position:sticky; top:0; height:calc(100vh - 88px); height:calc(100dvh - 88px); overflow:hidden; padding:28px 24px 24px 0; display:flex; flex-direction:column; align-self:start; border-right:1px solid #e2e8f0; }
         .eyebrow { font-size:.875rem; font-weight:700; letter-spacing:.04em; color:var(--muted); margin:0 0 20px; }
         .search-label,.categories legend { font-size:1rem; font-weight:600; color:var(--muted); }
         .search-label { margin-bottom:8px; }
         .modifier-search { width:100%; min-height:46px; padding:10px 12px; border:1px solid #64748b; border-radius:4px; background:#ffffff; color:#0f172a; font-size:1rem; }
-        .categories { border:0; padding:0; margin:20px 0 0; }
+        .category-filters { margin-top:16px; }
+        .category-filters summary { min-height:44px; padding:8px 0; font-size:1rem; font-weight:600; cursor:pointer; }
+        .category-filters summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+        .filter-count { font-size:.875rem; font-weight:400; color:var(--muted); }
+        .categories { border:0; padding:0; margin:0; }
+        .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
         .categories legend { padding:0; }
         .category-hint { margin:6px 0 10px; font-size:.875rem; color:var(--muted); line-height:1.5; }
         .category-options { display:grid; gap:2px; }
@@ -225,7 +231,8 @@ export class FdlModifierExplorer extends LitElement {
         .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #cbd5e1; gap:4px; }
         .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
         .modifier-navigation { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
-        .modifier-navigation > :not(nav) { flex-shrink:0; }
+        .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow-y:auto; }
+        .modifier-list { flex:1 1 0; min-height:120px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .site-page { max-width:75ch; }
         .site-page h1 { font-family:Arial,Helvetica,sans-serif; font-size:clamp(30px,3vw,42px); font-weight:650; }
         .site-page h2 { margin-top:32px; font-size:1.5rem; }
@@ -291,16 +298,17 @@ export class FdlModifierExplorer extends LitElement {
         .syntax-function { color:#93c5fd; }
         .syntax-number,.syntax-literal { color:#fdba74; }
         .syntax-punctuation { color:#cbd5e1; }
-        @media(max-height:850px) and (min-width:801px) { aside { overflow-y:auto; } .modifier-navigation { flex-shrink:0; } .modifier-list { max-height:260px; } }
+        @media(max-height:750px) and (min-width:801px) { aside { padding-top:16px; padding-bottom:16px; } .site-nav { margin-bottom:12px; padding-bottom:12px; } }
         @media(max-width:1100px) { .shell { grid-template-columns:260px minmax(0,1fr); padding:0 24px; } main { padding-left:28px; } .demo-grid { grid-template-columns:minmax(0,1fr); } }
         @media(max-width:800px) {
             .masthead { padding:16px 20px; }
             .mast-label { display:none; }
             .shell { display:block; padding:0 20px; }
-            aside { position:static; max-height:none; padding:24px 0; border-right:0; border-bottom:1px solid #e2e8f0; }
+            aside { position:static; height:auto; max-height:none; overflow:visible; padding:24px 0; border-right:0; border-bottom:1px solid #e2e8f0; }
             .category-options { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; }
             .category-options label { min-height:44px; }
-            .modifier-list { max-height:240px; min-height:0; }
+            .modifier-list { flex:none; max-height:320px; min-height:0; }
+            .modifier-navigation > .modifier-tools { flex:none; overflow:visible; }
             .site-nav { max-height:none; }
             main { padding:28px 0; }
             h1 { font-size:clamp(24px,5.5vw,36px); }
