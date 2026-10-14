@@ -321,7 +321,6 @@ export class FdlModifierCatalog extends LitElement {
 
     private onRecordChange = () => {
         if (this.modifier === 'options') this.loadAssigneeChoices();
-
         this.requestUpdate();
     };
     private onProbeChange = () => {
@@ -498,13 +497,13 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     static styles = css`
-        :host { display: block; color: #172033; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+        :host { display: block; container-type:inline-size; color: #172033; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         * { box-sizing: border-box; }
         :host([modifier]) { color: #0f172a; font-family: Arial, Helvetica, sans-serif; }
         .focused fdl-table { --fdl-table-label-font-size: 1rem; --fdl-table-control-font-size: 1rem; }
-        .focused { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 25px; align-items: start; }
+        .focused { display: grid; grid-template-columns: minmax(0,1fr); gap: 25px; align-items: start; }
         .focused.full-width { grid-template-columns: minmax(0,1fr); }
-        @media(max-width:1000px) { .focused { grid-template-columns: minmax(0,1fr); } }
+        @container(min-width:760px) { .focused:not(.full-width) { grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); } }
         .focused-demo > .try:first-child { display: none; }
         .focused-demo { min-width: 0; overflow-x: auto; }
         .focused-demo fdl-field { --label: 1rem; --field-control-font-size: 1.125rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }

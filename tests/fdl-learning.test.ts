@@ -97,6 +97,9 @@ it('changes the minimum-length definition while retaining the value', async () =
     expect(catalog.shadowRoot!.querySelector('.result')!.textContent).toContain('Valid');
     expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('ABC');
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
+    page.shadowRoot!.querySelector<HTMLAnchorElement>('.modifier-list a[href="#minLength"]')!.click();
+    await page.updateComplete;
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
 });
 
 it('summarizes semantic state and keeps the JSON inspector collapsed', async () => {
@@ -229,4 +232,19 @@ it('builds a single example through parsing, validation, dependencies, and a col
     expect(table.recordset.allRecords[0].isValid()).toBe(true);
     expect(root.querySelector('details ol')!.children).toHaveLength(5);
     expect(root.querySelector<HTMLButtonElement>('.next-lesson')!.disabled).toBe(true);
+});
+
+it('links the active rule and effect with keyboard focus and a clear action', async () => {
+    const page = await openExplorer('#required');
+    const root = page.shadowRoot!;
+    root.querySelector<HTMLButtonElement>('.playground .link-view')!.click();
+    await page.updateComplete; await Promise.resolve();
+    expect(root.activeElement?.id).toBe('definition-title');
+    expect(root.querySelector('.playground')!.hasAttribute('data-linked')).toBe(true);
+    root.querySelector<HTMLButtonElement>('.code-section > .link-view')!.click();
+    await page.updateComplete; await Promise.resolve();
+    expect(root.activeElement?.id).toBe('modifier-effect');
+    root.querySelector<HTMLButtonElement>('.relationship .link-view')!.click();
+    await page.updateComplete;
+    expect(root.querySelector('[data-linked]')).toBeNull();
 });
