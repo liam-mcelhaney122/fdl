@@ -1,5 +1,6 @@
 import { html } from 'lit';
 import './fdl-delivery-experiment';
+import './fdl-specialization-experiment';
 import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 
 export const sitePages = [
@@ -55,6 +56,7 @@ export function renderSitePage(page: SitePage) {
             <pre class="code markup"><code>${highlightJavaScript(`const name = new FieldType().with.label('Name');
 const requiredName = name.with.required();
 // name is unchanged; requiredName adds the required rule.`)}</code></pre>
+            <fdl-specialization-experiment></fdl-specialization-experiment>
             <h2>2. Create a record</h2>
             <p>A record connects those definitions to actual values. Parsing converts input into model values. Formatting produces display values. Validation checks the model against the declared rules.</p>
             <pre class="code markup"><code>${highlightJavaScript(`const person = new Record(

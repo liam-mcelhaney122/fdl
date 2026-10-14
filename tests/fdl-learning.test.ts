@@ -182,3 +182,24 @@ it('connects original currency text to parsed, stored, and formatted representat
     expect(catalog.shadowRoot!.querySelector('.value-pipeline')!.textContent).toContain('NaN (number)');
     expect(catalog.shadowRoot!.querySelector('.value-pipeline')!.textContent).toContain('Parsing alone does not validate');
 });
+
+import type { FdlSpecializationExperiment } from '../examples/fdl-input/fdl-specialization-experiment';
+it('keeps the base and sibling unchanged while specializing a shared form/table definition', async () => {
+    const page = await openExplorer('#how-it-works');
+    const demo = page.shadowRoot!.querySelector('fdl-specialization-experiment') as FdlSpecializationExperiment;
+    await demo.updateComplete;
+    const states = () => [...demo.shadowRoot!.querySelectorAll('.variant-state')].map(node => node.textContent);
+    expect(states()).toEqual(['Optional · Valid', 'Required · Invalid', 'Optional · Valid']);
+    demo.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
+    await demo.updateComplete;
+    expect(states()).toEqual(['Optional · Valid', 'Optional · Valid', 'Optional · Valid']);
+    await editField(demo.shadowRoot!, 'base', 'A');
+    await demo.updateComplete;
+    expect(states()).toEqual(['Optional · Valid', 'Optional · Valid', 'Optional · Invalid']);
+    const table = demo.shadowRoot!.querySelector('fdl-table') as any;
+    await table.updateComplete;
+    await table.recordset.requestUpdate();
+    expect(table.recordset.currentPage[0].values).toEqual({base: 'A', required: 'A', sibling: 'A'});
+    expect(table.recordset.getFieldType('required').required()).toBe(false);
+    expect(table.recordset.getFieldType('sibling').minLength()).toBe(2);
+});
