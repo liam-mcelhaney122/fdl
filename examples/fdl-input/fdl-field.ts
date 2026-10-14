@@ -52,7 +52,7 @@ export class FdlField extends FormElement {
             .validation-error {
                 margin-top: 0.35rem;
                 color: #a42b20;
-                font-size: 0.8rem;
+                font-size: 1rem;
                 font-weight: 700;
                 line-height: 1.4;
             }

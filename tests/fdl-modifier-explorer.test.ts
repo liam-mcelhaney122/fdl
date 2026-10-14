@@ -107,7 +107,7 @@ describe('complete explorer', () => {
     it.each(explorerRecipes.map(recipe => [recipe.name, recipe] as const))('opens the %s deep link with one focused example or explicit contract limit', async (name, recipe) => {
         const page = await openPage(`#${name}`);
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
-        expect(page.shadowRoot!.querySelector<HTMLSelectElement>('#modifier-jump')!.value).toBe(name);
+        expect(page.shadowRoot!.querySelector('#modifier-jump')).toBeNull();
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
         expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(recipe.code);
         expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
@@ -142,12 +142,10 @@ describe('complete explorer', () => {
         expect(root.querySelector('.empty-search')!.textContent).toContain('No modifiers match');
     });
 
-    it('jumps through the compact menu and resets an extended example', async () => {
+    it('opens a modifier from the list and resets its example', async () => {
         const page = await openPage();
         const root = page.shadowRoot!;
-        const jump = root.querySelector<HTMLSelectElement>('#modifier-jump')!;
-        jump.value = 'defaultValue';
-        jump.dispatchEvent(new Event('change'));
+        root.querySelector<HTMLAnchorElement>('nav a[href="#defaultValue"]')!.click();
         await settle(page);
         let catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
         await catalog.updateComplete;
@@ -221,8 +219,7 @@ describe('category navigation filters', () => {
         await settle(page);
         expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => recipe.category === 'Validation').length);
         expect(root.querySelector('h1')!.textContent).toContain('formatter');
-        expect(root.querySelector<HTMLSelectElement>('#modifier-jump')!.value).toBe('formatter');
-        expect(root.querySelector<HTMLOptionElement>('#modifier-jump option:checked')!.disabled).toBe(true);
+        expect(root.querySelector('#modifier-jump')).toBeNull();
         checkbox('Tables').click();
         await settle(page);
         expect(root.querySelectorAll('nav a')).toHaveLength(explorerRecipes.filter(recipe => ['Validation', 'Tables'].includes(recipe.category)).length);

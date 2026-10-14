@@ -462,18 +462,19 @@ export class FdlModifierCatalog extends LitElement {
         :host { display: block; color: #172033; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         * { box-sizing: border-box; }
         :host([modifier]) { color: #252c28; font-family: Arial, Helvetica, sans-serif; }
+        .focused fdl-table { --fdl-table-label-font-size: 1rem; --fdl-table-control-font-size: 1rem; }
         .focused { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 25px; align-items: start; }
         .focused.full-width { grid-template-columns: minmax(0,1fr); }
         @media(max-width:1000px) { .focused { grid-template-columns: minmax(0,1fr); } }
         .focused-demo > .try:first-child { display: none; }
         .focused-demo { min-width: 0; overflow-x: auto; }
-        .focused-demo fdl-field { --field-label-width: 100%; --field-control-width: 100%; font-size: 13px; }
-        .focused .try, .focused .computed { color: #626b63; font-size: 12px; line-height: 1.8; }
-        .focused button { background: #285a46; font-size: 12px; font-weight: 400; }
+        .focused-demo fdl-field { --label: 1rem; --field-control-font-size: 1.125rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }
+        .focused .try, .focused .computed { color: #626b63; font-size: 1.125rem; line-height: 1.8; }
+        .focused button { min-height: 44px; background: #285a46; font-size: 1.125rem; font-weight: 400; }
         .focused-state { padding: 18px; border: 1px solid #d7ded0; border-radius: 4px; background: #edf0e8; }
-        .state-label { color: #626b63; font: 10px monospace; letter-spacing: 1px; }
-        .focused pre { padding: 0; border: 0; font: 12px/1.8 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
-        .limitation { padding: 20px; border-left: 3px solid #ad6438; background: #f4eee5; font-size: 13px; line-height: 1.8; }
+        .state-label { color: #626b63; font: .875rem monospace; letter-spacing: 1px; }
+        .focused pre { padding: 0; border: 0; font: 1rem/1.7 monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
+        .limitation { padding: 20px; border-left: 3px solid #ad6438; background: #f4eee5; font-size: 1.125rem; line-height: 1.8; }
         .model-assignment { margin-top: 12px; }
         .probe-result { display: inline-block; margin-right: 12px; }
         button:focus-visible { outline: 3px solid #ad6438; outline-offset: 3px; }
