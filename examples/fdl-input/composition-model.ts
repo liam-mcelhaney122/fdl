@@ -1,0 +1,45 @@
+import FieldType from '../../field-type.js';
+import Record from '../../record.js';
+
+export type CompositionRules = {
+    visibility: 'all' | 'shipping';
+    requiredness: 'never' | 'shipping' | 'always';
+    validation: 'off' | 'on';
+};
+export const defaultCompositionRules: CompositionRules = {visibility: 'shipping', requiredness: 'shipping', validation: 'on'};
+export const addressCases = [
+    {id: 'empty', title: 'Empty', value: ''},
+    {id: 'numbered', title: 'With a street number', value: '42 Orchard Street'},
+    {id: 'unnumbered', title: 'Without a street number', value: 'Orchard Street'},
+] as const;
+export const hasStreetNumber = (value: string) => /^\d+\s+\S/.test(value.trim());
+export const addressCase = (value: string) => value === '' ? 'empty' : hasStreetNumber(value) ? 'numbered' : 'unnumbered';
+
+export function compositionFields(rules: CompositionRules) {
+    let address = new FieldType<string>().with.label('Shipping address');
+    if (rules.visibility === 'shipping') address = address.with.visibleWhen(record => record.getField('fulfillment') === 'ship');
+    if (rules.requiredness === 'always') address = address.with.required();
+    if (rules.requiredness === 'shipping') address = address.with.requiredWhen(record => record.getField('fulfillment') === 'ship');
+    if (rules.validation === 'on') address = address.with.validator({
+        name: 'must start with a street number and a street name',
+        validate: value => value === '' || hasStreetNumber(value),
+    });
+    return {
+        fulfillment: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([
+            {text: 'Ship to address', value: 'ship'}, {text: 'Pick up in person', value: 'pickup'},
+        ]),
+        address,
+    };
+}
+export function compositionRecord(rules: CompositionRules, fulfillment: string, address: string) {
+    return new Record(compositionFields(rules), {fulfillment, address});
+}
+export function compositionDefinition(rules: CompositionRules) {
+    return `const address = new FieldType().with.label('Shipping address')${rules.visibility === 'shipping' ? `
+  .and.visibleWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.requiredness === 'always' ? '\n  .and.required()' : rules.requiredness === 'shipping' ? `
+  .and.requiredWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.validation === 'on' ? `
+  .and.validator({
+    name: 'must start with a street number and a street name',
+    validate: value => value === '' || /^\\d+\\s+\\S/.test(value.trim()),
+  })` : ''};`;
+}

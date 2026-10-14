@@ -2,12 +2,14 @@ import { html } from 'lit';
 import './fdl-delivery-experiment';
 import './fdl-specialization-experiment';
 import './fdl-learning-path';
+import './fdl-composition-experiment';
 import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 
 export const sitePages = [
     { id: 'home', title: 'Home' },
     { id: 'how-it-works', title: 'How it Works' },
     { id: 'learn', title: 'Learn by exploring' },
+    { id: 'composition', title: 'Combine the rules' },
     { id: 'contributing', title: 'Contributing' },
 ] as const;
 export type SitePage = typeof sitePages[number]['id'];
@@ -27,6 +29,7 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage) {
+    if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1><p class="description">Move between a map of outcomes and a live form to understand how visibility, requiredness, and validation work together.</p><fdl-composition-experiment></fdl-composition-experiment></article>`;
     if (page === 'learn') return html`<article class="site-page"><h1 tabindex="-1">Learn by exploring</h1><p class="description">Build one delivery example from a field into a collection. Follow the questions in order or jump to the one you want to investigate.</p><fdl-learning-path></fdl-learning-path></article>`;
     if (page === 'home') return html`
         <article class="site-page">
@@ -46,6 +49,7 @@ export function renderSitePage(page: SitePage) {
             <pre class="code markup"><code>${highlightJavaScript(definition)}</code></pre>
             <p>The required rule is enforced by the record. A form component can expose that same rule on an input and display its validation message.</p>
             <h2>Explore the examples</h2>
+            <p><a href="#composition">Combine visibility, requiredness, and validation</a> to investigate all six delivery cases at once, then inspect any one in a live form.</p>
             <p>Read <a href="#how-it-works">How it Works</a> for the model-to-component flow. Use the modifier list to open an individual example, change its inputs, inspect its stored values, and read the definition and rendering markup.</p>
             <p>These examples use Lit components. FDL’s model behavior can also be used without a browser. Some modifiers require adapter support; their pages identify what the current example can demonstrate.</p>
             <p>The package is <code>digital-fdl</code>. Source code and development instructions are available on <a href="https://github.com/pmcelhaney/FDL">GitHub</a>.</p>

@@ -79,6 +79,7 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
                 <details open><summary>Rules built so far</summary><ol>${lessons.slice(0, this.step + 1).map(item => html`<li>${item.rule}</li>`)}</ol></details>
                 <h3>The current definition</h3><pre><code>${highlightJavaScript(this.code())}</code></pre>
                 <p><a href=${`#${lesson.reference}`}>Explore ${lesson.reference} in the modifier reference</a></p>
+                ${this.step === lessons.length - 1 ? html`<p><a href="#composition">Next: combine the rules and investigate their outcomes →</a></p>` : ''}
                 <div class="lesson-navigation"><button class="previous-lesson" ?disabled=${this.step === 0} @click=${() => this.go(this.step - 1)}>Previous question</button><button class="next-lesson" ?disabled=${this.step === lessons.length - 1} @click=${() => this.go(this.step + 1)}>Next question</button></div>
             </section>`;
     }

@@ -34,6 +34,10 @@ Repository API references and architecture decision records remain in `docs/`.
 
 - Home starts with a delivery experiment; `#learn` builds one example through
   storage, parsing, validation, dependencies, and collection reuse.
+- `#composition` connects adjustable visibility, requiredness, and validation
+  rules to six model-computed outcomes and a selected live form. Selecting an
+  outcome loads its exact sample; editing the form highlights the matching
+  address category. The address-format check is illustrative.
 - How it Works includes an immutable-specialization experiment using the same
   definitions in form and table consumers.
 - Modifier pages summarize model state first. Expand **Inspect full JSON** to
