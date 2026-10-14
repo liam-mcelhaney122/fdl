@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
-import { exampleMarkup } from './modifier-example-markup';
-import { highlightMarkup, highlightModifier } from './highlight-javascript';
+import { exampleSource, type ExampleSettings } from './modifier-example-source';
+import { highlightJavaScript, highlightModifier } from './highlight-javascript';
 import { inputText, valuePipeline } from './value-pipeline';
 import { exampleTheme } from './example-theme';
 import { recordSummary } from './model-summary';
@@ -18,7 +18,6 @@ export const explorerRecipes: ExplorerRecipe[] = [
         name: 'required', signature: '()', category: 'Validation', title: 'Require a non-empty value.',
         description: 'Declare that a field needs a value. FDL carries that rule from the record to the control, so validation and the interface agree.',
         prompt: 'Leave the name empty and check the record. Then enter a name and check again.',
-        code: `const fields = {\n  name: new FieldType().with\n    .label('Legal name')\n    .and.required(),\n};\n\nconst person = new Record(fields, { name: '' });\nperson.isValid(); // false until a name is entered`,
         steps: ['Declare the rule once with .required().', 'The component exposes the required state on the input.', 'Record.isValid() checks the same rule without a browser.'],
         note: 'Required means non-empty according to the field’s emptiness rules. It does not validate a name’s spelling or format. Use a validator for an additional business rule.',
         use: 'Names, reference numbers, and other values a record always needs.',
@@ -27,7 +26,6 @@ export const explorerRecipes: ExplorerRecipe[] = [
         name: 'formatter', signature: '(fn)', category: 'Display', title: 'Format a stored value for display.',
         description: 'Apply a display transformation without changing the stored value. This example formats a number as US dollars.',
         prompt: 'Change the amount. Compare the raw number in the model with its formatted output.',
-        code: `const currency = new Intl.NumberFormat('en-US', {\n  style: 'currency', currency: 'USD',\n});\n\nconst amount = new FieldType().with\n  .label('Amount')\n  .and.type('number')\n  .and.parser(value => Number(value))\n  .and.formatter((value, _record, context) =>\n    context === 'input-focus'\n      ? String(value)\n      : currency.format(value)\n  );\n\nconst money = new Record({ amount }, { amount: 1250 });`,
         steps: ['Store a number in the record.', 'The formatter transforms it when a consumer requests a display value.', 'Calculations can continue to use the original number.'],
         note: 'Formatting is one-way. This formatter leaves the input-focus value numeric for the number control and formats the printed output. The separate parser converts edited text back into a number.',
         use: 'Currency, dates, percentages, and other human-readable representations.',
@@ -36,7 +34,6 @@ export const explorerRecipes: ExplorerRecipe[] = [
         name: 'visibleWhen', signature: '(predicate)', category: 'Conditional state', title: 'Show a field when its predicate is true.',
         description: 'Evaluate a predicate against the record to determine whether a field is visible. The component updates when the record changes.',
         prompt: 'Switch between shipping and pickup. The address disappears for pickup; its stored value is preserved.',
-        code: `const address = new FieldType().with\n  .label('Shipping address')\n  .and.visibleWhen(record =>\n    record.getField('fulfillment') === 'ship'\n  );\n\n// The same record also contains fulfillment.\n// Switching to pickup hides the address control.`,
         steps: ['Read the related value from the record.', 'FDL evaluates the predicate as record values change.', 'The component includes the address only when the predicate passes.'],
         note: 'Visibility does not erase a value or make it optional. If a field should be required only while visible, declare the matching requiredWhen rule separately.',
         use: 'Shipping details, payment-specific fields, and branching forms.',
@@ -51,7 +48,7 @@ export class FdlModifierExplorer extends LitElement {
     private page: SitePage | 'modifier' = 'home';
     private checked = false;
     private requiredRule = true;
-    private liveDefinition = '';
+    private exampleSettings: ExampleSettings = {};
     private amountInput?: string;
     private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
@@ -107,7 +104,7 @@ export class FdlModifierExplorer extends LitElement {
         const changed = this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
         this.selected = index;
-        if (changed) this.liveDefinition = '';
+        if (changed) this.exampleSettings = {};
         this.requestUpdate();
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
@@ -126,7 +123,7 @@ export class FdlModifierExplorer extends LitElement {
     private reset() {
         this.resetVersion += 1;
         if (this.selected === 0) { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
-        this.liveDefinition = '';
+        this.exampleSettings = {};
         if (this.selected === 1) { this.amountInput = undefined; this.money.setField('amount', 1250); }
         if (this.selected === 2) { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
@@ -146,12 +143,12 @@ export class FdlModifierExplorer extends LitElement {
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>${valuePipeline(this.money, 'amount', this.amountInput)}`;
-        if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @definition-change=${(event: CustomEvent<string>) => { this.liveDefinition = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
+        if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
     render() {
         const recipe = recipes[this.selected];
-        const markup = exampleMarkup(recipe.name);
+        const source = exampleSource(recipe.name, {...this.exampleSettings, required: this.requiredRule});
         const categories = [...new Set(recipes.map(entry => entry.category))].sort();
         const filtered = recipes.map((entry, index) => ({ entry, index })).filter(({ entry }) =>
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
@@ -188,14 +185,16 @@ export class FdlModifierExplorer extends LitElement {
                 <div class="chapter"><span>${recipe.category}</span></div>
                 <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                 <h2>${recipe.title}</h2><p class="description">${recipe.description}</p>
-                <div class="exploration-workspace"><section class="playground" aria-label="Interactive example">
+                <section class="playground" aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
                     <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
-                <section class="code-section"><div class="detail-heading"><h3>The definition</h3><span>JavaScript</span></div><pre class="code"><code>${highlightModifier(this.liveDefinition || (recipe.name === 'required' && !this.requiredRule ? recipe.code.replace('.and.required()', '// required rule removed').replace('// false until a name is entered', '// true: the field is optional') : recipe.code), recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the same value is now checked without it.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section></div>
-                <div class="details"><section class="markup-section"><div class="detail-heading"><h3>Render the example</h3><span>HTML / Lit template</span></div>
-                    ${markup ? html`<p class="markup-note">The <code>.record</code> and <code>.recordset</code> bindings pass JavaScript objects to FDL components. Expressions inside <code>\${…}</code> are evaluated by Lit.</p><pre class="code markup"><code>${highlightMarkup(markup)}</code></pre>` : html`<p class="markup-note">This modifier needs a compatible adapter. The native example has no supported HTML binding for this interaction.</p>`}
+                <div class="details">
+                <p class="source-intro">Use these two snippets in order in the same module. They define the model and render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
+                <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span>JavaScript / FDL</span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre><p class="code-caption">${recipe.name === 'required' && !this.requiredRule ? 'The required rule is removed; the field is optional.' : html`Highlighted lines define <code>.${recipe.name}()</code>.`}</p></section>
+                <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span>JavaScript / Lit</span></div>
+                    <p class="markup-note">This code uses <code>${source.modelName}</code> from the definition above.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
                 </section><section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
                 <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
@@ -280,31 +279,19 @@ export class FdlModifierExplorer extends LitElement {
         .model .eyebrow { margin-bottom:16px; }
         .model pre { margin:0; font:1rem/1.7 monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
         .model-foot { margin-top:16px; padding-top:12px; border-top:1px solid #cbd5e1; font-size:.875rem; color:var(--muted); }
-        .exploration-workspace { display:grid; gap:24px; align-items:start; }
-        .exploration-workspace > * { min-width:0; }
         summary { cursor:pointer; min-height:44px; padding:8px 0; }
         summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
-        @media(min-width:1200px) {
-            .exploration-workspace { grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr); }
-            .exploration-workspace .demo-grid { grid-template-columns:1fr; }
-            .exploration-workspace .code-section { position:sticky; top:16px; }
-            .exploration-workspace .code { max-height:65vh; max-height:65dvh; }
-            .exploration-workspace .section-bar { padding:10px 14px; }
-            .exploration-workspace .instruction { margin:14px; }
-            .exploration-workspace .demo-grid { padding:0 14px 16px; gap:16px; }
-        }
         .details { display:grid; grid-template-columns:minmax(0,1fr); gap:28px; margin:32px 0; }
         .code-line { display:inline-block; min-width:100%; width:max-content; padding:0 20px; border-left:4px solid transparent; }
         .code .focused-line { border-left-color:#60a5fa; background:#1e3a5f; }
         .code-caption,.markup-note { font-size:1rem; line-height:1.65; margin:12px 0 0; max-width:70ch; }
         .markup-note { margin:0 0 16px; }
         .code:not(.markup) { padding-left:0; padding-right:0; }
-        .markup-section { min-width:0; }
+        .source-intro { margin:0; max-width:70ch; font-size:1rem; }
         .code-section,.explanation { min-width:0; }
-        .code-section { padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
-        .code-section .detail-heading { min-height:32px; }
-        .code-section .detail-heading h3 { margin:0; }
-        .detail-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .code-section,.markup-section { min-width:0; padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
+        .detail-heading h3 { margin:0; }
+        .detail-heading { min-height:32px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
         .detail-heading span { font-size:.875rem; color:var(--muted); }
         h3 { margin:0 0 16px; font-size:1.25rem; font-weight:600; line-height:1.4; }
         .code { margin:0; padding:24px; border-radius:5px; background:#0f172a; color:#e2e8f0; font:1rem/1.75 monospace; overflow:auto; tab-size:2; }

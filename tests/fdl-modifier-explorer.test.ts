@@ -1,4 +1,5 @@
 import FieldType from '../field-type.js';
+import { exampleSource } from '../examples/fdl-input/modifier-example-source';
 import '../examples/fdl-input/fdl-modifier-explorer';
 import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
 import { modifierEntries, FdlModifierCatalog } from '../examples/fdl-input/fdl-modifier-catalog';
@@ -124,11 +125,15 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
         expect(page.shadowRoot!.querySelector('#modifier-jump')).toBeNull();
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
-        expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(recipe.code);
+        expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(exampleSource(name).definition);
         expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.chapter')!.textContent).not.toContain('MODIFIER');
-        if (!recipe.limitation) expect(page.shadowRoot!.querySelector('.markup')!.textContent).toContain('<');
+        expect(page.shadowRoot!.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
+        const demo = page.shadowRoot!.querySelector('.playground')!;
+        for (const section of page.shadowRoot!.querySelectorAll('.code-section, .markup-section')) {
+            expect(demo.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        }
         if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
             const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
             await catalog.updateComplete;

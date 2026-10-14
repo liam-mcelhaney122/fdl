@@ -43,12 +43,14 @@ Repository API references and architecture decision records remain in `docs/`.
 - Modifier pages summarize model state first. Expand **Inspect full JSON** to
   see the complete values. Dependency traces read FDL's public state methods.
 - Requiredness, minimum length, and filter matching have adjustable rules. The
-  relevant definition updates alongside the example; reset restores its default.
+  complete definition updates below the example; reset restores its default.
 - Validator, filter, and comparator examples compare several cases at once.
   Parser and formatter pages trace original input through stored and display values.
-- On wide screens, the active definition sits beside the experiment and stays
-  visible while scrolling. Narrow screens stack the same regions in reading
-  order.
+- Every modifier page shows two connected code examples below its demo: the
+  complete record or recordset definition, followed by the Lit UI using that
+  same model. Run them in order in the same module with this site’s adapters.
+  Teaching panels and rule selectors are omitted from the snippets. Unsupported
+  adapter interactions remain explicit.
 
 Keep explanations connected to actual FDL behavior. Configuration controls may
 change the example's rule, but every editable domain value remains bound through

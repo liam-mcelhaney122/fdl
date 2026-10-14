@@ -82,7 +82,7 @@ it('removes requiredness from both model validation and the displayed definition
     root.querySelector<HTMLInputElement>('.rule-control input')!.click();
     await page.updateComplete;
     expect(root.querySelector('.result')!.textContent).toContain('record is valid');
-    expect(root.querySelector('.code')!.textContent).toContain('required rule removed');
+    expect(root.querySelector('.code')!.textContent).toContain('required rule is removed');
 });
 it('changes the minimum-length definition while retaining the value', async () => {
     const page = await openExplorer('#minLength');

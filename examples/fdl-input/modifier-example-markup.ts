@@ -1,4 +1,4 @@
-const fields: { [name: string]: [record: string, fields: string[]] } = {
+export const exampleFields: { [name: string]: [record: string, fields: string[]] } = {
     required: ['person', ['name']], formatter: ['money', ['amount']],
     visibleWhen: ['delivery', ['fulfillment', 'address']],
     defaultValue: ['defaultRecord', ['defaultId']], disabled: ['record', ['lockedId']],
@@ -12,7 +12,7 @@ const fields: { [name: string]: [record: string, fields: string[]] } = {
     hashFunction: ['probes', ['firstId', 'secondId']], inputMask: ['probes', ['input']],
     reducer: ['probes', ['firstAmount', 'secondAmount', 'thirdAmount']],
 };
-const tables: { [name: string]: [recordset: string, columns: string[]] } = {
+export const exampleTables: { [name: string]: [recordset: string, columns: string[]] } = {
     cellClass: ['cellClassRecordset', ['amount', 'category']],
     conditionalCellClass: ['conditionalClassRecordset', ['amount', 'label']],
     compareFunction: ['compareRecordset', ['firstName', 'lastName', 'team']],
@@ -21,21 +21,21 @@ const tables: { [name: string]: [recordset: string, columns: string[]] } = {
     rowClasses: ['rowClassRecordset', ['status', 'owner']],
     template: ['templateRecordset', ['invoice', 'status']],
     textAlign: ['alignRecordset', ['left', 'center', 'right']],
-    maxColumnWidth: ['widthRecordsets.maxColumnWidth', ['constrained', 'flexible']],
-    minColumnWidth: ['widthRecordsets.minColumnWidth', ['constrained', 'flexible']],
-    targetColumnWidth: ['widthRecordsets.targetColumnWidth', ['constrained', 'flexible']],
+    maxColumnWidth: ['widthRecordset', ['constrained', 'flexible']],
+    minColumnWidth: ['widthRecordset', ['constrained', 'flexible']],
+    targetColumnWidth: ['widthRecordset', ['constrained', 'flexible']],
 };
 
 /** Documentation of the example's component bindings, using Lit template syntax. */
 export function exampleMarkup(name: string): string | undefined {
-    if (fields[name]) {
-        const [record, names] = fields[name];
+    if (exampleFields[name]) {
+        const [record, names] = exampleFields[name];
         const markup = names.map(field => `<fdl-field\n  .record=\${${record}}\n  field="${field}"\n></fdl-field>`).join('\n\n');
         if (name === 'formatter') return `${markup}\n\n<div class="formatted">\n  <span>Formatted output</span>\n  <strong>\n    \${money.getFormattedField('amount', 'print')}\n  </strong>\n</div>`;
         return markup;
     }
-    if (tables[name]) {
-        const [recordset, columns] = tables[name];
+    if (exampleTables[name]) {
+        const [recordset, columns] = exampleTables[name];
         return `<fdl-table .recordset=\${${recordset}}>\n${columns.map(column => `  <fdl-column field="${column}"></fdl-column>`).join('\n')}\n</fdl-table>`;
     }
     if (name === 'exampleValue') return `<p>\n  \${[0, 1, 2].map(index =>\n    exampleType.exampleValue()(index)\n  ).join(', ')}\n</p>`;

@@ -326,8 +326,8 @@ export class FdlModifierCatalog extends LitElement {
     };
     private onProbeChange = () => {
         if (this.modifier === 'filter') {
-            const method = this.probes.getField('matchRule') === 'contains' ? 'includes' : 'startsWith';
-            this.dispatchEvent(new CustomEvent('definition-change', {detail: `new FieldType().with\n  .filter((text, value) => value.toLowerCase().${method}(text.toLowerCase()))`, bubbles: true, composed: true}));
+            const filterMode = this.probes.getField('matchRule') === 'contains' ? 'contains' : 'prefix';
+            this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {filterMode}, bubbles: true, composed: true}));
             this.filterRecordset.requestUpdate();
         }
         this.requestUpdate();
@@ -430,7 +430,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'minLength': return html`<label>Minimum length <select class="minimum-rule" .value=${String(this.minimum)} @change=${(event: Event) => {
                 this.minimum = Number((event.target as HTMLSelectElement).value);
                 this.record.addField('longCode', new FieldType().with.label('Access code').and.minLength(this.minimum), this.record.getField('longCode'));
-                this.dispatchEvent(new CustomEvent('definition-change', { detail: `new FieldType().with\n  .minLength(${this.minimum})`, bubbles: true, composed: true }));
+                this.dispatchEvent(new CustomEvent('example-settings-change', { detail: {minimum: this.minimum}, bubbles: true, composed: true }));
                 this.requestUpdate();
             }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;

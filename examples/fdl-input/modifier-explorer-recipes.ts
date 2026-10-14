@@ -7,7 +7,6 @@ export type ExplorerRecipe = {
     title: string;
     description: string;
     prompt: string;
-    code: string;
     steps: readonly string[];
     note: string;
     use: string;
@@ -57,23 +56,11 @@ const details: { [name: string]: Detail } = {
     validator: ['Validation', '(rule)', 'Add a named validation rule.', 'Check an invalid code, then enter PRJ-1234 and check again.', ['The field adds a named synchronous validator.', 'The rule tests the complete stored value.', 'The component displays FDL’s error after you request validation.'], 'Validators accumulate. A value must satisfy each applicable rule, and the rule name should explain the failure in context. This example does not perform asynchronous validation.', 'Project codes and domain-specific whole-value rules.'],
 };
 
-const contractDefinitions: { [name: string]: string } = {
-    range: 'new FieldType().with.range();',
-    search: '// config is supplied by a compatible search integration.\nnew FieldType().with.search(config);',
-    selectOnFocus: 'new FieldType().with.selectOnFocus();',
-    toggle: 'new FieldType().with.toggle();',
-};
-
 export const additionalRecipes: ExplorerRecipe[] = modifierEntries
     .filter(entry => !['required', 'formatter', 'visibleWhen'].includes(entry.name))
     .map(entry => {
         const detail = details[entry.name];
         if (!detail) throw new Error(`Missing explorer detail for ${entry.name}`);
         const [category, signature, title, prompt, steps, note, use] = detail;
-        const snippet = entry.snippet;
-        const code = snippet
-            ? (snippet.startsWith('.') ? `new FieldType().with\n  ${snippet}` : snippet)
-            : contractDefinitions[entry.name];
-        if (!code) throw new Error(`Missing explorer definition for ${entry.name}`);
-        return { name: entry.name, category, signature, title, description: entry.intent, prompt, code, steps, note, use, limitation: entry.limitation };
+        return { name: entry.name, category, signature, title, description: entry.intent, prompt, steps, note, use, limitation: entry.limitation };
     });
