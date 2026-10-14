@@ -1,11 +1,13 @@
 import { html } from 'lit';
 import './fdl-delivery-experiment';
 import './fdl-specialization-experiment';
+import './fdl-learning-path';
 import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 
 export const sitePages = [
     { id: 'home', title: 'Home' },
     { id: 'how-it-works', title: 'How it Works' },
+    { id: 'learn', title: 'Learn by exploring' },
     { id: 'contributing', title: 'Contributing' },
 ] as const;
 export type SitePage = typeof sitePages[number]['id'];
@@ -25,11 +27,12 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage) {
+    if (page === 'learn') return html`<article class="site-page"><h1 tabindex="-1">Learn by exploring</h1><p class="description">Build one delivery example from a field into a collection. Follow the questions in order or jump to the one you want to investigate.</p><fdl-learning-path></fdl-learning-path></article>`;
     if (page === 'home') return html`
         <article class="site-page">
             <h1 tabindex="-1">Field Definition Language</h1>
             <p class="description">FDL (pronounced “fiddle”) is a JavaScript and TypeScript library for modeling fields, records, and collections of records independently of the interface that displays them.</p>
-            <fdl-delivery-experiment></fdl-delivery-experiment>
+            <fdl-delivery-experiment></fdl-delivery-experiment><p><a href="#learn">Build this understanding one question at a time →</a></p>
             <h2>What belongs in FDL?</h2>
             <p>A complex form often repeats the same rules in input handlers, validation, review screens, and tables. FDL puts reusable behavior in field definitions: how to parse an input, format a value, validate it, or determine its state from other fields.</p>
             <p>A component reads those definitions to render an accessible control. The application chooses the layout and workflow, and CSS controls the appearance.</p>

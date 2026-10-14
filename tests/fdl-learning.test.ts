@@ -203,3 +203,30 @@ it('keeps the base and sibling unchanged while specializing a shared form/table 
     expect(table.recordset.getFieldType('required').required()).toBe(false);
     expect(table.recordset.getFieldType('sibling').minLength()).toBe(2);
 });
+
+import type { FdlLearningPath } from '../examples/fdl-input/fdl-learning-path';
+it('builds a single example through parsing, validation, dependencies, and a collection', async () => {
+    const page = await openExplorer('#learn');
+    const demo = page.shadowRoot!.querySelector('fdl-learning-path') as FdlLearningPath;
+    await demo.updateComplete;
+    const root = demo.shadowRoot!;
+    const next = async () => { root.querySelector<HTMLButtonElement>('.next-lesson')!.click(); await demo.updateComplete; };
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('$25.00');
+    await next();
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('25 (number)');
+    await next();
+    await editField(root, 'charge', '-1'); await demo.updateComplete;
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('Invalid');
+    await editField(root, 'charge', ''); await demo.updateComplete;
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('Required');
+    await next();
+    await editField(root, 'method', 'pickup'); await demo.updateComplete;
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('Hidden · Optional');
+    await next();
+    const table = root.querySelector('fdl-table') as any;
+    await table.updateComplete; await table.recordset.requestUpdate();
+    expect(table.recordset.allRecords).toHaveLength(3);
+    expect(table.recordset.allRecords[0].isValid()).toBe(true);
+    expect(root.querySelector('details ol')!.children).toHaveLength(5);
+    expect(root.querySelector<HTMLButtonElement>('.next-lesson')!.disabled).toBe(true);
+});

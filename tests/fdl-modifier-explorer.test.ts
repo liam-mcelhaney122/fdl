@@ -273,7 +273,7 @@ describe('FDL site pages', () => {
         const root = page.shadowRoot!;
         expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
         expect(root.querySelector('.site-page')!.textContent).toContain('Recordset');
-        expect(root.querySelectorAll('.site-nav a')).toHaveLength(3);
+        expect(root.querySelectorAll('.site-nav a')).toHaveLength(4);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
         expect(root.querySelector('a[href="../cookbook/"]')).toBeNull();
         expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
