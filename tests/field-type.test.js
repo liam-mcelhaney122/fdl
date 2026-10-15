@@ -228,15 +228,15 @@ describe('FieldType', () => {
         it('with.cellClass', () => {
             const fd = new FieldType().with
                 .cellClass('number')
-                .and.cellClass(n => n % 2 === 1, 'odd')
-                .and.cellClass(n => n % 2 === 0, 'even');
+                .and.cellClass(n => n % 2 === 1 ? 'odd' : [])
+                .and.cellClass(n => n % 2 === 0 ? 'even' : []);
             expect(fd.cellClasses(1)).toEqual(['number', 'odd']);
             expect(fd.cellClasses(2)).toEqual(['number', 'even']);
         });
 
         it('with.cellClass - extension', () => {
-            const x = new FieldType().with.cellClass(() => true, 'x');
-            const xy = x.with.cellClass(() => true, 'y');
+            const x = new FieldType().with.cellClass(() => 'x');
+            const xy = x.with.cellClass(() => 'y');
 
             expect([x.cellClasses(1), xy.cellClasses(1)]).toEqual([['x'], ['x', 'y']]);
         });
@@ -244,8 +244,8 @@ describe('FieldType', () => {
 
     it('keeps fixed and conditional classes isolated when specializing a field', () => {
         const base = new FieldType().with.cellClass('amount');
-        const high = base.with.cellClass(value => value > 100, 'high');
-        const low = base.with.cellClass(value => value < 100, 'low');
+        const high = base.with.cellClass(value => value > 100 ? 'high' : []);
+        const low = base.with.cellClass(value => value < 100 ? 'low' : []);
         expect(base.cellClasses(150)).toEqual(['amount']);
         expect(high.cellClasses(150)).toEqual(['amount', 'high']);
         expect(high.cellClasses(50)).toEqual(['amount']);
@@ -255,10 +255,6 @@ describe('FieldType', () => {
 
     it('removes the separate conditionalCellClass modifier', () => {
         expect(new FieldType().with.conditionalCellClass).toBeUndefined();
-    });
-
-    it('requires a class name for a cellClass predicate', () => {
-        expect(() => new FieldType().with.cellClass(() => true).cellClasses(1)).toThrow('requires a class name');
     });
 
     describe('with.rowClass((value, record) => {...})', () => {
@@ -307,12 +303,14 @@ describe('FieldType', () => {
         expect(new FieldType().rowClasses()).toEqual([]);
     });
 
-    it('accepts multiple classes with the cell predicate form', () => {
-        const classes = ['warning', 'review'];
-        const field = new FieldType().with.cellClass(value => value > 100, classes);
-        classes.push('outside');
-        expect(field.cellClasses(150)).toEqual(['warning', 'review']);
-        expect(field.cellClasses(50)).toEqual([]);
+    it('computes cell classes from the current value and containing record', () => {
+        const record = new Record({ amount: new FieldType(), limit: new FieldType() }, { amount: 150, limit: 100 });
+        const callback = jest.fn((value, owner) => value > owner.getField('limit') ? ['warning', 'review'] : []);
+        const field = new FieldType().with.cellClass('amount').and.cellClass(callback);
+        expect(field.cellClasses(record.getField('amount'), record)).toEqual(['amount', 'warning', 'review']);
+        expect(callback).toHaveBeenLastCalledWith(150, record);
+        record.setField('limit', 200);
+        expect(field.cellClasses(record.getField('amount'), record)).toEqual(['amount']);
     });
 
     describe('with.comparator((value, record) => {...})', () => {

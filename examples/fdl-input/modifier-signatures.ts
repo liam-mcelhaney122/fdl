@@ -3,7 +3,7 @@ export const modifierSignatures: {[name: string]: string} = {
     "required": "required(predicate?: (record: Record<any>) => boolean)",
     "formatter": "formatter(fn: (value: T) => any)",
     "visibleWhen": "visibleWhen(predicate: (record: Record) => boolean)",
-    "cellClass": "cellClass(classes: string | string[] | ((value: T) => string | string[] | boolean), className?: string | string[] | undefined)",
+    "cellClass": "cellClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[]))",
     "compareFunction": "compareFunction(fn: (a: any, b: any) => 1 | -1 | 0)",
     "defaultValue": "defaultValue(value: T | string | null)",
     "disabled": "disabled(predicate?: (record: Record<any>) => boolean)",
@@ -38,5 +38,5 @@ export const modifierSignatures: {[name: string]: string} = {
 /** Present supported call forms separately when the implementation uses a broader signature. */
 export const displayedModifierSignatures: {[name: string]: string} = {
     ...modifierSignatures,
-    cellClass: '.cellClass(className: string)\n.cellClass(predicate: (value: T) => boolean, className: string)',
+    cellClass: '.cellClass(className: string)\n.cellClass(classNames: string[])\n.cellClass(classes: (value: T, record: Record<any>) => string | string[])',
 };

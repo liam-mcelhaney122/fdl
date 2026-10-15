@@ -53,9 +53,9 @@ export default class FieldType {
         return this.properties.autofocus;
     }
 
-    cellClasses(value) {
+    cellClasses(value, record) {
         return this.properties.cellClassFunctions
-            .flatMap(getClasses => getClasses(value));
+            .flatMap(getClasses => getClasses(value, record));
     }
 
     /**

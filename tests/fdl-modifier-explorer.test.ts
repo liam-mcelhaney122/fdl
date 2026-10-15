@@ -31,14 +31,14 @@ describe('modifier explorer', () => {
     it('shows one modifier, supports next/back and direct links, and disables boundary controls', async () => {
         const page = await openPage('#cellClass');
         const root = page.shadowRoot!;
-        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes, className?)');
+        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes)');
         expect(root.querySelector<HTMLButtonElement>('.pager')!.disabled).toBe(true);
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.compareFunction(compare)');
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes, className?)');
+        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes)');
         root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');

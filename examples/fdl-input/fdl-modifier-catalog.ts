@@ -46,7 +46,7 @@ const placeholder = (name: string, intent: string, limitation: string): CatalogE
 });
 
 export const modifierEntries: CatalogEntry[] = [
-    live('cellClass', 'Adds a fixed cell class or applies one when a value predicate passes.', 'cellClass', `.cellClass('amount-cell').and.cellClass(value => value > limit ? ['high-value', 'over-limit'] : [])`),
+    live('cellClass', 'Adds cell classes directly or computes them from the value and record.', 'cellClass', `.cellClass('amount-cell').and.cellClass(value => value > limit ? ['high-value', 'over-limit'] : [])`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
 new FieldType()

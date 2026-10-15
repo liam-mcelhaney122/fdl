@@ -233,9 +233,9 @@ compatibility while that component configuration is introduced.
 
 `cellClass(classes)` and `rowClass(classes)` each add classes, one declaration
 at a time. Supply a class name, an array of class names, or a function returning
-either. A cell callback receives the field value; a row callback receives the
-field value and containing record. Return `[]` when no classes apply. Repeated
-calls accumulate in declaration order without changing the source definition.
+either. Both callbacks receive the field value and containing FDL record.
+Return `[]` when no classes apply. Repeated calls accumulate in declaration
+order without changing the source definition.
 
 ```ts
 const status = new FieldType<string>()
@@ -245,17 +245,34 @@ const status = new FieldType<string>()
   .and.rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
 ```
 
-The Boolean predicate form `cellClass(predicate, className)` also remains
-available and accepts a string or array as its second argument.
+The supported cell-class signatures are:
+
+```ts
+cellClass(className: string)
+cellClass(classNames: string[])
+cellClass(classes: (value: T, record: Record<any>) => string | string[])
+```
+
+The value type `T` comes from the field type. The callback can read other
+fields through `record.getField(name)`, for example:
+
+```ts
+const amount = new FieldType<number>()
+  .with.cellClass((value, record) =>
+    value > record.getField('limit') ? ['warning', 'over-limit'] : []);
+```
+
+The old two-argument predicate form is no longer supported. Replace
+`cellClass(predicate, classes)` with
+`cellClass((value, record) => predicate(value) ? classes : [])`.
 
 `rowClasses(fn)` was renamed to `rowClass(fn)` on 2026-10-15. Rename modifier
 calls to the singular form; callbacks can continue returning arrays. Consumer
-methods `fieldType.cellClasses(value)` and `fieldType.rowClasses(value, record)`
-still return the accumulated arrays.
+methods `fieldType.cellClasses(value, record)` and
+`fieldType.rowClasses(value, record)` still return the accumulated arrays.
 
 `conditionalCellClass(predicate, className)` was removed on 2026-10-15. Rename
-those calls to `cellClass(predicate, className)`; the arguments and behavior
-remain the same.
+those calls to `cellClass(value => predicate(value) ? className : [])`.
 
 ## Consolidated required and disabled rules
 

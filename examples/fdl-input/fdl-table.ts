@@ -619,7 +619,7 @@ export class FdlTable extends LitElement {
         const value = record.getField(column.field);
         const fieldType = record.fieldTypeForField(column.field);
         return html`<td
-            class=${fieldType.cellClasses(value).join(' ')}
+            class=${fieldType.cellClasses(value, record).join(' ')}
             style=${`text-align:${fieldType.textAlign()}`}
         >
             ${record.print(column.field)}

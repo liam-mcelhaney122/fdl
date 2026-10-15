@@ -370,19 +370,11 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    /** Add cell classes directly or compute them from the field value. */
-    cellClass(classes: string | string[] | ((value: T) => string | string[] | boolean), className?: string | string[]) {
+    /** Add cell classes directly or compute them from the field value and record. */
+    cellClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[])) {
         const copy = this.copy();
         const fixed = Array.isArray(classes) ? [...classes] : classes;
-        const conditional = Array.isArray(className) ? [...className] : className;
-        const getClasses = typeof classes === 'function'
-            ? (value: T) => {
-                const result = classes(value);
-                if (typeof result !== 'boolean') return result;
-                if (conditional === undefined) throw new TypeError('cellClass(predicate, className) requires a class name');
-                return result ? conditional : [];
-            }
-            : () => fixed;
+        const getClasses = typeof classes === 'function' ? classes : () => fixed;
         copy.properties.cellClassFunctions = [...copy.properties.cellClassFunctions, getClasses];
         return copy;
     }
