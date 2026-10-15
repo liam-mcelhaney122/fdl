@@ -390,11 +390,11 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    conditionalCellClass(fn: Function, className: string) {
+    conditionalCellClass(predicate: (value: any) => boolean, className: string) {
         const copy = this.copy();
         copy.properties.conditionalCellClasses = [
             ...copy.properties.conditionalCellClasses,
-            { fn, className },
+            { fn: predicate, className },
         ];
         return copy;
     }
@@ -699,12 +699,12 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    emptyWhen(fn: BooleanPredicate) {
+    emptyWhen(predicate: (value: any) => boolean) {
         const copy = this.copy();
-        copy.properties.emptyFunctions = [...copy.properties.emptyFunctions, fn];
+        copy.properties.emptyFunctions = [...copy.properties.emptyFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `empty when ${printFunction(fn)}`,
+            `empty when ${printFunction(predicate)}`,
         ];
         return copy;
     }
@@ -874,13 +874,13 @@ export default class FieldTypeBuilder<T> {
     }
 
     /** Defines how a table filter term matches this field's value. */
-    filter(fn?: (searchText: string, value: any) => boolean) {
+    filter(predicate?: (searchText: string, value: any) => boolean) {
         const copy = this.copy();
-        copy.properties.filter = fn ?? caseInsensitiveTextMatch;
+        copy.properties.filter = predicate ?? caseInsensitiveTextMatch;
         copy.properties.filtering = true;
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `filter: ${printFunction(fn)}`,
+            `filter: ${printFunction(predicate)}`,
         ];
         return copy;
     }
