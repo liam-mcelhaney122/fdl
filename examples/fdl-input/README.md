@@ -57,7 +57,7 @@ Repository API references and architecture decision records remain in `docs/`.
   Component imports refer to this site’s adapters.
   Teaching panels and rule selectors are omitted from the snippets. Unsupported
   adapter interactions remain explicit.
-- Class-based styling examples (`cellClass`, `conditionalCellClass`, and
+- Class-based styling examples (`cellClass` and
   `rowClasses`) also show their CSS after the Lit UI. These rules are shared
   with the live table and belong in its shadow-root stylesheet, not the page
   stylesheet.

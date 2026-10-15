@@ -13,7 +13,7 @@ const number = new FieldType().with
     validate: value => Number.isFinite(Number(value)),
   })
   .and.cellClass('numeric')
-  .and.conditionalCellClass(value => value < 0, 'negative');
+  .and.cellClass(value => value < 0, 'negative');
 
 const money = number.with
   .formatter(formatUsd)
@@ -158,7 +158,7 @@ people.sortColumns = [{ field: 'name', sort: 'ascending' }];
 // A table bound to people renders: Alpha, Mike, Zulu
 ```
 
-Use `cellClass(name)` and `conditionalCellClass(predicate, name)` for cell CSS
+Use `cellClass(name)` and `cellClass(predicate, name)` for cell CSS
 classes, and the column-width modifiers shown in the first example.
 `template(fn)` customizes the printed representation; it can return a Lit
 template for rich cell content.
@@ -226,3 +226,13 @@ There is no replacement FDL modifier.
 row-count configuration needs to move into `fdl-field`, separate from the field
 model. The existing modifier and adapter behavior remain available for
 compatibility while that component configuration is introduced.
+
+## Consolidated cell classes
+
+`cellClass(className)` applies a fixed class. `cellClass(predicate, className)`
+applies a class only when the value predicate returns true. Both forms compose
+and leave the original field definition unchanged.
+
+`conditionalCellClass(predicate, className)` was removed on 2026-10-15. Rename
+those calls to `cellClass(predicate, className)`; the arguments and behavior
+remain the same.

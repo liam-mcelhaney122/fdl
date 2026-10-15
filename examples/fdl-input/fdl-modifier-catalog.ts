@@ -18,7 +18,7 @@ import { explainDependency } from './dependency-explanation';
 import './fdl-table';
 
 type DemoName =
-    | 'cellClass' | 'compareFunction' | 'conditionalCellClass'
+    | 'cellClass' | 'compareFunction'
     | 'defaultValue' | 'disabled' | 'disabledWhen' | 'emptyWhen'
     | 'filter' | 'formatter' | 'hashFunction'
     | 'inputMask' | 'label' | 'maxColumnWidth' | 'maxLength'
@@ -46,13 +46,12 @@ const placeholder = (name: string, intent: string, limitation: string): CatalogE
 });
 
 export const modifierEntries: CatalogEntry[] = [
-    live('cellClass', 'Adds a CSS class to every table cell for this field.', 'cellClass', `.cellClass('amount-cell')`),
+    live('cellClass', 'Adds a fixed cell class or applies one when a value predicate passes.', 'cellClass', `.cellClass('amount-cell').and.cellClass(value => value > limit, 'high-value')`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
 new FieldType()
   .with.label('T-shirt size')
   .and.compareFunction(compareShirtSizes)`),
-    live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > this.probes.getField('classThreshold'), 'high-value')`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
@@ -194,18 +193,12 @@ export class FdlModifierCatalog extends LitElement {
     private hashType = new FieldType().with.hashFunction((employee: { id: string }) => employee.id);
     private cellClassRecordset = new Recordset(
         {
-            amount: new FieldType().with.label('Amount').and.cellClass('amount-cell').and.textAlign('right'),
-            category: new FieldType().with.label('Category'),
-        },
-        [{ amount: 42, category: 'Travel' }, { amount: 84, category: 'Meals' }]
-    );
-    private conditionalClassRecordset = new Recordset(
-        {
             day: new FieldType().with.label('Day').and.sortable(false),
-            amount: new FieldType().with.label('Expenses')
+            amount: new FieldType<number>().with.label('Expenses')
                 .and.textAlign('right')
                 .and.formatter(value => currency.format(Number(value)))
-                .and.conditionalCellClass((value: number) => value > this.probes.getField('classThreshold'), 'high-value'),
+                .and.cellClass('amount-cell')
+                .and.cellClass((value: number) => value > this.probes.getField('classThreshold'), 'high-value'),
         },
         weeklyExpenses.map(expense => ({...expense}))
     );
@@ -307,7 +300,7 @@ export class FdlModifierCatalog extends LitElement {
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
         return {
-            cellClass: this.cellClassRecordset, conditionalCellClass: this.conditionalClassRecordset,
+            cellClass: this.cellClassRecordset,
             compareFunction: this.compareRecordset, filter: this.filterRecordset,
             formatter: this.formatterRecordset, rowClasses: this.rowClassRecordset,
             template: this.templateRecordset, textAlign: this.alignRecordset,
@@ -353,9 +346,9 @@ export class FdlModifierCatalog extends LitElement {
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {rows}, bubbles: true, composed: true}));
         }
 
-        if (this.modifier === 'conditionalCellClass') {
+        if (this.modifier === 'cellClass') {
             const threshold = this.probes.getField('classThreshold');
-            void this.conditionalClassRecordset.requestUpdate();
+            void this.cellClassRecordset.requestUpdate();
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail:{threshold}, bubbles:true, composed:true}));
         }
 
@@ -443,7 +436,6 @@ export class FdlModifierCatalog extends LitElement {
 
     private renderDemo(name: DemoName): TemplateResult {
         switch (name) {
-            case 'cellClass': return html`<p class="try">The Amount column is bold, blue, and highlighted because its cells receive the <code>amount-cell</code> class.</p><fdl-table .recordset=${this.cellClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="category"></fdl-column></fdl-table>`;
             case 'compareFunction': {
                 return html`<p class="try">Sort T-shirt size to order sizes from XS to XXL instead of alphabetically. First and last names use alphabetic order.</p>
                     <fdl-table .recordset=${this.compareRecordset}>
@@ -452,7 +444,7 @@ export class FdlModifierCatalog extends LitElement {
                         <fdl-column field="shirtSize"></fdl-column>
                     </fdl-table>${sortCases(this.compareRecordset)}`;
             }
-            case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
+            case 'cellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.cellClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('documentTitle', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('documentTitle')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
@@ -542,7 +534,7 @@ export class FdlModifierCatalog extends LitElement {
     render() {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
             if (!entry) return nothing;
-            return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
+            return html`<div class=${`focused ${['cellClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
                 ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['hashFunction', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;

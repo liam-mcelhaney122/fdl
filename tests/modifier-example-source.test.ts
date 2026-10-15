@@ -73,7 +73,7 @@ it('shows the declared default when the Lit clear button is used', () => {
 });
 
 it('exports the same weekday expenses, dollar formatting, and strict threshold', async () => {
-    const {model, container} = runExample('conditionalCellClass', {threshold:125.25});
+    const {model, container} = runExample('cellClass', {threshold:125.25});
     await model.requestUpdate();
     expect(model.getData()).toEqual([
         {day:'Monday',amount:85.5}, {day:'Tuesday',amount:142.75},
@@ -81,7 +81,7 @@ it('exports the same weekday expenses, dollar formatting, and strict threshold',
     ]);
     expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['day','amount']);
     expect(model.createRecord({day:'Monday',amount:85.5}).getFormattedField('amount','print')).toBe('$85.50');
-    expect(model.getFieldType('amount').cellClasses(125.25)).not.toContain('high-value');
+    expect(model.getFieldType('amount').cellClasses(125.25)).toEqual(['amount-cell']);
     expect(model.getFieldType('amount').cellClasses(142.75)).toContain('high-value');
 });
 

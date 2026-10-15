@@ -12,8 +12,6 @@ export const tableExampleStyles = {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
 }
-`,
-    conditionalCellClass: css`
 .high-value {
     background: #fff4d6;
     color: #8a4b00;

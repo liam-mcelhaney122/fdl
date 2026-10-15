@@ -372,24 +372,24 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    cellClass(c: string) {
+    /** Add a fixed cell class, or a class applied when the value predicate passes. */
+    cellClass(classNameOrPredicate: string | ((value: T) => boolean), className?: string) {
         const copy = this.copy();
-        copy.properties.cellClasses = [...copy.properties.cellClasses, c];
+        if (typeof classNameOrPredicate === 'function') {
+            if (typeof className !== 'string') throw new TypeError('cellClass(predicate, className) requires a class name');
+            copy.properties.conditionalCellClasses = [
+                ...copy.properties.conditionalCellClasses,
+                {fn: classNameOrPredicate, className},
+            ];
+        } else {
+            copy.properties.cellClasses = [...copy.properties.cellClasses, classNameOrPredicate];
+        }
         return copy;
     }
 
     textAlign(direction: 'left' | 'center' | 'right') {
         const copy = this.copy();
         copy.properties.textAlign = direction;
-        return copy;
-    }
-
-    conditionalCellClass(predicate: (value: any) => boolean, className: string) {
-        const copy = this.copy();
-        copy.properties.conditionalCellClasses = [
-            ...copy.properties.conditionalCellClasses,
-            { fn: predicate, className },
-        ];
         return copy;
     }
 

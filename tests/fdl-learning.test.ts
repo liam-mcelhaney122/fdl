@@ -285,8 +285,8 @@ it('resets the active learning question without losing its rules', async () => {
 
 
 it('highlights fixed weekday expenses above the adjustable threshold and formats dollars', async () => {
-    const page = await openExplorer('#conditionalCellClass');
-    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog[modifier="conditionalCellClass"]') as FdlModifierCatalog;
+    const page = await openExplorer('#cellClass');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog[modifier="cellClass"]') as FdlModifierCatalog;
     await catalog.updateComplete;
     expect(catalog.shadowRoot!.querySelector('fdl-field[field="classAmount"]')).toBeNull();
     const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
@@ -299,11 +299,12 @@ it('highlights fixed weekday expenses above the adjustable threshold and formats
     expect(rendered.map(row=>row.querySelectorAll('td')[1].textContent!.trim())).toEqual(['$85.50','$142.75','$60.00','$100.00','$125.25']);
     const highlighted = () => [...table.shadowRoot.querySelectorAll('td.high-value')].map((cell:any)=>cell.textContent.trim());
     expect(highlighted()).toEqual(['$142.75','$125.25']);
+    expect(table.shadowRoot.querySelectorAll('td.amount-cell')).toHaveLength(5);
     await editField(catalog.shadowRoot!, 'classThreshold', '125.25');
     await catalog.updateComplete;await page.updateComplete;rendered=await rows();
     expect(highlighted()).toEqual(['$142.75']);
     expect(rendered.map(row=>row.querySelectorAll('td')[1].textContent!.trim())).toEqual(['$85.50','$142.75','$60.00','$100.00','$125.25']);
-    expect(page.shadowRoot!.getElementById('conditionalCellClass')!.querySelector('.code')!.textContent).toContain('value > 125.25');
+    expect(page.shadowRoot!.getElementById('cellClass')!.querySelector('.code')!.textContent).toContain('value > 125.25');
 });
 
 it('sorts the live T-shirt size column in size order and highlights all comparator calls',async()=>{

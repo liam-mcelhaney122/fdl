@@ -743,7 +743,6 @@ export class FdlTable extends LitElement {
         }
 
         ${tableExampleStyles.cellClass}
-        ${tableExampleStyles.conditionalCellClass}
         ${tableExampleStyles.rowClasses}
         ${tableExampleStyles.template}
 

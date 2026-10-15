@@ -225,20 +225,40 @@ describe('FieldType', () => {
             expect([x.cellClasses(), y.cellClasses()]).toEqual([['x'], ['x', 'y']]);
         });
 
-        it('with.conditionalCellClass', () => {
+        it('with.cellClass', () => {
             const fd = new FieldType().with
                 .cellClass('number')
-                .and.conditionalCellClass(n => n % 2 === 1, 'odd')
-                .and.conditionalCellClass(n => n % 2 === 0, 'even');
+                .and.cellClass(n => n % 2 === 1, 'odd')
+                .and.cellClass(n => n % 2 === 0, 'even');
             expect(fd.cellClasses(1)).toEqual(['number', 'odd']);
+            expect(fd.cellClasses(2)).toEqual(['number', 'even']);
         });
 
-        it('with.conditionalCellClass - extension', () => {
-            const x = new FieldType().with.conditionalCellClass(() => true, 'x');
-            const xy = x.with.conditionalCellClass(() => true, 'y');
+        it('with.cellClass - extension', () => {
+            const x = new FieldType().with.cellClass(() => true, 'x');
+            const xy = x.with.cellClass(() => true, 'y');
 
             expect([x.cellClasses(1), xy.cellClasses(1)]).toEqual([['x'], ['x', 'y']]);
         });
+    });
+
+    it('keeps fixed and conditional classes isolated when specializing a field', () => {
+        const base = new FieldType().with.cellClass('amount');
+        const high = base.with.cellClass(value => value > 100, 'high');
+        const low = base.with.cellClass(value => value < 100, 'low');
+        expect(base.cellClasses(150)).toEqual(['amount']);
+        expect(high.cellClasses(150)).toEqual(['amount', 'high']);
+        expect(high.cellClasses(50)).toEqual(['amount']);
+        expect(low.cellClasses(50)).toEqual(['amount', 'low']);
+        expect(low.cellClasses(150)).toEqual(['amount']);
+    });
+
+    it('removes the separate conditionalCellClass modifier', () => {
+        expect(new FieldType().with.conditionalCellClass).toBeUndefined();
+    });
+
+    it('requires a class name for a cellClass predicate', () => {
+        expect(() => new FieldType().with.cellClass(() => true)).toThrow('requires a class name');
     });
 
     describe('with.rowClasses((value, record) => {...})', () => {
