@@ -167,7 +167,7 @@ export class FdlModifierExplorer extends LitElement {
             <aside>
             <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
             <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
-            <div class="modifier-tools"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
+            <div class="modifier-tools"><div class="modifier-heading"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2><span class="match-count" role="status" aria-label=${`${filtered.length} of ${recipes.length} modifiers`}>(${filtered.length} of ${recipes.length})</span></div>
             <div class="modifier-search-field"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
             <input id="modifier-search" class="modifier-search" type="search" aria-label="Find a modifier" placeholder="Find a modifier…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}></div>
             <details class="category-filters" @keydown=${(event: KeyboardEvent) => {
@@ -194,7 +194,7 @@ export class FdlModifierExplorer extends LitElement {
                 menu.querySelector('summary')?.focus();
             }}>Done</button></div></div></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
-            <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p></div>
+            </div>
             <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
@@ -264,7 +264,9 @@ export class FdlModifierExplorer extends LitElement {
         .category-options label { display:flex; align-items:center; gap:10px; min-height:36px; font-size:1rem; cursor:pointer; }
         .category-options input { width:20px; height:20px; margin:0; accent-color:var(--accent); }
         .clear-filters { align-self:flex-start; min-height:44px; padding:8px 0; border:0; background:none; color:var(--accent); font-size:1rem; text-decoration:underline; text-underline-offset:3px; }
-        .match-count { margin:16px 0 10px; font-size:.875rem; color:var(--muted); }
+        .modifier-heading { display:flex; align-items:baseline; gap:8px; margin-bottom:16px; }
+        .modifier-heading .eyebrow { margin:0; }
+        .match-count { font-size:.875rem; color:var(--muted); white-space:nowrap; }
         nav { display:grid; gap:6px; min-height:100px; overflow-y:auto; overscroll-behavior:contain; }
         nav a { display:flex; align-items:center; min-height:60px; padding:10px 12px; border:1px solid transparent; border-radius:4px; text-decoration:none; }
         nav a:hover { background:#f1f5f9; }
@@ -274,7 +276,7 @@ export class FdlModifierExplorer extends LitElement {
         .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #cbd5e1; gap:4px; }
         .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
         .modifier-navigation { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
-        .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow:visible; }
+        .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow:visible; margin-bottom:12px; }
         .modifier-list { flex:1 1 0; min-height:120px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .site-page { max-width:75ch; }
         .site-page h1 { font-family:Arial,Helvetica,sans-serif; font-size:clamp(30px,3vw,42px); font-weight:650; }
