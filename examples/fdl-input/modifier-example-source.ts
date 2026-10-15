@@ -80,12 +80,12 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     };
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {
-        cellClass: {name:'cellClassRecordset',prefix:currency,fields:{day:type("label('Day').and.sortable(false)"),amount:type(`label('Expenses').and.textAlign('right').and.formatter(value => currency.format(Number(value))).and.cellClass('amount-cell').and.cellClass(value => value > ${settings.threshold ?? expenseHighlightThreshold}, 'high-value')`)},values:weeklyExpenses},
+        cellClass: {name:'cellClassRecordset',prefix:currency,fields:{day:type("label('Day').and.sortable(false)"),amount:type(`label('Expenses').and.textAlign('right').and.formatter(value => currency.format(Number(value))).and.cellClass('amount-cell').and.cellClass(value => value > ${settings.threshold ?? expenseHighlightThreshold} ? ['high-value', 'over-limit'] : [])`)},values:weeklyExpenses},
         compareFunction: {name:'compareRecordset',prefix:compareShirtSizesSource,fields:{firstName:peopleFields.firstName,lastName:peopleFields.lastName,shirtSize:type("label('T-shirt size').and.compareFunction(compareShirtSizes)")},values:shirtOrders},
         sortable: {name:'compareRecordset',fields:{...peopleFields,shirtSize:type("label('T-shirt size').and.sortable(false)")},values:shirtOrders},
         filter: {name:'filterRecordset',fields:{name:type(`label('Name').and.filter((text, value) =>
     value.toLowerCase().${settings.filterMode === 'contains' ? 'includes' : 'startsWith'}(text.toLowerCase()))`),team:type("label('Team')")},values:[{name:'Ada',team:'Research'},{name:'Grace',team:'Platform'},{name:'Margaret',team:'Research'}]},
-        rowClasses: {name:'rowClassRecordset',fields:{status:type("label('Status').and.rowClasses(value => value === 'Disputed' ? ['disputed-row'] : [])"),owner:type("label('Owner')")},values:[{status:'Disputed',owner:'Ada'},{status:'Paid',owner:'Grace'}]},
+        rowClass: {name:'rowClassRecordset',fields:{status:type("label('Status').and.rowClass('invoice-row').and.rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])"),owner:type("label('Owner')")},values:[{status:'Disputed',owner:'Ada'},{status:'Paid',owner:'Grace'}]},
         template: {name:'templateRecordset',prefix:currency,fields:{invoice:type("label('Invoice')"),balance:type(`label('Balance').and.type('number').and.parser(Number)
     .and.textAlign('right')
     .and.formatter((value, record, context) =>

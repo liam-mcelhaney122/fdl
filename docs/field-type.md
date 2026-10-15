@@ -13,7 +13,7 @@ const number = new FieldType().with
     validate: value => Number.isFinite(Number(value)),
   })
   .and.cellClass('numeric')
-  .and.cellClass(value => value < 0, 'negative');
+  .and.cellClass(value => value < 0 ? 'negative' : []);
 
 const money = number.with
   .formatter(formatUsd)
@@ -158,8 +158,10 @@ people.sortColumns = [{ field: 'name', sort: 'ascending' }];
 // A table bound to people renders: Alpha, Mike, Zulu
 ```
 
-Use `cellClass(name)` and `cellClass(predicate, name)` for cell CSS
-classes, and the column-width modifiers shown in the first example.
+Use `cellClass(classes)` for cell CSS classes and `rowClass(classes)` for
+classes on the containing row. Both accept a string, an array, or a function
+returning either. The column-width modifiers shown in the first example
+provide sizing guidance.
 `template(fn)` customizes the printed representation; it can return a Lit
 template for rich cell content.
 
@@ -229,9 +231,27 @@ compatibility while that component configuration is introduced.
 
 ## Consolidated cell classes
 
-`cellClass(className)` applies a fixed class. `cellClass(predicate, className)`
-applies a class only when the value predicate returns true. Both forms compose
-and leave the original field definition unchanged.
+`cellClass(classes)` and `rowClass(classes)` each add classes, one declaration
+at a time. Supply a class name, an array of class names, or a function returning
+either. A cell callback receives the field value; a row callback receives the
+field value and containing record. Return `[]` when no classes apply. Repeated
+calls accumulate in declaration order without changing the source definition.
+
+```ts
+const status = new FieldType<string>()
+  .with.cellClass('status-cell')
+  .and.cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
+  .and.rowClass('invoice-row')
+  .and.rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
+```
+
+The Boolean predicate form `cellClass(predicate, className)` also remains
+available and accepts a string or array as its second argument.
+
+`rowClasses(fn)` was renamed to `rowClass(fn)` on 2026-10-15. Rename modifier
+calls to the singular form; callbacks can continue returning arrays. Consumer
+methods `fieldType.cellClasses(value)` and `fieldType.rowClasses(value, record)`
+still return the accumulated arrays.
 
 `conditionalCellClass(predicate, className)` was removed on 2026-10-15. Rename
 those calls to `cellClass(predicate, className)`; the arguments and behavior

@@ -82,7 +82,7 @@ it('exports the same weekday expenses, dollar formatting, and strict threshold',
     expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['day','amount']);
     expect(model.createRecord({day:'Monday',amount:85.5}).getFormattedField('amount','print')).toBe('$85.50');
     expect(model.getFieldType('amount').cellClasses(125.25)).toEqual(['amount-cell']);
-    expect(model.getFieldType('amount').cellClasses(142.75)).toContain('high-value');
+    expect(model.getFieldType('amount').cellClasses(142.75)).toEqual(['amount-cell', 'high-value', 'over-limit']);
 });
 
 it('exports a named size comparator and sorts sizes in domain order rather than alphabetically', async () => {
@@ -194,4 +194,12 @@ it('demonstrates simple email validation and accumulated quantity and username r
         expect.stringContaining('Valid.'), expect.stringContaining('Valid.'), expect.stringContaining('must start with a letter'),
     ]);
     for (const field of container.querySelectorAll('fdl-field')) expect((field as any).showValidationErrors).toBe(true);
+});
+
+it('exports rowClass declarations with fixed and returned array classes', async () => {
+    const {model} = runExample('rowClass');
+    await model.requestUpdate();
+    const status = model.getFieldType('status');
+    expect(status.rowClasses('Disputed')).toEqual(['invoice-row', 'disputed-row', 'needs-review']);
+    expect(status.rowClasses('Paid')).toEqual(['invoice-row']);
 });

@@ -24,7 +24,7 @@ type DemoName =
     | 'inputMask' | 'label' | 'maxColumnWidth' | 'maxLength'
     | 'minColumnWidth' | 'minLength' | 'multipleValues' | 'options'
     | 'placeholder' | 'readOnly' | 'readOnlyWhen' | 'reducer' | 'required'
-    | 'parser' | 'requiredWhen' | 'rowClasses' | 'rowCount' | 'sortable'
+    | 'parser' | 'requiredWhen' | 'rowClass' | 'rowCount' | 'sortable'
     | 'targetColumnWidth' | 'template' | 'textAlign' | 'type' | 'validator'
     | 'visibleWhen';
 
@@ -46,7 +46,7 @@ const placeholder = (name: string, intent: string, limitation: string): CatalogE
 });
 
 export const modifierEntries: CatalogEntry[] = [
-    live('cellClass', 'Adds a fixed cell class or applies one when a value predicate passes.', 'cellClass', `.cellClass('amount-cell').and.cellClass(value => value > limit, 'high-value')`),
+    live('cellClass', 'Adds a fixed cell class or applies one when a value predicate passes.', 'cellClass', `.cellClass('amount-cell').and.cellClass(value => value > limit ? ['high-value', 'over-limit'] : [])`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
 new FieldType()
@@ -82,7 +82,7 @@ new FieldType()
     live('reducer', 'Aggregates a column’s values, with sum available as a built-in reducer.', 'reducer', `.reducer('sum')`),
     live('required', 'Always requires a non-empty value and adds record validation.', 'required', `.required()`),
     live('requiredWhen', 'Requires a value only while a record predicate is true.', 'requiredWhen', `.requiredWhen(record => record.getField('followUp') === 'yes')`),
-    live('rowClasses', 'Computes CSS classes for the table row containing a value.', 'rowClasses', `.rowClasses(value => value === 'Disputed' ? ['disputed-row'] : [])`),
+    live('rowClass', 'Computes CSS classes for the table row containing a value.', 'rowClass', `.rowClass('invoice-row').and.rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])`),
     live('rowCount', 'Deprecated: textarea sizing belongs in fdl-field rather than the field model.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
     live('sortable', 'Enables or disables sorting for a table column.', 'sortable', `.sortable(false)`),
@@ -198,7 +198,7 @@ export class FdlModifierCatalog extends LitElement {
                 .and.textAlign('right')
                 .and.formatter(value => currency.format(Number(value)))
                 .and.cellClass('amount-cell')
-                .and.cellClass((value: number) => value > this.probes.getField('classThreshold'), 'high-value'),
+                .and.cellClass((value: number) => value > this.probes.getField('classThreshold') ? ['high-value', 'over-limit'] : []),
         },
         weeklyExpenses.map(expense => ({...expense}))
     );
@@ -234,9 +234,10 @@ export class FdlModifierCatalog extends LitElement {
     );
     private rowClassRecordset = new Recordset(
         {
-            status: new FieldType().with
+            status: new FieldType<string>().with
                 .label('Status')
-                .and.rowClasses((value: string) => value === 'Disputed' ? ['disputed-row'] : []),
+                .and.rowClass('invoice-row')
+                .and.rowClass((value: string) => value === 'Disputed' ? ['disputed-row', 'needs-review'] : []),
             owner: new FieldType().with.label('Owner'),
         },
         [{ status: 'Disputed', owner: 'Ada' }, { status: 'Paid', owner: 'Grace' }]
@@ -302,7 +303,7 @@ export class FdlModifierCatalog extends LitElement {
         return {
             cellClass: this.cellClassRecordset,
             compareFunction: this.compareRecordset, filter: this.filterRecordset,
-            formatter: this.formatterRecordset, rowClasses: this.rowClassRecordset,
+            formatter: this.formatterRecordset, rowClass: this.rowClassRecordset,
             template: this.templateRecordset, textAlign: this.alignRecordset,
             sortable: this.sortableRecordset, ...this.widthRecordsets,
         };
@@ -477,7 +478,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'reducer': return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p class="computed" role="status">Sum: ${currency.format(this.reducerType.aggregate([this.probes.getField('firstAmount'), this.probes.getField('secondAmount'), this.probes.getField('thirdAmount')]))}</p>`;
             case 'required': return this.renderValidation('requiredName');
             case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
-            case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
+            case 'rowClass': return html`<p class="try">Every row receives <code>invoice-row</code>. The Disputed row also receives <code>disputed-row</code> and <code>needs-review</code>.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
             case 'sortable': return html`<p class="try">First name and Last name can sort. T-shirt size has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="shirtSize"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
@@ -534,7 +535,7 @@ export class FdlModifierCatalog extends LitElement {
     render() {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
             if (!entry) return nothing;
-            return html`<div class=${`focused ${['cellClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
+            return html`<div class=${`focused ${['cellClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClass', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
                 ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['hashFunction', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;

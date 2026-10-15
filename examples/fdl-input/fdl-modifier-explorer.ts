@@ -103,7 +103,7 @@ export class FdlModifierExplorer extends LitElement {
     };
     private readLocation = () => {
         const route = window.location.hash.slice(1).split('?')[0];
-        const hash = route === 'conditionalCellClass' ? 'cellClass' : route;
+        const hash = route === 'conditionalCellClass' ? 'cellClass' : route === 'rowClasses' ? 'rowClass' : route;
         const page = sitePages.find(page => page.id === hash);
         if (page || !hash) {
             this.showPage(page?.id ?? 'home', false);

@@ -1,7 +1,7 @@
 // Curated relationships are reciprocal: readers can compare either direction.
 // Groups connect close alternatives or modifiers commonly used together.
 const relationships: readonly (readonly string[])[] = [
-    ['cellClass', 'rowClasses'],
+    ['cellClass', 'rowClass'],
     ['compareFunction', 'sortable'],
     ['compareFunction', 'filter'],
     ['defaultValue', 'placeholder'],

@@ -31,14 +31,14 @@ describe('modifier explorer', () => {
     it('shows one modifier, supports next/back and direct links, and disables boundary controls', async () => {
         const page = await openPage('#cellClass');
         const root = page.shadowRoot!;
-        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classNameOrPredicate, className?)');
+        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes, className?)');
         expect(root.querySelector<HTMLButtonElement>('.pager')!.disabled).toBe(true);
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.compareFunction(compare)');
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classNameOrPredicate, className?)');
+        expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes, className?)');
         root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');
@@ -415,13 +415,13 @@ it.each(explorerRecipes.map(recipe => recipe.name))('lists related modifiers on 
     expect(section.querySelectorAll('li span').length).toBe(links.length);
 });
 it('links cell styling alternatives in both directions', async () => {
-    expect(relatedModifierNames('cellClass')).toContain('rowClasses');
+    expect(relatedModifierNames('cellClass')).toContain('rowClass');
     const page = await openPage('#cellClass');
-    const link = page.shadowRoot!.querySelector<HTMLAnchorElement>('.related-modifiers a[href="#rowClasses"]')!;
-    expect(link.textContent).toBe('.rowClasses()');
+    const link = page.shadowRoot!.querySelector<HTMLAnchorElement>('.related-modifiers a[href="#rowClass"]')!;
+    expect(link.textContent).toBe('.rowClass()');
     link.click();await settle(page);
     expect(page.shadowRoot!.activeElement).toBe(page.shadowRoot!.querySelector('h1'));
-    expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe('.rowClasses(classesForValue)');
+    expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe('.rowClass(classes)');
     expect(page.shadowRoot!.querySelector('.related-modifiers a[href="#cellClass"]')).not.toBeNull();
 });
 
@@ -619,5 +619,17 @@ it('marks rowCount as deprecated and points textarea sizing to fdl-field', async
 it('opens the consolidated cellClass page from its retired conditional URL', async () => {
     const page = await openPage('#conditionalCellClass');
     expect(page.shadowRoot!.querySelector('h1')!.textContent).toContain('.cellClass(');
-    expect(page.shadowRoot!.querySelector('.modifier-nav a[href="#conditionalCellClass"]')).toBeNull();
+    expect(page.shadowRoot!.querySelector('.modifier-list a[href="#conditionalCellClass"]')).toBeNull();
+});
+
+it('opens the singular rowClass page from its old plural URL', async () => {
+    const page = await openPage('#rowClasses');
+    expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe('.rowClass(classes)');
+    expect(page.shadowRoot!.querySelector('.modifier-list a[href="#rowClasses"]')).toBeNull();
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as any;
+    await catalog.updateComplete;
+    const table = catalog.shadowRoot.querySelector('fdl-table') as any;
+    await table.recordset.requestUpdate();await table.updateComplete;
+    expect(table.shadowRoot.querySelectorAll('tr.invoice-row')).toHaveLength(2);
+    expect(table.shadowRoot.querySelectorAll('tr.disputed-row.needs-review')).toHaveLength(1);
 });

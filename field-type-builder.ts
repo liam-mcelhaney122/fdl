@@ -98,9 +98,8 @@ export interface Properties<T = unknown> {
     allowInputChar?: (char: string) => boolean;
     autocomplete?: AutoComplete;
     autofocus: boolean;
-    cellClasses: Array<string>;
+    cellClassFunctions: Array<Function>;
     compareFunction: typeof defaultCompareFunction;
-    conditionalCellClasses: Array<{ fn: Function; className: string }>;
     defaultValue?: any;
     descriptions: Array<string>;
     disableFunctions: Array<BooleanPredicate>;
@@ -172,9 +171,8 @@ export const defaultProperties: Properties = {
     allowInputChar: () => true,
     autocomplete: 'off',
     autofocus: false,
-    cellClasses: [],
+    cellClassFunctions: [],
     compareFunction: defaultCompareFunction,
-    conditionalCellClasses: [],
     descriptions: [],
     disableFunctions: [() => false],
     emptyFunctions: [defaultEmptyFunction],
@@ -372,18 +370,20 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    /** Add a fixed cell class, or a class applied when the value predicate passes. */
-    cellClass(classNameOrPredicate: string | ((value: T) => boolean), className?: string) {
+    /** Add cell classes directly or compute them from the field value. */
+    cellClass(classes: string | string[] | ((value: T) => string | string[] | boolean), className?: string | string[]) {
         const copy = this.copy();
-        if (typeof classNameOrPredicate === 'function') {
-            if (typeof className !== 'string') throw new TypeError('cellClass(predicate, className) requires a class name');
-            copy.properties.conditionalCellClasses = [
-                ...copy.properties.conditionalCellClasses,
-                {fn: classNameOrPredicate, className},
-            ];
-        } else {
-            copy.properties.cellClasses = [...copy.properties.cellClasses, classNameOrPredicate];
-        }
+        const fixed = Array.isArray(classes) ? [...classes] : classes;
+        const conditional = Array.isArray(className) ? [...className] : className;
+        const getClasses = typeof classes === 'function'
+            ? (value: T) => {
+                const result = classes(value);
+                if (typeof result !== 'boolean') return result;
+                if (conditional === undefined) throw new TypeError('cellClass(predicate, className) requires a class name');
+                return result ? conditional : [];
+            }
+            : () => fixed;
+        copy.properties.cellClassFunctions = [...copy.properties.cellClassFunctions, getClasses];
         return copy;
     }
 
@@ -393,9 +393,12 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    rowClasses(fn: Function) {
+    /** Add row classes directly or compute them from the field value and record. */
+    rowClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[])) {
         const copy = this.copy();
-        copy.properties.rowClassFunctions = [...copy.properties.rowClassFunctions, fn];
+        const fixed = Array.isArray(classes) ? [...classes] : classes;
+        const getClasses = typeof classes === 'function' ? classes : () => fixed;
+        copy.properties.rowClassFunctions = [...copy.properties.rowClassFunctions, getClasses];
         return copy;
     }
 

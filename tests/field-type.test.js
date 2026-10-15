@@ -258,24 +258,61 @@ describe('FieldType', () => {
     });
 
     it('requires a class name for a cellClass predicate', () => {
-        expect(() => new FieldType().with.cellClass(() => true)).toThrow('requires a class name');
+        expect(() => new FieldType().with.cellClass(() => true).cellClasses(1)).toThrow('requires a class name');
     });
 
-    describe('with.rowClasses((value, record) => {...})', () => {
+    describe('with.rowClass((value, record) => {...})', () => {
         it('determines which classes at runtime', () => {
             const fd = new FieldType().with
-                .rowClasses((value, record) => (record.hasError ? ['error'] : []))
-                .and.rowClasses(value => (value === 'same-day' ? ['ach', 'sda'] : ['ach']));
+                .rowClass((value, record) => (record.hasError ? ['error'] : []))
+                .and.rowClass(value => (value === 'same-day' ? ['ach', 'sda'] : ['ach']));
 
             expect(fd.rowClasses('same-day', { hasError: true })).toEqual(['error', 'ach', 'sda']);
         });
 
         it('extension', () => {
-            const x = new FieldType().with.rowClasses(() => ['x']);
-            const xy = x.with.rowClasses(() => ['y']);
+            const x = new FieldType().with.rowClass(() => ['x']);
+            const xy = x.with.rowClass(() => ['y']);
 
             expect([x.rowClasses(), xy.rowClasses()]).toEqual([['x'], ['x', 'y']]);
         });
+    });
+
+    describe.each([
+        ['cellClass', 'cellClasses'],
+        ['rowClass', 'rowClasses'],
+    ])('%s class declarations', (modifier, getter) => {
+        it('accumulates strings, arrays, and callback results in declaration order', () => {
+            const field = new FieldType().with[modifier]('base')
+                .and[modifier](value => value > 100 ? ['warning', 'over-limit'] : [])
+                .and[modifier](['numeric', 'currency'])
+                .and[modifier](value => value > 100 ? 'review' : []);
+            expect(field[getter](150)).toEqual(['base', 'warning', 'over-limit', 'numeric', 'currency', 'review']);
+            expect(field[getter](50)).toEqual(['base', 'numeric', 'currency']);
+        });
+
+        it('isolates input arrays, results, and specialized definitions', () => {
+            const classes = ['base'];
+            const base = new FieldType().with[modifier](classes);
+            const child = base.with[modifier](() => ['child', 'detail']);
+            classes.push('outside');
+            child[getter](1).push('result-only');
+            expect(base[getter](1)).toEqual(['base']);
+            expect(child[getter](1)).toEqual(['base', 'child', 'detail']);
+        });
+    });
+
+    it('removes the plural rowClasses modifier while retaining the collection getter', () => {
+        expect(new FieldType().with.rowClasses).toBeUndefined();
+        expect(new FieldType().rowClasses()).toEqual([]);
+    });
+
+    it('accepts multiple classes with the cell predicate form', () => {
+        const classes = ['warning', 'review'];
+        const field = new FieldType().with.cellClass(value => value > 100, classes);
+        classes.push('outside');
+        expect(field.cellClasses(150)).toEqual(['warning', 'review']);
+        expect(field.cellClasses(50)).toEqual([]);
     });
 
     describe('with.comparator((value, record) => {...})', () => {

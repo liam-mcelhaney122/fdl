@@ -39,7 +39,7 @@ export const tableExampleStyles = {
     font-size: 0.8rem;
 }
 `,
-    rowClasses: css`
+    rowClass: css`
 tr.disputed-row {
     background: #fffdf7;
     box-shadow: inset 0.25rem 0 #ff695b;

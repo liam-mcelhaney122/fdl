@@ -54,9 +54,8 @@ export default class FieldType {
     }
 
     cellClasses(value) {
-        return this.properties.cellClasses.concat(
-            this.properties.conditionalCellClasses.filter(x => x.fn(value)).map(x => x.className)
-        );
+        return this.properties.cellClassFunctions
+            .flatMap(getClasses => getClasses(value));
     }
 
     /**
