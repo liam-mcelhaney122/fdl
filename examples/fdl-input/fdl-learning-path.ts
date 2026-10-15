@@ -20,7 +20,10 @@ const lessons = [
 ];
 const currency = new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'});
 
+export type LearningState = {step: number; values: {method: string; charge: any}};
 export class FdlLearningPath extends LitElement {
+    static properties = {session: {attribute: false}};
+    session?: LearningState;
     private step = 0;
     private definitions() {
         let charge = new FieldType<any>().with.label('Delivery charge').and.textAlign('right');
@@ -42,8 +45,16 @@ export class FdlLearningPath extends LitElement {
     private updateTable() {
         this.table.setData([{...this.record.values}, {method: 'ship', charge: 12}, {method: 'pickup', charge: undefined}]);
     }
-    connectedCallback() { super.connectedCallback(); this.record.addEventListener('change', this.refresh); this.updateTable(); }
-    disconnectedCallback() { this.record.removeEventListener('change', this.refresh); super.disconnectedCallback(); }
+    connectedCallback() {
+        if (this.session) {
+            this.step = this.session.step;
+            this.record = new Record(this.definitions(), {...this.session.values});
+            this.table = new Recordset(this.definitions(), []);
+        }
+        super.connectedCallback(); this.record.addEventListener('change', this.refresh); this.updateTable(); }
+    disconnectedCallback() {
+        if (this.session) { this.session.step = this.step; this.session.values = {...this.record.values} as LearningState['values']; }
+        this.record.removeEventListener('change', this.refresh); super.disconnectedCallback(); }
     private go(step: number) {
         if (step < 0 || step >= lessons.length || step === this.step) return;
         const oldStep = this.step;

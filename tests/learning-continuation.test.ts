@@ -20,3 +20,18 @@ it('starts fresh when leaving a continued scenario for a plain composition link'
     expect(demo.shadowRoot.querySelector('.continuation')).toBeNull();
     page.remove();window.location.hash='';
 });
+
+it('restores the lesson and entered value after a reference detour', async()=>{
+    window.location.hash='#learn';
+    const page=document.createElement('fdl-modifier-explorer') as FdlModifierExplorer;
+    document.body.append(page);await page.updateComplete;
+    let lesson=page.shadowRoot!.querySelector('fdl-learning-path') as any;await lesson.updateComplete;
+    lesson.go(2);lesson.record.setField('charge',47);await lesson.updateComplete;
+    window.location.hash='#validator';window.dispatchEvent(new Event('hashchange'));await page.updateComplete;
+    window.location.hash='#learn';window.dispatchEvent(new Event('hashchange'));await page.updateComplete;
+    lesson=page.shadowRoot!.querySelector('fdl-learning-path') as any;await lesson.updateComplete;
+    expect(lesson.shadowRoot.querySelector('h2').textContent).toBe('What makes a value valid?');
+    expect(lesson.record.getField('charge')).toBe(47);
+    lesson.reset();expect(lesson.record.getField('charge')).toBe(25);
+    page.remove();window.location.hash='';
+});

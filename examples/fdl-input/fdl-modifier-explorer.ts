@@ -47,6 +47,7 @@ export const explorerRecipes: ExplorerRecipe[] = [
 const recipes = explorerRecipes;
 
 export class FdlModifierExplorer extends LitElement {
+    private learningState = {step: 0, values: {method: 'ship', charge: '$25.00' as any}};
     private selected = 0;
     private navigationOpen = false;
     private get modifierName() { return recipes[this.selected].name; }
@@ -232,7 +233,7 @@ export class FdlModifierExplorer extends LitElement {
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
-                ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page)) : html`
+                ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page, this.learningState)) : html`
                 <div class="modifier-title-row"><h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                     <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
                         <button class="page-category-icon" aria-label=${`Category: ${recipe.category}`} aria-describedby=${this.categoryTooltip ? 'category-tooltip' : ''} @focus=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @blur=${() => { this.categoryTooltip = false; this.requestUpdate(); }} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') { this.categoryTooltip = false; this.requestUpdate(); } }}>${categoryIcon(recipe.category)}</button>
