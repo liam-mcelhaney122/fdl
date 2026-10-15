@@ -1,6 +1,6 @@
 # ADR-0003: Standardize fixed and calculated field settings
 
-- Status: Accepted
+- Status: Superseded in part by [ADR-0005](./0005-scope-modifier-callback-inputs.md)
 - Date: 2026-10-15
 
 ## Context

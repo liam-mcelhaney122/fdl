@@ -26,7 +26,9 @@ describe('<fdl-table>', () => {
             value > record.getField('limit') ? ['warning', 'over-limit'] : []);
         const recordset = new Recordset(
             {
-                amount: new FieldTypeBuilder<number>()[modifier]('amount')[modifier](['numeric'])[modifier](classForAmount),
+                amount: modifier === 'cellClass'
+                    ? new FieldTypeBuilder<number>().cellClass('amount').cellClass(['numeric']).cellClass(classForAmount)
+                    : new FieldTypeBuilder<number>().rowClass('amount').rowClass(['numeric']).rowClass(record => classForAmount(record.getField('amount'), record)),
                 limit: new FieldTypeBuilder<number>(),
             },
             [{ amount: 150, limit: 100 }, { amount: 150, limit: 200 }]
@@ -39,8 +41,8 @@ describe('<fdl-table>', () => {
 
         const targets = () => [...table.shadowRoot!.querySelectorAll(modifier === 'cellClass' ? 'tbody td' : 'tbody tr')];
         expect(targets().map(target => target.className)).toEqual(['amount numeric warning over-limit', 'amount numeric']);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0], 'table');
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1], 'table');
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0], ...(modifier === 'cellClass' ? ['table'] : []));
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1], ...(modifier === 'cellClass' ? ['table'] : []));
 
         recordset.currentPage[0].setField('limit', 200);
         await settle(table);
@@ -564,7 +566,7 @@ it.each([true, false])('aligns table headings and cells for sortable=%s', async 
 it('resolves column settings without a row and field settings with header and cell contexts', async () => {
     const width = jest.fn((context: string) => context === 'table' ? 120 : 0);
     const sortable = jest.fn((context: string) => context === 'table');
-    const label = jest.fn((value: number, _record: Record<any>, context: string) => `${context}:${value}`);
+    const label = jest.fn((record: Record<any>) => `Amount:${record.getField('amount')}`);
     const amount = new FieldTypeBuilder<number>().label(label).minColumnWidth(width)
         .maxColumnWidth(200).targetColumnWidth(150).sortable(sortable)
         .textAlign((_value, _record, context) => context === 'table' ? 'right' : 'center');
@@ -576,7 +578,7 @@ it('resolves column settings without a row and field settings with header and ce
     await settle(table);
     expect(width).toHaveBeenCalledWith('table');
     expect(sortable).toHaveBeenCalledWith('table');
-    expect(label).toHaveBeenCalledWith(150, recordset.currentPage[0], 'table-header');
+    expect(label).toHaveBeenCalledWith(recordset.currentPage[0]);
     expect(table.shadowRoot!.querySelector('col')!.style.minWidth).toBe('120px');
     expect((table.shadowRoot!.querySelector('th') as HTMLElement).style.textAlign).toBe('center');
     expect((table.shadowRoot!.querySelector('td') as HTMLElement).style.textAlign).toBe('right');
@@ -584,7 +586,7 @@ it('resolves column settings without a row and field settings with header and ce
 });
 
 it('renders an empty table without invoking per-record header settings', async () => {
-    const callback = jest.fn((_value: number, _record: Record<any>) => { throw new Error('no record'); });
+    const callback = jest.fn(() => { throw new Error('no record'); });
     const amount = new FieldTypeBuilder<number>().label(callback).textAlign(callback);
     const recordset = new Recordset<{ amount: number }>({ amount }, []);
     const table = document.createElement('fdl-table') as TestTable;

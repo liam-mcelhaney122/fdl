@@ -66,63 +66,52 @@ constructor export have been removed.
 
 ## Fixed and calculated settings
 
-A field setting accepts its result directly or a synchronous callback with the
-same three arguments:
+Settings accept a fixed result or a pure, synchronous callback. A callback's
+inputs follow the scope of the setting:
 
-```ts
-import type { Record, FieldSetting, ColumnSetting, DefaultSetting } from 'digital-fdl';
+| Modifiers | Callback | Exported setting type |
+| --- | --- | --- |
+| `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `minLength`, `maxLength` | `(record) => result` | `RecordSetting<Result, R>` |
+| `defaultValue` | `(record) => value` | `DefaultSetting<T, R>` |
+| `emptyWhen` | `(value, record) => boolean` | `ValueSetting<T, boolean, R>` |
+| `cellClass`, `textAlign` | `(value, record, context) => result` | `FieldSetting<T, Result, R>` |
+| `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth` | `(context) => result` | `ColumnSetting<Result>` |
 
-// T is the stored field type; R is the record's backing-data type.
-type Setting<T, Result, R = any> =
-  | Result
-  | ((value: T, record: Record<R>, context: string) => Result);
-```
-
-The exported `FieldSetting<T, Result, R>` type expresses this contract. Callback
-parameters may be omitted when unused. `value` is the current stored value,
-`record` is its owning FDL record, and `context` identifies the consumer. Settings
-are resolved when read, so changes to another field are reflected on the next
-read. Callbacks should be pure; they must not mutate the record or render UI.
-
-| Field setting | Result |
-| --- | --- |
-| `label`, `placeholder` | `string` |
-| `cellClass`, `rowClass` | `string` or `string[]` |
-| `textAlign` | `'left'`, `'center'`, or `'right'` |
-| `type` | A supported input type |
-| `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `emptyWhen` | `boolean` |
-| `minLength`, `maxLength` | `number` |
+`T` is the stored field type and `R` is the record's backing-data type. Import
+these types from `digital-fdl`. Record settings describe the record's state or
+metadata. They can read a particular field with `record.getField(name)`.
+`emptyWhen` needs the candidate value because validation can check a value
+before storing it. Display callbacks for cells can use both their value and
+consumer context. A row has no single field value; its callback receives only
+the record, even when the modifier is attached to a particular field.
 
 ```ts
 const amount = field
-  .label((_value, _record, context) =>
-    context === 'table-header' ? 'Amount' : 'Invoice amount')
+  .label(record => `Amount for ${record.getField('customer')}`)
   .placeholder('Enter an amount')
-  .required((_value, record) => record.getField('submitted'))
+  .required(record => record.getField('submitted'))
   .cellClass((value, record) =>
-    value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric');
+    value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric')
+  .rowClass(record => record.getField('overdue') ? 'overdue' : []);
 ```
 
-The form adapter passes `"form"` for labels, placeholders, and input types. The
-table passes `"table"` for cell and row classes and cell alignment, and
-`"table-header"` for heading labels and alignment. For compatibility with
-existing heading behavior, a non-empty table uses its first visible record for
-these header settings. On an empty table, it uses an explicit column label or
-the last fixed field label (then the field name), and fixed alignment or left
-alignment; per-record callbacks are not invoked.
+Callbacks resolve on every read, so changes to dependencies appear on the next
+read. They must not mutate the record or render UI. State and length callbacks
+have no rendering context; model validation uses the same record rules as the
+form. Emptiness checks additionally receive the candidate being validated.
 
-Model rules, including requiredness, emptiness, visibility, disabled/read-only
-state, and length constraints, use `"model"` in the form adapter. Model validation
-also uses `"model"` and evaluates the candidate being validated, which may differ
-from the stored value. This keeps validation and the control's model state in
-agreement. Direct getter calls default to `"model"`; callers can supply their own
-string context for display settings.
+The table passes `"table"` for cell classes and alignment and `"table-header"`
+for heading alignment. For a calculated heading label or alignment, a non-empty
+table uses its first visible record. On an empty table, it uses an explicit
+column label or the last fixed field label (then the field name), and fixed
+alignment or left alignment; per-record callbacks are not invoked.
 
-Direct setting getters now take `(value, record, context?)`, for example
+Existing field-binding getters retain `(value, record, context?)`, for example
 `fieldType.label(record.getField('amount'), record, 'form')` and
-`fieldType.required(record.getField('amount'), record)`. Supply the owning record
-when invoking a per-record callback directly. The existing `empty(record, field)`
-convenience method delegates to `isEmpty(value, record, context?)`.
+`fieldType.required(record.getField('amount'), record)`. Record-setting getters
+forward only the record to their callbacks. `fieldType.rowClasses(record)`
+takes only the record. `empty(record, field)` delegates to
+`isEmpty(value, record, context?)`, whose callback receives only value and record.
 
 `required()`, `disabled()`, and `readOnly()` mean `true`. Repeated state settings
 keep their composition rules: required, disabled, read-only, and empty rules use
@@ -151,12 +140,11 @@ validation; for example, use `boolean.type('checkbox')` for a checkbox.
 
 ```ts
 defaultValue(value: T | null)
-defaultValue(factory: (record: Record<R>, context: string) => T | null)
+defaultValue(factory: (record: Record<R>) => T | null)
 ```
 
-A factory receives the owning record and context, without a meaningless missing
-value argument. Existing non-null values are preserved without invoking it.
-The model supplies `"model"` as context. The `Record` constructor keeps the
+A factory receives only the owning record. Existing non-null values are preserved without invoking it.
+The `Record` constructor keeps the
 supplied backing values as they are, including `null`, `undefined`, and omitted
 fields; it does not fill them from defaults. Defaults are resolved by
 `Record#clear()`, `Recordset#appendRecord()`, and partial cloning for omitted
@@ -165,8 +153,7 @@ record. For example:
 
 ```ts
 const reference = field
-  .defaultValue((record, context) =>
-    `${record.getField('prefix')}-${context}`);
+  .defaultValue(record => `${record.getField('prefix')}-draft`);
 ```
 
 Clearing a record evaluates all defaults against the same pre-clear record,
@@ -208,26 +195,28 @@ change does not expand those APIs.
 
 ### Migrating callbacks
 
-Record-first callbacks now receive the value first:
+Replace the former uniform `(value, record, context)` signature with the
+contract in the table above. For example:
 
 ```ts
 // Before
-.label(record => record.getField('title'))
-.required(record => record.getField('submitted'))
+.rowClass((value, record) => value === 'Disputed' ? 'disputed' : [])
+.required((_value, record) => record.getField('submitted'))
+.defaultValue((record, context) => record.getField('prefix'))
+.emptyWhen((value, record, context) => value === 'N/A')
 
 // After
-.label((_value, record) => record.getField('title'))
-.required((_value, record) => record.getField('submitted'))
+.rowClass(record => record.getField('status') === 'Disputed' ? 'disputed' : [])
+.required(record => record.getField('submitted'))
+.defaultValue(record => record.getField('prefix'))
+.emptyWhen(value => value === 'N/A')
 ```
 
-Column callbacks previously used `(_value, _record, context) => result`; change
-them to `context => result`. Default factories previously used
-`(_value, record, context) => value`; change them to
-`(record, context) => value`. The old three-argument forms are no longer part of
-these five modifiers' contracts.
-
-Label callbacks no longer receive a previous-label argument. Compute the full
-label from `(value, record, context)`; the last label declaration wins.
+Call `fieldType.rowClasses(record)` instead of
+`fieldType.rowClasses(value, record, context)`. Move any context-specific label,
+placeholder, input-type, or model-rule policy into the consumer or separate field
+specializations. Labels compute a complete result from the record; the last
+label declaration wins. Callback meaning is never inferred from its arity.
 
 ## Value transforms and validation
 
@@ -274,8 +263,8 @@ validators therefore needs an application-specific integration using the
 async `Record` APIs directly.
 
 `minLength(n)`, `maxLength(n)`, `required(predicate?)`, and
-`emptyWhen(predicate)` add common validation behavior. Predicates receive the
-candidate field value, owning `Record`, and `"model"` context.
+`emptyWhen(predicate)` add common validation behavior. Requiredness and length callbacks receive the owning `Record`. Emptiness
+predicates receive the candidate field value and owning `Record`.
 
 ## Form behavior
 
@@ -446,7 +435,8 @@ compatibility while that component configuration is introduced.
 
 `cellClass(classes)` and `rowClass(classes)` each add classes, one declaration
 at a time. Supply a class name, an array of class names, or a function returning
-either. Both callbacks receive the field value and containing FDL record.
+either. Cell callbacks receive the field value, owning FDL record, and display
+context. Row callbacks receive only the record.
 Return `[]` when no classes apply. Repeated calls accumulate in declaration
 order without changing the source definition.
 
@@ -455,7 +445,7 @@ const status = field
   .cellClass('status-cell')
   .cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
   .rowClass('invoice-row')
-  .rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
+  .rowClass(record => record.getField('status') === 'Disputed' ? 'disputed-row' : []);
 ```
 
 The supported cell and row class signatures are:
@@ -467,7 +457,7 @@ cellClass(classes: (value: T, record: Record<any>, context: string) => string | 
 
 rowClass(className: string)
 rowClass(classNames: string[])
-rowClass(classes: (value: T, record: Record<any>, context: string) => string | string[])
+rowClass(classes: (record: Record<any>) => string | string[])
 ```
 
 The value type `T` comes from the field type. The callback can read other
@@ -477,8 +467,8 @@ fields through `record.getField(name)`, for example:
 const amount = field
   .cellClass((value, record) =>
     value > record.getField('limit') ? ['warning', 'over-limit'] : [])
-  .rowClass((value, record) =>
-    value > record.getField('limit') ? 'over-limit-row' : []);
+  .rowClass(record =>
+    record.getField('amount') > record.getField('limit') ? 'over-limit-row' : []);
 ```
 
 The old two-argument predicate form is no longer supported. Replace
@@ -488,7 +478,7 @@ The old two-argument predicate form is no longer supported. Replace
 `rowClasses(fn)` was renamed to `rowClass(fn)` on 2026-10-15. Rename modifier
 calls to the singular form; callbacks can continue returning arrays. Consumer
 methods `fieldType.cellClasses(value, record)` and
-`fieldType.rowClasses(value, record)` still return the accumulated arrays.
+`fieldType.rowClasses(record)` still return the accumulated arrays.
 
 `conditionalCellClass(predicate, className)` was removed on 2026-10-15. Rename
 those calls to `cellClass(value => predicate(value) ? className : [])`.
@@ -504,5 +494,5 @@ Calling either modifier without a predicate adds an unconditional rule.
 `requiredWhen(predicate)` and `disabledWhen(predicate)` were removed on
 2026-10-15. Rename those calls to `required(predicate)` and
 `disabled(predicate)` respectively, and migrate record-first callbacks to
-`(_value, record) => ...` as described above. Conditional requiredness continues to affect model validation
+`record => ...` as described above. Conditional requiredness continues to affect model validation
 as well as the control's required state. Disabled fields retain their values.

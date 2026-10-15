@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 import { defaultProperties } from './field-type-builder';
-import { resolveSetting, resolveColumnSetting, resolveDefaultSetting } from './field-setting';
+import { resolveSetting, resolveColumnSetting, resolveDefaultSetting, resolveRecordSetting, resolveValueSetting } from './field-setting';
 import { inputTypes } from './types/input-types.types';
 
 function functionHasNoArguments(f) {
@@ -53,13 +53,12 @@ export default class FieldType {
 
     /**
      *
-     * @param {*} value
-     * @param {Record} record
+     * @param {import('./record').default<any>} record
      * @returns {Array}
      */
-    rowClasses(value, record, context = 'model') {
+    rowClasses(record) {
         return this.properties.rowClassFunctions
-            .map(getClasses => getClasses(value, record, context))
+            .map(getClasses => getClasses(record))
             .reduce((classesThusFar, classes) => classesThusFar.concat(classes), []);
     }
 
@@ -155,7 +154,7 @@ export default class FieldType {
 
     defaultValue(value, record, context = 'model') {
         const configured = value !== null && value !== undefined
-            ? value : resolveDefaultSetting(this.properties.defaultValue, record, context);
+            ? value : resolveDefaultSetting(this.properties.defaultValue, record);
         if (this.hasMultipleValues()) {
             return configured ?? 'all';
         }
@@ -178,7 +177,7 @@ export default class FieldType {
     }
 
     type(value, record, context = 'model') {
-        const type = resolveSetting(this.properties.type, value, record, context);
+        const type = resolveRecordSetting(this.properties.type, record);
         if (!inputTypes.includes(type)) return new Error(`Invalid input type: ${type}`);
         return type;
     }
@@ -189,7 +188,7 @@ export default class FieldType {
 
     label(value, record, context = 'model') {
         const settings = this.properties.labelFunctions;
-        return resolveSetting(settings[settings.length - 1] ?? '', value, record, context);
+        return resolveRecordSetting(settings[settings.length - 1] ?? '', record);
     }
 
     iconMessage() {
@@ -321,7 +320,7 @@ export default class FieldType {
     }
 
     isDisabled(value, record, context = 'model') {
-        return this.properties.disableFunctions.some(setting => resolveSetting(setting, value, record, context));
+        return this.properties.disableFunctions.some(setting => resolveRecordSetting(setting, record));
     }
 
     hasRange() {
@@ -337,11 +336,11 @@ export default class FieldType {
     }
 
     minLength(value, record, context = 'model') {
-        return resolveSetting(this.properties.minLength, value, record, context);
+        return resolveRecordSetting(this.properties.minLength, record);
     }
 
     maxLength(value, record, context = 'model') {
-        return resolveSetting(this.properties.maxLength, value, record, context);
+        return resolveRecordSetting(this.properties.maxLength, record);
     }
 
     allowInputChar(char) {
@@ -353,7 +352,7 @@ export default class FieldType {
     }
 
     required(value, record, context = 'model') {
-        return this.properties.requiredFunctions.some(setting => resolveSetting(setting, value, record, context));
+        return this.properties.requiredFunctions.some(setting => resolveRecordSetting(setting, record));
     }
 
     onValueChange(record) {
@@ -361,7 +360,7 @@ export default class FieldType {
     }
 
     visible(value, record, context = 'model') {
-        return this.properties.visibleFunctions.every(setting => resolveSetting(setting, value, record, context));
+        return this.properties.visibleFunctions.every(setting => resolveRecordSetting(setting, record));
     }
 
     empty(record, field) {
@@ -369,11 +368,11 @@ export default class FieldType {
     }
 
     isEmpty(value, record, context = 'model') {
-        return this.properties.emptyFunctions.some(setting => resolveSetting(setting, value, record, context));
+        return this.properties.emptyFunctions.some(setting => resolveValueSetting(setting, value, record));
     }
 
     readonly(value, record, context = 'model') {
-        return this.properties.readonlyFunctions.some(setting => resolveSetting(setting, value, record, context));
+        return this.properties.readonlyFunctions.some(setting => resolveRecordSetting(setting, record));
     }
 
     readonlyexception(record) {
@@ -394,7 +393,7 @@ export default class FieldType {
     }
 
     placeholder(value, record, context = 'model') {
-        return resolveSetting(this.properties.placeholder, value, record, context);
+        return resolveRecordSetting(this.properties.placeholder, record);
     }
 
     pattern() {

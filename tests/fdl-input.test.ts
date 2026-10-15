@@ -121,7 +121,7 @@ describe('<fdl-field>', () => {
     it('exposes required, invalid, and disabled states on the multiple-selection trigger', async () => {
         const record = new Record({colors: new FieldTypeBuilder().label('Colors').tag('select').multipleValues().options([
             {text:'Blue',value:'blue'},
-        ]).required().validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).disabled((_value, record) => record.getField('locked')),
+        ]).required().validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).disabled(record => record.getField('locked')),
         locked: new FieldTypeBuilder()}, {colors:[] as string[],locked:false});
         const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string; showValidationErrors: boolean};
         element.record = record;

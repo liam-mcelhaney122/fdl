@@ -1,7 +1,7 @@
 import { field } from '../../index';
 import { modifierPage } from './modifier-page-groups';
 import { relatedModifierNames } from './related-modifiers';
-import { displayedModifierSignatures as modifierSignatures, fieldSettingResults, columnSettingResults } from './modifier-signatures';
+import { displayedModifierSignatures as modifierSignatures, fieldSettingResults, recordSettingNames, columnSettingResults } from './modifier-signatures';
 import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
@@ -22,7 +22,7 @@ export const explorerRecipes: ExplorerRecipe[] = [
         name: 'required', signature: '(predicate?)', category: 'Validation', title: 'Require a non-empty value.',
         description: 'Declare that a field needs a value. FDL carries that rule from the record to the control, so validation and the interface agree.',
         prompt: 'Legal name is always required while its rule is enabled. Follow-up notes are required only when Follow-up needed is Yes.',
-        steps: ['Use required() for an unconditional rule or required((_value, record) => ...) for a conditional rule.', 'The component exposes the required state on the input.', 'Record.isValid() checks the same rule without a browser.'],
+        steps: ['Use required() for an unconditional rule or required(record => ...) for a conditional rule.', 'The component exposes the required state on the input.', 'Record.isValid() checks the same rule without a browser.'],
         note: 'Required means non-empty according to the field’s emptiness rules. It does not validate a name’s spelling or format. Use a validator for an additional business rule.',
         use: 'Names, reference numbers, and other values a record always needs.',
     },
@@ -89,11 +89,11 @@ export class FdlModifierExplorer extends LitElement {
 
     private resetVersions: {[name: string]: number} = {};
     private selectedCategories = new Set<string>();
-    private person = new Record({ name: field.label('Legal name').required(), followUp: field.label('Follow-up needed?').options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).tag('select'), followUpNotes:field.label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
+    private person = new Record({ name: field.label('Legal name').required(), followUp: field.label('Follow-up needed?').options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).tag('select'), followUpNotes:field.label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
     private money = new Record({ amount: field.label('Amount').type('number').parser(value => Number(value)).formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
     private delivery = new Record({
         fulfillment: field.label('Delivery method').tag('select').options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
-        address: field.label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
+        address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     private closeCategoryMenu = (event: Event) => {
@@ -220,7 +220,7 @@ export class FdlModifierExplorer extends LitElement {
         const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
         return html`<section class="modifier-section" id=${recipe.name} data-modifier=${recipe.name}>
                 <h2 class="modifier-signature" tabindex="-1"><code>${modifierSignatures[recipe.name]}</code></h2>
-                ${fieldSettingResults[recipe.name] ? html`<p class="setting-contract">Supply a fixed value or a function of <code>(value, record, context)</code>. The value is the current stored field value; record is its owning FDL Record. Model rules use <code>"model"</code>; display settings use <code>"form"</code>, <code>"table"</code>, or <code>"table-header"</code>.</p>` : columnSettingResults[recipe.name] ? html`<p class="setting-contract">Supply a fixed value or a function of <code>(context)</code>. The example table passes <code>"table"</code> as context.</p>` : recipe.name === 'defaultValue' ? html`<p class="setting-contract">Supply a fixed default or a factory of <code>(record, context)</code>. The factory receives the owning FDL Record and <code>"model"</code> context when a missing value needs a default.</p>` : ''}
+                ${fieldSettingResults[recipe.name] ? html`<p class="setting-contract">Supply a fixed value or a function of <code>${recordSettingNames.has(recipe.name) ? '(record)' : recipe.name === 'emptyWhen' ? '(value, record)' : '(value, record, context)'}</code>. Record is the owning FDL Record.${recordSettingNames.has(recipe.name) ? html` Read dependent values from the record.` : recipe.name === 'emptyWhen' ? html` Value is the candidate being checked, which may differ from the stored value.` : html` Value is the current stored field value; context identifies the display consumer.`}</p>` : columnSettingResults[recipe.name] ? html`<p class="setting-contract">Supply a fixed value or a function of <code>(context)</code>. The example table passes <code>"table"</code> as context.</p>` : recipe.name === 'defaultValue' ? html`<p class="setting-contract">Supply a fixed default or a factory of <code>(record)</code>. The factory receives the owning FDL Record when a missing value needs a default.</p>` : ''}
                 <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
                 ${recipe.deprecation ? html`<p class="deprecation-note"><strong>Deprecated.</strong> ${recipe.deprecation} The existing modifier remains available for compatibility.</p>` : ''}
                 <section class="playground" data-modifier=${recipe.name} aria-label="Interactive example">

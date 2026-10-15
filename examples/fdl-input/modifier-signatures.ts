@@ -1,37 +1,37 @@
 // Signatures from field-type-builder.ts; preserve the API's declared parameter types.
 export const modifierSignatures: {[name: string]: string} = {
-    "required": "required(predicate?: FieldSetting<T, boolean>)",
+    "required": "required(predicate?: RecordSetting<boolean>)",
     "formatter": "formatter(fn: (value: T, record: Record<any>, context: string) => any)",
-    "visibleWhen": "visibleWhen(predicate: FieldSetting<T, boolean>)",
+    "visibleWhen": "visibleWhen(predicate: RecordSetting<boolean>)",
     "cellClass": "cellClass(classes: FieldSetting<T, string | string[]>)",
     "compareFunction": "compareFunction(fn: (a: T, b: T) => number)",
     "defaultValue": "defaultValue(value: DefaultSetting<T>)",
-    "disabled": "disabled(predicate?: FieldSetting<T, boolean>)",
-    "emptyWhen": "emptyWhen(predicate: FieldSetting<T, boolean>)",
+    "disabled": "disabled(predicate?: RecordSetting<boolean>)",
+    "emptyWhen": "emptyWhen(predicate: ValueSetting<T, boolean>)",
     "filter": "filter(predicate?: ((searchText: string, value: T) => boolean) | undefined)",
     "hashFunction": "hashFunction<V = unknown>(fn: (values: V) => string)",
     "inputMask": "inputMask(regex: RegExp)",
-    "label": "label(label: FieldSetting<T, string>)",
+    "label": "label(label: RecordSetting<string>)",
     "maxColumnWidth": "maxColumnWidth(width: ColumnSetting<number>)",
-    "maxLength": "maxLength(length: FieldSetting<T, number>)",
+    "maxLength": "maxLength(length: RecordSetting<number>)",
     "minColumnWidth": "minColumnWidth(width: ColumnSetting<number>)",
-    "minLength": "minLength(length: FieldSetting<T, number>)",
+    "minLength": "minLength(length: RecordSetting<number>)",
     "multipleValues": "multipleValues(min?: number, max?: number)",
     "options": "options<O = T, F = Record<any>>(optionsConfig: OptionsApi<O, F> | ((record: Record<any>) => O[] | Promise<O[]>) | O[] | Promise<O[]>)",
     "parser": "parser(fn: (value: any, record: Record<any>, context: string) => T)",
-    "placeholder": "placeholder(placeholder: FieldSetting<T, string>)",
+    "placeholder": "placeholder(placeholder: RecordSetting<string>)",
     "range": "range()",
-    "readOnly": "readOnly(predicate?: FieldSetting<T, boolean>)",
-    "readOnlyWhen": "readOnlyWhen(predicate: FieldSetting<T, boolean>)",
+    "readOnly": "readOnly(predicate?: RecordSetting<boolean>)",
+    "readOnlyWhen": "readOnlyWhen(predicate: RecordSetting<boolean>)",
     "reducer": "reducer(nameOrFunction: \"sum\" | ((values: T[]) => unknown))",
-    "rowClass": "rowClass(classes: FieldSetting<T, string | string[]>)",
+    "rowClass": "rowClass(classes: RecordSetting<string | string[]>)",
     "rowCount": "rowCount(numberOfRows: number)",
     "search": "search(config: SearchConfig<T>)",
     "sortable": "sortable(sortable: ColumnSetting<boolean>)",
     "targetColumnWidth": "targetColumnWidth(width: ColumnSetting<number>)",
     "template": "template(fn: (field: T, record: Record<any>, context: string) => string | number | boolean | TemplateResult | Array<TemplateResult>)",
     "textAlign": "textAlign(direction: FieldSetting<T, 'left' | 'center' | 'right'>)",
-    "type": "type(type: FieldSetting<T, inputType>)",
+    "type": "type(type: RecordSetting<inputType>)",
     "validator": "validator(validator: Validator<T>)"
 };
 
@@ -53,6 +53,8 @@ export const fieldSettingResults: {[name: string]: string} = {
     "type": "inputType"
 };
 
+export const recordSettingNames = new Set(["rowClass", "label", "placeholder", "type", "required", "disabled", "visibleWhen", "readOnly", "readOnlyWhen", "minLength", "maxLength"]);
+
 export const columnSettingResults: {[name: string]: string} = {
     "minColumnWidth": "number",
     "maxColumnWidth": "number",
@@ -67,11 +69,11 @@ for (const [name, result] of Object.entries(fieldSettingResults)) {
         ...(result === 'string | string[]'
             ? [`.${name}(className: string)`, `.${name}(classNames: string[])`]
             : [`.${name}(setting: ${result})`]),
-        `.${name}(setting: (value: T, record: Record<any>, context: string) => ${result})`,
+        `.${name}(setting: (${recordSettingNames.has(name) ? 'record: Record<any>' : name === 'emptyWhen' ? 'value: T, record: Record<any>' : 'value: T, record: Record<any>, context: string'}) => ${result})`,
     ].join('\n');
 }
 for (const [name, result] of Object.entries(columnSettingResults)) {
     displayedModifierSignatures[name] = `.${name}(setting: ${result})\n.${name}(setting: (context: string) => ${result})`;
 }
 
-displayedModifierSignatures.defaultValue = '.defaultValue(value: T | null)\n.defaultValue(factory: (record: Record<any>, context: string) => T | null)';
+displayedModifierSignatures.defaultValue = '.defaultValue(value: T | null)\n.defaultValue(factory: (record: Record<any>) => T | null)';

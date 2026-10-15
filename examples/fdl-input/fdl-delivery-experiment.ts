@@ -10,8 +10,8 @@ export class FdlDeliveryExperiment extends LitElement {
             { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
         ]),
         address: field.label('Shipping address')
-            .visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')
-            .required((_value, record) => record.getField('fulfillment') === 'ship'),
+            .visibleWhen(record => record.getField('fulfillment') === 'ship')
+            .required(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }

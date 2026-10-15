@@ -1,9 +1,27 @@
 import type Record from './record.js';
 
-/** A fixed setting or a value resolved for one field in a record. */
+/** A fixed display setting or a calculation for one cell and consumer context. */
 export type FieldSetting<T, Result, R = any> =
     | Result
     | ((value: T, record: Record<R>, context: string) => Result);
+
+/** A fixed setting or a calculation from the owning record. */
+export type RecordSetting<Result, R = any> = Result | ((record: Record<R>) => Result);
+
+/** A value rule also sees an unstored validation candidate. */
+export type ValueSetting<T, Result, R = any> = Result | ((value: T, record: Record<R>) => Result);
+
+export function resolveRecordSetting<Result, R>(
+    setting: RecordSetting<Result, R>, record: Record<R>
+): Result {
+    return typeof setting === 'function' ? (setting as (record: Record<R>) => Result)(record) : setting;
+}
+
+export function resolveValueSetting<T, Result, R>(
+    setting: ValueSetting<T, Result, R>, value: T, record: Record<R>
+): Result {
+    return typeof setting === 'function' ? (setting as (value: T, record: Record<R>) => Result)(value, record) : setting;
+}
 
 /** A column has no single field value or owning record. */
 export type ColumnSetting<Result> =
@@ -14,7 +32,7 @@ export type ColumnSetting<Result> =
 export type DefaultSetting<T, R = any> =
     | T
     | null
-    | ((record: Record<R>, context: string) => T | null);
+    | ((record: Record<R>) => T | null);
 
 export function resolveColumnSetting<Result>(setting: ColumnSetting<Result>, context: string): Result {
     return typeof setting === 'function'
@@ -23,10 +41,10 @@ export function resolveColumnSetting<Result>(setting: ColumnSetting<Result>, con
 }
 
 export function resolveDefaultSetting<T, R>(
-    setting: DefaultSetting<T, R>, record: Record<R>, context: string
+    setting: DefaultSetting<T, R>, record: Record<R>
 ): T | null {
     return typeof setting === 'function'
-        ? (setting as (record: Record<R>, context: string) => T | null)(record, context)
+        ? (setting as (record: Record<R>) => T | null)(record)
         : setting;
 }
 

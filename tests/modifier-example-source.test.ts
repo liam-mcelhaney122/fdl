@@ -203,8 +203,8 @@ it('exports rowClass declarations with fixed and returned array classes', async 
     const {model} = runExample('rowClass');
     await model.requestUpdate();
     const status = model.getFieldType('status');
-    expect(status.rowClasses('Disputed')).toEqual(['invoice-row', 'disputed-row', 'needs-review']);
-    expect(status.rowClasses('Paid')).toEqual(['invoice-row']);
+    expect(status.rowClasses(model.allRecords[0])).toEqual(['invoice-row', 'disputed-row', 'needs-review']);
+    expect(status.rowClasses(model.allRecords[1])).toEqual(['invoice-row']);
 });
 
 it('shows both required forms and validates conditional notes in the runnable UI', () => {

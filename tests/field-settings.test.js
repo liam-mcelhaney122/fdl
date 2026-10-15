@@ -25,21 +25,23 @@ describe.each(settings)('%s field setting', (modifier, getter, result) => {
         const callback = jest.fn(() => result);
         const fixed = base[modifier](result);
         const calculated = base[modifier](callback);
-        expect(fixed.valueOf()[getter](150, record, 'export')).toEqual(result);
-        expect(calculated.valueOf()[getter](150, record, 'export')).toEqual(result);
-        expect(callback).toHaveBeenLastCalledWith(150, record, 'export');
+        const args = modifier === 'rowClass' ? [record] : [150, record, 'export'];
+        expect(fixed.valueOf()[getter](...args)).toEqual(result);
+        expect(calculated.valueOf()[getter](...args)).toEqual(result);
+        const callbackArgs = ['cellClass', 'textAlign'].includes(modifier) ? [150, record, 'export']
+            : modifier === 'emptyWhen' ? [150, record] : [record];
+        expect(callback).toHaveBeenLastCalledWith(...callbackArgs);
         expect(base.valueOf()[getter](150, record)).not.toEqual(result);
     });
 });
 
 it('uses the current value and record every time a setting is resolved', () => {
-    const field = new FieldTypeBuilder().placeholder((value, record, context) =>
-        `${context}:${record.getField('unit')}:${value}`);
+    const field = new FieldTypeBuilder().placeholder(record => `${record.getField('unit')}:${record.getField('amount')}`);
     const record = new Record({ amount: field, unit: new FieldTypeBuilder() }, { amount: 1, unit: 'USD' });
-    expect(field.valueOf().placeholder(record.getField('amount'), record, 'form')).toBe('form:USD:1');
+    expect(field.valueOf().placeholder(record.getField('amount'), record, 'form')).toBe('USD:1');
     record.setField('amount', 2);
     record.setField('unit', 'EUR');
-    expect(field.valueOf().placeholder(record.getField('amount'), record, 'form')).toBe('form:EUR:2');
+    expect(field.valueOf().placeholder(record.getField('amount'), record, 'form')).toBe('EUR:2');
 });
 
 it('replaces labels without evaluating superseded callbacks', () => {
@@ -49,24 +51,23 @@ it('replaces labels without evaluating superseded callbacks', () => {
     expect(previous).not.toHaveBeenCalled();
 });
 
-it('uses model context, candidate values, and the final empty rule during validation', async () => {
-    const required = jest.fn((value, record, context) => record.getField('enabled') && context === 'model');
-    const empty = jest.fn((value, _record, context) => value === 'N/A' && context === 'model');
+it('uses record state, candidate values, and the final empty rule during validation', async () => {
+    const required = jest.fn(record => record.getField('enabled'));
+    const empty = jest.fn(value => value === 'N/A');
     const reference = new FieldTypeBuilder().required(required).emptyWhen(empty);
     const record = new Record({ reference, enabled: new FieldTypeBuilder() }, { reference: 'REF-1', enabled: true });
     expect(record.isValid('reference')).toBe(true);
     expect(record.isValid('reference', 'N/A')).toBe(false);
     expect(await record.isValidAsync('reference', 'N/A')).toBe(false);
-    expect(required).toHaveBeenCalledWith('N/A', record, 'model');
-    expect(empty).toHaveBeenCalledWith('N/A', record, 'model');
+    expect(required).toHaveBeenCalledWith(record);
+    expect(empty).toHaveBeenCalledWith('N/A', record);
     record.setField('enabled', false);
     expect(record.isValid('reference', 'N/A')).toBe(true);
 });
 
 it('enforces calculated length bounds in synchronous and asynchronous model validation', async () => {
-    const text = new FieldTypeBuilder().minLength((_value, record, context) =>
-        context === 'model' ? record.getField('minimum') : 0)
-        .maxLength((_value, record) => record.getField('maximum'));
+    const text = new FieldTypeBuilder().minLength(record => record.getField('minimum'))
+        .maxLength(record => record.getField('maximum'));
     const record = new Record({ text, minimum: new FieldTypeBuilder(), maximum: new FieldTypeBuilder() },
         { text: 'abcd', minimum: 3, maximum: 5 });
     expect(record.isValid('text')).toBe(true);
@@ -84,19 +85,19 @@ it.each(['sortable', 'minColumnWidth', 'maxColumnWidth', 'targetColumnWidth'])('
     expect(callback).toHaveBeenCalledWith('export');
 });
 
-it('supplies the owning record and model context to default factories', () => {
-    const callback = jest.fn((record, context) => `${context}:${record.getField('prefix')}`);
+it('supplies only the owning record to default factories', () => {
+    const callback = jest.fn(record => record.getField('prefix'));
     const reference = new FieldTypeBuilder().defaultValue(callback);
     const record = new Record({ reference, prefix: new FieldTypeBuilder() }, { reference: 'old', prefix: 'INV' });
     expect(reference.valueOf().defaultValue('existing', record)).toBe('existing');
     expect(callback).not.toHaveBeenCalled();
     record.clear();
-    expect(record.getField('reference')).toBe('model:INV');
-    expect(callback).toHaveBeenCalledWith(record, 'model');
+    expect(record.getField('reference')).toBe('INV');
+    expect(callback).toHaveBeenCalledWith(record);
 });
 
 it('evaluates defaults against an owning record when appending to an empty recordset', async () => {
-    const callback = jest.fn((record, context) => record && context === 'model' ? 'new' : 'missing record');
+    const callback = jest.fn(record => record ? 'new' : 'missing record');
     const recordset = new Recordset({ name: new FieldTypeBuilder().defaultValue(callback) }, []);
     await recordset.loaded;
     recordset.appendRecord();

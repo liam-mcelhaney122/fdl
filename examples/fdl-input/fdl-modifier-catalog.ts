@@ -53,13 +53,13 @@ field
   .label('T-shirt size')
   .compareFunction(compareShirtSizes)`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
-    live('disabled', 'Disables editing always, or while its field setting resolves to true.', 'disabled', `.disabled((_value, record) => record.getField('approvalStatus') === 'approved')`),
+    live('disabled', 'Disables editing always, or while its field setting resolves to true.', 'disabled', `.disabled(record => record.getField('approvalStatus') === 'approved')`),
     live('emptyWhen', 'Define when a value is considered empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
     live('hashFunction', 'Defines stable identity for complex option values.', 'hashFunction', `.hashFunction(employee => employee.id)`),
     live('inputMask', 'Defines which individual typed characters a field accepts.', 'inputMask', `.inputMask(/[0-9.]/)`),
-    live('label', 'Provides a static label or derives one from the current record.', 'label', `.label((_value, record) => \`Amount for \${record.getField('expenseType')}\`)`),
+    live('label', 'Provides a static label or derives one from the current record.', 'label', `.label(record => \`Amount for \${record.getField('expenseType')}\`)`),
     live('maxColumnWidth', 'Sets the maximum width requested for a table column.', 'maxColumnWidth', `.maxColumnWidth(180)`),
     live('maxLength', 'Caps input length and adds equivalent record validation.', 'maxLength', `.maxLength(12)`),
     live('minColumnWidth', 'Sets the minimum width requested for a table column.', 'minColumnWidth', `.minColumnWidth(110)`),
@@ -77,10 +77,10 @@ field
     live('placeholder', 'Shows temporary hint text while an input is empty.', 'placeholder', `.placeholder('For example, Apollo migration')`),
     placeholder('range', 'Marks a field as representing a start/end range rather than one value.', 'FieldType stores the flag, but FormElement neither chooses nor implements a range control. The intended value and event contract are not clear in this native example.'),
     live('readOnly', 'Always renders the field as a printed, non-editable value.', 'readOnly', `.readOnly()`),
-    live('readOnlyWhen', 'Switches a field to printed, non-editable output while a predicate is true.', 'readOnlyWhen', `.readOnlyWhen((_value, record) => record.getField('phase') === 'submitted')`),
+    live('readOnlyWhen', 'Switches a field to printed, non-editable output while a predicate is true.', 'readOnlyWhen', `.readOnlyWhen(record => record.getField('phase') === 'submitted')`),
     live('reducer', 'Aggregates a column’s values, with sum available as a built-in reducer.', 'reducer', `.reducer('sum')`),
     live('required', 'Requires a non-empty value always, or while its field setting resolves to true, with matching record validation.', 'required', `.required()`),
-    live('rowClass', 'Computes CSS classes for the table row containing a value.', 'rowClass', `.rowClass('invoice-row').rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])`),
+    live('rowClass', 'Computes CSS classes from the complete row record.', 'rowClass', `.rowClass('invoice-row').rowClass(record => record.getField('status') === 'Disputed' ? ['disputed-row', 'needs-review'] : [])`),
     live('rowCount', 'Deprecated: textarea sizing belongs in fdl-field rather than the field model.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
     live('sortable', 'Enables or disables sorting for a table column.', 'sortable', `.sortable(false)`),
@@ -89,7 +89,7 @@ field
     live('textAlign', 'Stores the preferred left, center, or right alignment for rendered values.', 'textAlign', `.textAlign('right')`),
     live('type', 'Sets the native input type, such as email, number, or date.', 'type', `.type('date')`),
     live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must be a valid email address', validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)) })`),
-    live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')`),
+    live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen(record => record.getField('fulfillment') === 'ship')`),
 ].sort((left, right) => left.name.localeCompare(right.name));
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -119,12 +119,12 @@ export class FdlModifierCatalog extends LitElement {
             extraProperty: field.label('Extra property example'),
             lockedId: field.label('System ID').disabled(),
             approvalStatus: field.label('Approval status').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
-            budget: field.label('Budget').type('number').disabled((_value, record) => record.getField('approvalStatus') === 'approved'),
+            budget: field.label('Budget').type('number').disabled(record => record.getField('approvalStatus') === 'approved'),
             emptyCode: field.label('Reference').emptyWhen(value => value === 'N/A').required(),
             optionalEmptyCode: field.label('Optional reference').emptyWhen(value => value === 'N/A'),
             hiddenSearch: field.label('Search directory').placeholder('Search directory'),
             expenseType: field.label('Expense type').tag('select').options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
-            dynamicAmount: field.label((_value, record: any) => `Amount for ${record.getField('expenseType')}`).type('number'),
+            dynamicAmount: field.label((record: any) => `Amount for ${record.getField('expenseType')}`).type('number'),
             money: field
                 .label('Money')
                 .formatter(value => currency.format(Number(value)))
@@ -148,10 +148,10 @@ export class FdlModifierCatalog extends LitElement {
             projectName: field.label('Project name').placeholder('For example, Apollo migration'),
             fixedOwner: field.label('Owner').readOnly(),
             phase: field.label('Phase').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
-            conditionalOwner: field.label('Request owner').readOnlyWhen((_value, record) => record.getField('phase') === 'submitted'),
+            conditionalOwner: field.label('Request owner').readOnlyWhen(record => record.getField('phase') === 'submitted'),
             requiredName: field.label('Legal name').required(),
             followUp: field.label('Follow-up needed?').tag('select').options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
-            followUpNotes: field.label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes'),
+            followUpNotes: field.label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes'),
             comments: field.label('Comments').tag('textarea').rowCount(4),
             email: field.label('Email address').type('email')
                 .validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
@@ -162,7 +162,7 @@ export class FdlModifierCatalog extends LitElement {
                 .validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
                 .validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
             fulfillment: field.label('Fulfillment').tag('select').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
-            address: field.label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
+            address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
         },
         {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
@@ -235,7 +235,7 @@ export class FdlModifierCatalog extends LitElement {
             status: field
                 .label('Status')
                 .rowClass('invoice-row')
-                .rowClass((value: string) => value === 'Disputed' ? ['disputed-row', 'needs-review'] : []),
+                .rowClass(record => record.getField('status') === 'Disputed' ? ['disputed-row', 'needs-review'] : []),
             owner: field.label('Owner'),
         },
         [{ status: 'Disputed', owner: 'Ada' }, { status: 'Paid', owner: 'Grace' }]

@@ -3,9 +3,9 @@ import Record from '../../record.js';
 export type CancellationRules={visibility:'always'|'cancelled';requiredness:'always'|'cancelled'|'never'};
 export function cancellationFields(rules:CancellationRules) {
     let reason=field.label('Cancellation reason').tag('textarea').rowCount(2);
-    if(rules.visibility==='cancelled') reason=reason.visibleWhen((_value, record) =>record.getField('status')==='cancelled');
+    if(rules.visibility==='cancelled') reason=reason.visibleWhen(record =>record.getField('status')==='cancelled');
     if(rules.requiredness==='always') reason=reason.required();
-    if(rules.requiredness==='cancelled') reason=reason.required((_value, record) =>record.getField('status')==='cancelled');
+    if(rules.requiredness==='cancelled') reason=reason.required(record =>record.getField('status')==='cancelled');
     return {status:field.label('Request status').tag('select').options([{text:'Active',value:'active'},{text:'Cancelled',value:'cancelled'}]),reason};
 }
 export const cancellationCases=[{status:'active',reason:'',visible:false,required:false,valid:true},{status:'active',reason:'Changed plans',visible:false,required:false,valid:true},{status:'cancelled',reason:'',visible:true,required:true,valid:false},{status:'cancelled',reason:'Changed plans',visible:true,required:true,valid:true}];
@@ -17,7 +17,7 @@ export function checkCancellation(rules:CancellationRules) {
     });
 }
 export function cancellationDefinition(rules:CancellationRules) {
-    return `const reason = field\n  .label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .visibleWhen((_value, record) => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .required()' : rules.requiredness==='cancelled' ? "\n  .required((_value, record) => record.getField('status') === 'cancelled')" : ''};`;
+    return `const reason = field\n  .label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .required()' : rules.requiredness==='cancelled' ? "\n  .required(record => record.getField('status') === 'cancelled')" : ''};`;
 }
 
 export function checkCancellationTransition(rules:CancellationRules) {

@@ -257,13 +257,13 @@ describe('FieldType', () => {
         expect(new FieldTypeBuilder().conditionalCellClass).toBeUndefined();
     });
 
-    describe('rowClass((value, record) => {...})', () => {
+    describe('rowClass(record => {...})', () => {
         it('determines which classes at runtime', () => {
             const fd = new FieldTypeBuilder()
-                .rowClass((value, record) => (record.hasError ? ['error'] : []))
-                .rowClass(value => (value === 'same-day' ? ['ach', 'sda'] : ['ach']));
+                .rowClass(record => (record.hasError ? ['error'] : []))
+                .rowClass(record => (record.speed === 'same-day' ? ['ach', 'sda'] : ['ach']));
 
-            expect(fd.valueOf().rowClasses('same-day', { hasError: true })).toEqual(['error', 'ach', 'sda']);
+            expect(fd.valueOf().rowClasses({ hasError: true, speed: 'same-day' })).toEqual(['error', 'ach', 'sda']);
         });
 
         it('extension', () => {
@@ -741,12 +741,12 @@ describe('FieldType', () => {
             const type = new FieldTypeBuilder().label(`${record.getField('count')} payments(s)`);
             expect(type.valueOf().label()).toEqual('10 payments(s)');
         });
-        it('uses the last label declaration with the current field value', () => {
+        it('uses the last label declaration with the owning record', () => {
             const type = new FieldTypeBuilder()
                 .label('Hello')
-                .label(value => `${value} World`)
-                .label(value => `${value} WORLD`);
-            expect(type.valueOf().label('HELLO')).toEqual('HELLO WORLD');
+                .label(record => `${record.getField('title')} World`)
+                .label(record => `${record.getField('title')} WORLD`);
+            expect(type.valueOf().label(undefined, new Record({ title: new FieldTypeBuilder() }, { title: 'HELLO' }))).toEqual('HELLO WORLD');
         });
     });
 
@@ -984,7 +984,7 @@ describe('consolidated state modifiers', () => {
 
     it('keeps required state and validation in sync as record dependencies change', () => {
         const required = new FieldTypeBuilder().emptyWhen(value => value === 'N/A')
-            .required((_value, record) => record.getField('needsReference'));
+            .required(record => record.getField('needsReference'));
         const record = new Record({needsReference: new FieldTypeBuilder(), reference: required}, {needsReference:false, reference:'N/A'});
         expect(required.valueOf().required(undefined, record)).toBe(false);
         expect(record.isValid('reference')).toBe(true);
@@ -1000,10 +1000,10 @@ describe('consolidated state modifiers', () => {
 
     it('composes predicates and unconditional rules without changing their baselines', () => {
         const base = new FieldTypeBuilder();
-        const conditional = base.required((_value, record) => record.getField('first'))
-            .required((_value, record) => record.getField('second'))
-            .disabled((_value, record) => record.getField('first'))
-            .disabled((_value, record) => record.getField('second'));
+        const conditional = base.required(record => record.getField('first'))
+            .required(record => record.getField('second'))
+            .disabled(record => record.getField('first'))
+            .disabled(record => record.getField('second'));
         const always = conditional.required().disabled();
         const record = new Record({first:new FieldTypeBuilder(),second:new FieldTypeBuilder(),value:conditional}, {first:false,second:false,value:''});
         expect(conditional.valueOf().required(undefined, record)).toBe(false);

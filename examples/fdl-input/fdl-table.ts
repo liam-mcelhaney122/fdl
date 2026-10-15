@@ -505,8 +505,7 @@ export class FdlTable extends LitElement {
     private rowClasses(record: Record<any>) {
         return this.columns
             .flatMap(column => {
-                const value = record.getField(column.field);
-                return record.fieldTypeForField(column.field).rowClasses(value, record, 'table');
+                return record.fieldTypeForField(column.field).rowClasses(record);
             })
             .join(' ');
     }

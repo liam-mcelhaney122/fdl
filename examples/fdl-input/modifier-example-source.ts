@@ -25,16 +25,16 @@ const peopleFields = {
 /** Complete model declarations paired with the bindings in modifier-example-markup. */
 function modelFor(name: string, settings: ExampleSettings): Model {
     const records: {[key: string]: Model} = {
-        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.required()'}`),followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes')")}, values:{name:'',followUp:'no',followUpNotes:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional. Follow-up notes keep their conditional rule.' : undefined},
+        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.required()'}`),followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes')")}, values:{name:'',followUp:'no',followUpNotes:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional. Follow-up notes keep their conditional rule.' : undefined},
         formatter: {name:'money', prefix:currency, fields:{amount:type(`label('Amount').type('number')
     .parser(value => Number(value))
     .formatter((value, record, context) =>
       context === 'input-focus' ? String(value) : currency.format(value))`)}, values:{amount:1250}},
-        visibleWhen: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
+        visibleWhen: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
         defaultValue: {name:'defaultRecord',fields:{documentTitle:type("label('Document title').defaultValue('Untitled document')")},values:{documentTitle:'Quarterly plan'}},
-        disabled: {name:'record',fields:{lockedId:type("label('System ID').disabled()"),approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').type('number').disabled((_value, record) => record.getField('approvalStatus') === 'approved')")},values:{lockedId:'SYS-77',approvalStatus:'draft',budget:5000}},
+        disabled: {name:'record',fields:{lockedId:type("label('System ID').disabled()"),approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').type('number').disabled(record => record.getField('approvalStatus') === 'approved')")},values:{lockedId:'SYS-77',approvalStatus:'draft',budget:5000}},
         emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').emptyWhen(value => value === 'N/A').required()"),optionalEmptyCode:type("label('Optional reference').emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A',optionalEmptyCode:'N/A'}},
-        label: {name:'record',fields:{expenseType:choose('Expense type',[['Travel','travel'],['Equipment','equipment']]),dynamicAmount:type("label((_value, record) => `Amount for ${record.getField('expenseType')}`).type('number')")},values:{expenseType:'travel',dynamicAmount:''}},
+        label: {name:'record',fields:{expenseType:choose('Expense type',[['Travel','travel'],['Equipment','equipment']]),dynamicAmount:type("label(record => `Amount for ${record.getField('expenseType')}`).type('number')")},values:{expenseType:'travel',dynamicAmount:''}},
         maxLength: {name:'record',fields:{shortCode:type("label('Short code').maxLength(12)")},values:{shortCode:''}},
         minLength: {name:'record',fields:{longCode:type(`label('Access code').minLength(${settings.minimum ?? 4})`)},values:{longCode:''}},
         multipleValues: {name:'record',fields:{skills:type(`label('Skills').tag('select').multipleValues().options([
@@ -59,7 +59,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     .parser(value => Number(String(value).replace(/[$,]/g, '')))` )},values:{money:1000}},
         placeholder: {name:'record',fields:{projectName:type("label('Project name').placeholder('For example, Apollo migration')")},values:{projectName:''}},
         readOnly: {name:'record',fields:{fixedOwner:type("label('Owner').readOnly()")},values:{fixedOwner:'Ada Lovelace'}},
-        readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').readOnlyWhen((_value, record) => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
+        readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').readOnlyWhen(record => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
         rowCount: {name:'record',prefix:'// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',fields:{comments:type(`label('Comments').tag('textarea').rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{inputValue:type(`label('Example: ${settings.inputType ?? 'text'}').type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.parser(Number)' : ''}`)},values:{inputValue:inputTypeInitialValue(settings.inputType ?? 'text')}},
         validator: {name:'record',fields:{
@@ -85,7 +85,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         sortable: {name:'compareRecordset',fields:{...peopleFields,shirtSize:type("label('T-shirt size').sortable(false)")},values:shirtOrders},
         filter: {name:'filterRecordset',fields:{name:type(`label('Name').filter((text, value) =>
     value.toLowerCase().${settings.filterMode === 'contains' ? 'includes' : 'startsWith'}(text.toLowerCase()))`),team:type("label('Team')")},values:[{name:'Ada',team:'Research'},{name:'Grace',team:'Platform'},{name:'Margaret',team:'Research'}]},
-        rowClass: {name:'rowClassRecordset',fields:{status:type("label('Status').rowClass('invoice-row').rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])"),owner:type("label('Owner')")},values:[{status:'Disputed',owner:'Ada'},{status:'Paid',owner:'Grace'}]},
+        rowClass: {name:'rowClassRecordset',fields:{status:type("label('Status').rowClass('invoice-row').rowClass(record => record.getField('status') === 'Disputed' ? ['disputed-row', 'needs-review'] : [])"),owner:type("label('Owner')")},values:[{status:'Disputed',owner:'Ada'},{status:'Paid',owner:'Grace'}]},
         template: {name:'templateRecordset',prefix:currency,fields:{invoice:type("label('Invoice')"),balance:type(`label('Balance').type('number').parser(Number)
     .textAlign('right')
     .formatter((value, record, context) =>

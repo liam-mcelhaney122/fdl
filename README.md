@@ -48,7 +48,7 @@ const name = string
 const newCustomer = boolean
   .type("checkbox")
   .defaultValue(false)
-  .disabled((_value, record) =>
+  .disabled(record =>
     !existingCustomers.includes(record.getField("name")));
 const appointmentDate = date
   .required()
@@ -76,7 +76,7 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function isNewCustomer(_value, record) {
+function isNewCustomer(record) {
   return record.getField("newCustomer");
 }
 
@@ -100,7 +100,7 @@ function isExistingCustomerOrNewCustomerDay(value, _, record) {
 This example validates model values: assign a JavaScript `Date` to `date`.
 The `date` primitive does not parse native date-input strings automatically;
 a date control needs an explicit parser and formatter. Field-setting callbacks
-such as `required` receive `(value, record, context)`, while validators receive
+such as `required` receive `(record)`, while validators receive
 `(modelValue, viewValue, record, options, field)`.
 
 ## Docs

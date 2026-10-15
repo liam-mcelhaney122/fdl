@@ -214,10 +214,10 @@ When a new modifier is justified:
 
 - return a new field definition; never mutate the source definition;
 - clone and extend collection properties rather than sharing mutable arrays;
-- give callbacks precise argument and return types; use `FieldSetting` for
-  fixed or calculated field settings and `ColumnSetting` when there is no
-  single owning record; use `DefaultSetting` for record-based default factories
-  without an existing value;
+- give callbacks precise inputs for their scope: `RecordSetting` for record
+  state and metadata, `ValueSetting` for candidate-value rules, `FieldSetting`
+  for cell presentation, `ColumnSetting` for column-wide settings, and
+  `DefaultSetting` for record-based factories;
 - document ordering, accumulation, and override behavior;
 - expose behavior through `FieldType`, `Record`, or `Recordset` as appropriate;
 - add focused tests for behavior, immutability, and composition;

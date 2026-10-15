@@ -650,9 +650,9 @@ it.each(['minColumnWidth', 'maxColumnWidth', 'targetColumnWidth', 'sortable'])('
     expect(section.querySelector('.setting-contract')!.textContent).toContain('(context)');
 });
 
-it('documents default factories with record and context instead of a missing value argument', async () => {
+it('documents default factories with only their owning record', async () => {
     const page = await openPage('#defaultValue');
     const section = page.shadowRoot!.getElementById('defaultValue')!;
-    expect(section.querySelector('.modifier-signature')!.textContent).toContain('factory: (record: Record<any>, context: string) => T | null');
-    expect(section.querySelector('.setting-contract')!.textContent).toContain('(record, context)');
+    expect(section.querySelector('.modifier-signature')!.textContent).toContain('factory: (record: Record<any>) => T | null');
+    expect(section.querySelector('.setting-contract')!.textContent).toContain('(record)');
 });
