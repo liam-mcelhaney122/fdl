@@ -55,6 +55,10 @@ export class FdlLearningPath extends LitElement {
         this.requestUpdate();
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('#lesson-title')?.focus({preventScroll: true}));
     }
+    private reset = () => {
+        this.record.setFields({method:'ship', charge:this.step === 0 ? '$25.00' : 25});
+        this.requestUpdate();
+    };
     private code() {
         return `const charge = new FieldType().with.label('Delivery charge')
   .and.textAlign('right')${this.step >= 1 ? `
@@ -72,14 +76,14 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
     }
     render() {
         const lesson = lessons[this.step];
-        return html`<nav aria-label="Learning questions"><ol>${lessons.map((item, index) => html`<li><button class="question" aria-current=${index === this.step ? 'step' : 'false'} @click=${() => this.go(index)}>${item.question}</button></li>`)}</ol></nav>
-            <section aria-labelledby="lesson-title"><p>Step ${this.step + 1} of ${lessons.length}</p><h2 id="lesson-title" tabindex="-1">${lesson.question}</h2><p>${lesson.explanation}</p>
+        return html`<div class="lesson-toolbar"><label>Learning question<select aria-label="Learning question" .value=${String(this.step)} @change=${(event: Event) => this.go(Number((event.target as HTMLSelectElement).value))}>${lessons.map((item,index) => html`<option value=${index}>${index + 1} of ${lessons.length}: ${item.question}</option>`)}</select></label><button class="reset-lesson" @click=${this.reset}>Reset this example</button></div>
+            <section aria-labelledby="lesson-title"><p class="continuity">Your entered value carries forward between questions. Reset restores this question’s starting values.</p><h2 id="lesson-title" tabindex="-1">${lesson.question}</h2><p>${lesson.explanation}</p>
                 <div class="lesson-grid"><div class="lesson-controls">${this.step >= 3 ? html`<fdl-field .record=${this.record} field="method"></fdl-field>` : ''}${keyed(this.record.fieldTypeForField('charge'), html`<fdl-field .record=${this.record} field="charge" .showValidationErrors=${true}></fdl-field>`)}</div><div class="lesson-state" role="status">${recordSummary(this.record, this.step >= 3 ? ['method','charge'] : ['charge'])}</div></div>
-                ${this.step >= 4 ? html`<h3>Current delivery, another shipment, and a pickup</h3><fdl-table .recordset=${this.table}><fdl-column field="method"></fdl-column><fdl-column field="charge"></fdl-column></fdl-table>` : ''}
+                ${this.step >= 4 ? html`<section class="review-view"><h3>Review the same record</h3><p>Delivery: <strong>${this.record.getField('method')}</strong> · Stored charge: <code>${JSON.stringify(this.record.getField('charge'))}</code></p><p>Printed charge: <strong>${this.record.getFormattedField('charge', 'print')}</strong> · Model-only validation: <strong>${this.record.isValid() ? 'Valid' : 'Invalid'}</strong></p></section><h3>Current delivery, another shipment, and a pickup</h3><p>The table reuses these definitions over separate records. Its first row is a refreshed snapshot of the form, rather than the same record object.</p><fdl-table .recordset=${this.table}><fdl-column field="method"></fdl-column><fdl-column field="charge"></fdl-column></fdl-table>` : ''}
                 <details open><summary>Rules built so far</summary><ol>${lessons.slice(0, this.step + 1).map(item => html`<li>${item.rule}</li>`)}</ol></details>
                 <h3>The current definition</h3><pre><code>${highlightJavaScript(this.code())}</code></pre>
                 <p><a href=${`#${lesson.reference}`}>Explore ${lesson.reference} in the modifier reference</a></p>
-                ${this.step === lessons.length - 1 ? html`<p><a href="#composition">Next: combine the rules and investigate their outcomes →</a></p>` : ''}
+                ${this.step === lessons.length - 1 ? html`<section class="capabilities"><h3>Check what you can now do</h3><ul><li><a href="#parser">Predict stored numbers versus display text</a> by editing a currency value.</li><li><a href="#composition">Explain why a hidden field can remain invalid</a> by changing one independent rule.</li><li><a href="#how-it-works">Reuse definitions across a form and table</a> while distinguishing shared rules from shared record identity.</li></ul></section><p><a href="#composition">Next: combine the rules and investigate their outcomes →</a></p>` : ''}
                 <div class="lesson-navigation"><button class="previous-lesson" ?disabled=${this.step === 0} @click=${() => this.go(this.step - 1)}>Previous question</button><button class="next-lesson" ?disabled=${this.step === lessons.length - 1} @click=${() => this.go(this.step + 1)}>Next question</button></div>
             </section>`;
     }
@@ -88,6 +92,11 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
         button { font:inherit; cursor:pointer; min-height:48px; padding:10px 16px; border:1px solid #cbd5e1; background:white; color:#1d4ed8; }
         button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
         button:disabled { opacity:.5; cursor:default; }
+        .lesson-toolbar { display:flex; align-items:end; gap:12px; justify-content:space-between; flex-wrap:wrap; margin-bottom:24px; }
+        .lesson-toolbar label { flex:1; min-width:200px; font-size:.875rem; color:#475569; }
+        select { display:block; width:100%; min-height:48px; margin-top:6px; padding:8px 12px; border:1px solid #94a3b8; border-radius:6px; background:white; color:#0f172a; font:inherit; }
+        .continuity { font-size:.875rem; color:#475569; }
+        .review-view,.capabilities { margin:20px 0; padding:16px; border:1px solid #cbd5e1; border-radius:6px; background:#f8fafc; }
         .question { background:none; border:0; color:#1d4ed8; text-align:left; text-decoration:underline; }
         [aria-current="step"] { font-weight:bold; background:#eff6ff; }
         nav ol { padding-left:24px; } h2 { line-height:1.3; } h2:focus { outline:none; }

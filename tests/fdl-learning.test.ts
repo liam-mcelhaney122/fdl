@@ -256,3 +256,19 @@ it('shares filter text between the comparison and the table header', async () =>
     await probe.updateComplete;
     expect(probe.shadowRoot.querySelector('input').value).toBe('ad');
 });
+
+
+it('resets the active learning question without losing its rules', async () => {
+    const page = await openExplorer('#learn');
+    const demo = page.shadowRoot!.querySelector('fdl-learning-path') as FdlLearningPath;
+    await demo.updateComplete;
+    const root = demo.shadowRoot!;
+    const choice = root.querySelector<HTMLSelectElement>('select')!;
+    choice.value = '2'; choice.dispatchEvent(new Event('change'));
+    await demo.updateComplete;
+    await editField(root, 'charge', '-1'); await demo.updateComplete;
+    root.querySelector<HTMLButtonElement>('.reset-lesson')!.click();
+    await demo.updateComplete;
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('25 (number)');
+    expect(root.querySelector('.lesson-state')!.textContent).toContain('Required');
+});
