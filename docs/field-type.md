@@ -212,3 +212,10 @@ assignments bypass input filtering.
 components and form adapters. Remove `.selectOnFocus()` from field definitions
 and, where needed, handle focus and select the input's text in the component.
 There is no replacement FDL modifier.
+
+## Removed toggle-presentation modifier
+
+`toggle()` was removed on 2026-10-15. Remove `.toggle()` from field definitions
+and choose checkbox or switch presentation in the component or form adapter.
+The component owns labeling, keyboard interaction, and accessible checked state.
+There is no replacement FDL modifier.

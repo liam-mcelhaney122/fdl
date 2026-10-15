@@ -26,8 +26,6 @@ const relationships: readonly (readonly string[])[] = [
     ['reducer', 'filter'],
     ['reducer', 'formatter'],
     ['rowCount', 'type'],
-    ['toggle', 'type'],
-    ['toggle', 'options'],
 ];
 
 export function relatedModifierNames(name: string): string[] {

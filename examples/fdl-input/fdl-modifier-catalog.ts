@@ -87,7 +87,6 @@ new FieldType()
     live('targetColumnWidth', 'Sets the preferred width requested for a table column.', 'targetColumnWidth', `.targetColumnWidth(140)`),
     live('template', 'Transforms a formatted value into its final printed or table representation.', 'template', `.template(value => \`Invoice #\${value}\`)`),
     live('textAlign', 'Stores the preferred left, center, or right alignment for rendered values.', 'textAlign', `.textAlign('right')`),
-    placeholder('toggle', 'Requests toggle-switch presentation from a compatible Boolean control.', customControlGap),
     live('type', 'Sets the native input type, such as email, number, or date.', 'type', `.type('date')`),
     live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must look like PRJ-1234', validate: value => /^PRJ-\\d{4}$/.test(value) })`),
     live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen(record => record.getField('fulfillment') === 'ship')`),

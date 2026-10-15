@@ -804,9 +804,11 @@ describe('FieldType', () => {
         });
     });
 
-    it('x.toggle', () => {
-        const toggleField = new FieldType().thatHas.toggle();
-        expect(toggleField.toggle()).toEqual(true);
+    it('keeps toggle presentation outside the field type API', () => {
+        const type = new FieldType();
+        expect(type.toggle).toBeUndefined();
+        expect(type.with.toggle).toBeUndefined();
+        expect(type.properties).not.toHaveProperty('toggle');
     });
 
     it('handles text alignment via x.textAlign()', () => {

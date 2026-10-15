@@ -70,6 +70,10 @@ The `selectOnFocus()` removal is immediate. Consumers that need to select text
 on focus must implement that interaction in their component or form adapter.
 There is no replacement modifier in FDL.
 
+The `toggle()` removal is immediate. Consumers must choose checkbox, switch,
+or other Boolean-control presentation in their component or form adapter.
+There is no replacement modifier in FDL.
+
 FDL gains a smaller, more durable public vocabulary. Its modifiers become easier
 to understand, test, and render consistently in forms, tables, documents, and
 other consumers. The explicit inventory makes removals auditable and prevents
@@ -110,6 +114,7 @@ future retirement work from losing historical context.
 | `segmented` | Deprecated | Renderer-specific control configuration | Control presentation choice. |
 | `step` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
 | `tag` | Deprecated | Renderer-specific control configuration | HTML/control selection. |
+| `toggle` | Removed — 2026-10-15 | Component or form adapter | Boolean-control presentation and interaction belong to the component, not the field model. |
 | `usesCustomPrint` | Deprecated | Renderer | Custom print behavior. |
 
 ### Inventory maintenance

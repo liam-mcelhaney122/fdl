@@ -410,10 +410,6 @@ export default class FieldType {
         return this.properties.pattern;
     }
 
-    toggle() {
-        return this.properties.toggle;
-    }
-
     formElement(elementName) {
         return this.properties.formElement(elementName);
     }

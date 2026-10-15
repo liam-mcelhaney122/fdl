@@ -96,7 +96,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         return {name:'widthRecordset',kind:'Recordset',fields:{constrained:type(`label('${label}')${chain}`),flexible:type("label('Flexible').and.minColumnWidth(80)")},values:[{constrained:text,flexible:'Makes up the difference'}]};
     }
     const contracts: {[key: string]: string} = {
-        range:'range()', toggle:'toggle()',
+        range:'range()',
         search:"search({ title: 'Find a person', columns: [{ label: 'Name', field: 'name' }] })",
     };
     if (contracts[name]) return {name:'record',fields:{value:type(`label('Adapter value').and.${contracts[name]}`)},values:{value:null}};

@@ -158,7 +158,6 @@ export interface Properties<T = unknown> {
     targetColumnWidth?: number;
     template: Function;
     textAlign: 'left' | 'center' | 'right';
-    toggle: boolean;
     type: string;
     usesCustomPrint: boolean;
     validators: Array<Validator<T>>;
@@ -221,7 +220,6 @@ export const defaultProperties: Properties = {
     sortable: true,
     template: (value: any) => value,
     textAlign: 'left',
-    toggle: false,
     type: 'text',
     usesCustomPrint: false,
     validators: [],
@@ -959,13 +957,6 @@ export default class FieldTypeBuilder<T> {
         };
         copy.properties.validators = [...copy.properties.validators, maxLengthValidator];
         copy.properties.descriptions = [...copy.properties.descriptions, `maxlength = ${length}`];
-        return copy;
-    }
-
-    toggle() {
-        const copy = this.copy();
-        copy.properties.toggle = true;
-        copy.properties.descriptions = [...copy.properties.descriptions, 'toggle()'];
         return copy;
     }
 

@@ -34,7 +34,6 @@ export const modifierSignatures: {[name: string]: string} = {
     "targetColumnWidth": "targetColumnWidth(width: number)",
     "template": "template(fn: (field: T, record: Record<any>) => string | number | boolean | TemplateResult | Array<TemplateResult>)",
     "textAlign": "textAlign(direction: 'left' | 'center' | 'right')",
-    "toggle": "toggle()",
     "type": "type(type: inputType)",
     "validator": "validator(validator: Validator<T>)"
 };
