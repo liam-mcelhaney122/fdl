@@ -34,9 +34,17 @@ export function renderSitePage(page: SitePage) {
     if (page === 'home') return html`
         <article class="site-page">
             <h1 tabindex="-1">Field Definition Language</h1>
-            <p class="description">FDL (pronounced “fiddle”) is a JavaScript and TypeScript library for modeling fields, records, and collections of records independently of the interface that displays them.</p>
+            <p class="description">Define field rules once. Use them consistently in forms, tables, and validation.</p>
             <fdl-delivery-experiment></fdl-delivery-experiment><p><a href="#learn">Build this understanding one question at a time →</a></p>
+            <section class="task-links" aria-labelledby="task-links-title"><h2 id="task-links-title">What are you trying to do?</h2><ul>
+                <li><a href="#requiredWhen">Require an answer only when another answer needs it</a></li>
+                <li><a href="#parser">Turn currency input into a stored number</a></li>
+                <li><a href="#options">Refresh choices when a related field changes</a></li>
+                <li><a href="#validator">Check a value against a business rule</a></li>
+                <li><a href="#how-it-works">Reuse field definitions in forms and tables</a></li>
+            </ul></section>
             <h2>What belongs in FDL?</h2>
+            <p>FDL (pronounced “fiddle”) is a JavaScript and TypeScript library for modeling fields, records, and collections of records independently of the interface that displays them.</p>
             <p>A complex form often repeats the same rules in input handlers, validation, review screens, and tables. FDL puts reusable behavior in field definitions: how to parse an input, format a value, validate it, or determine its state from other fields.</p>
             <p>A component reads those definitions to render an accessible control. The application chooses the layout and workflow, and CSS controls the appearance.</p>
             <h2>Three parts of the model</h2>
