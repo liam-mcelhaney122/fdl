@@ -116,6 +116,7 @@ export class FdlCompositionExperiment extends LitElement {
         </section>`;
     }
     static styles = css`
+        .collected-cases td small { display:block; margin-top:6px; color:#475569; }
         :host { display:block; line-height:1.65; color:#0f172a; }
         * { box-sizing:border-box; } h2 { margin:0; font-size:1.5rem; line-height:1.3; } h3 { font-size:1.125rem; margin:0 0 16px; line-height:1.4; }
         p { margin:0 0 20px; } section + section { margin-top:28px; }
