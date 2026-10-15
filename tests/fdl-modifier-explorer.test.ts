@@ -130,6 +130,7 @@ describe('complete explorer', () => {
         expect(link.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
         expect(link.querySelector('.category-icon path, .category-icon rect, .category-icon ellipse')!.namespaceURI).toBe('http://www.w3.org/2000/svg');
         expect(link.getAttribute('aria-label')).toBe(`${name} — ${recipe.category}`);
+        expect(link.getAttribute('title')).toBe(`.${name}${recipe.signature}\n${recipe.title}`);
         const option = [...page.shadowRoot!.querySelectorAll('.category-options label')].find(label => label.textContent === recipe.category)!;
         expect(option.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
 

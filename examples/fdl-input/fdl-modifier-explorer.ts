@@ -196,7 +196,7 @@ export class FdlModifierExplorer extends LitElement {
             }}>Done</button></div></div></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             </div>
-            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} title=${entry.category} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
+            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} title=${`.${entry.name}${entry.signature}\n${entry.title}`} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
