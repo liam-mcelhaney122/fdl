@@ -520,7 +520,7 @@ export class FdlTable extends LitElement {
         const filterOpen = this.activeFilterField === column.field;
         const resizeRange = this.resizeRange(this.resizeWidths(), index);
 
-        return html`<th aria-sort=${ariaSort}>
+        return html`<th aria-sort=${ariaSort} style=${`text-align:${this.recordset?.getFieldType(column.field).textAlign() ?? 'left'}`}>
             <div class="heading-actions">
                 ${this.isSortable(column)
                     ? html`<button
@@ -791,16 +791,14 @@ export class FdlTable extends LitElement {
         }
 
         .heading-label {
+            flex: 1;
             font-weight: 800;
         }
 
         .sort-button {
-            display: flex;
+            display: block;
             min-width: 0;
             flex: 1;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
             border: 0;
             background: transparent;
             color: inherit;
@@ -809,7 +807,7 @@ export class FdlTable extends LitElement {
             font-weight: 800;
             letter-spacing: inherit;
             padding: 0;
-            text-align: left;
+            text-align: inherit;
             text-transform: inherit;
         }
 
@@ -933,6 +931,7 @@ export class FdlTable extends LitElement {
         }
 
         .sort-indicator {
+            margin-left: 0.5rem;
             display: inline-flex;
             align-items: center;
             gap: 0.12rem;

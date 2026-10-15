@@ -514,3 +514,21 @@ describe('<fdl-table>', () => {
         table.remove();
     });
 });
+
+
+it.each([true, false])('aligns table headings and cells for sortable=%s', async sortable => {
+    const recordset = new Recordset(Object.fromEntries((['left', 'center', 'right'] as const).map(alignment => [
+        alignment, new FieldType().with.label(alignment).and.textAlign(alignment).and.sortable(sortable),
+    ])), [{left:'Ada', center:'Ada', right:'Ada'}]);
+    const table = document.createElement('fdl-table') as TestTable;
+    table.recordset = recordset;
+    table.innerHTML = '<fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column>';
+    document.body.append(table);
+    await table.updateComplete;
+    await recordset.requestUpdate();
+    await settle(table);
+    expect([...table.shadowRoot!.querySelectorAll('th')].map(header => header.style.textAlign)).toEqual(['left', 'center', 'right']);
+    expect([...table.shadowRoot!.querySelectorAll('tbody td')].map(cell => (cell as HTMLElement).style.textAlign)).toEqual(['left', 'center', 'right']);
+    expect(table.shadowRoot!.querySelectorAll('.sort-button')).toHaveLength(sortable ? 3 : 0);
+    table.remove();
+});
