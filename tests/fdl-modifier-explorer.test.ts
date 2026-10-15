@@ -420,20 +420,25 @@ it('links cell styling alternatives in both directions', async () => {
 });
 
 
-it('updates the emptiness message as the reference is edited', async () => {
+it('updates emptiness and validation for required and optional references as they are edited', async () => {
     const page = await openPage('#emptyWhen');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
     const demo = catalog.shadowRoot!.querySelector('.focused-demo')!;
     expect(demo.querySelector('button')).toBeNull();
-    const field = demo.querySelector('fdl-field') as any;
-    await field.updateComplete;
-    const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
-    for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
-        input.value = value;
-        input.dispatchEvent(new Event('input'));
-        await catalog.updateComplete;
-        expect(demo.querySelector('[role=status]')!.textContent).toBe(
-            empty ? 'This field is considered empty' : 'This field is not considered empty');
+    expect(demo.querySelectorAll('fdl-field')).toHaveLength(2);
+    for (const name of ['emptyCode', 'optionalEmptyCode']) {
+        const field = demo.querySelector(`fdl-field[field="${name}"]`) as any;
+        await field.updateComplete;
+        const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
+        expect(input.required).toBe(name === 'emptyCode');
+        for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
+            input.value = value;
+            input.dispatchEvent(new Event('input'));
+            await catalog.updateComplete;
+            const status = demo.querySelector(`[role=status][data-field="${name}"]`)!.textContent!;
+            expect(status).toContain(empty ? 'This field is considered empty' : 'This field is not considered empty');
+            expect(status).toContain(name === 'emptyCode' && empty ? 'Invalid: Reference is required.' : 'Valid:');
+        }
     }
 });

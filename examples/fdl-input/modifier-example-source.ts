@@ -30,7 +30,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         defaultValue: {name:'defaultRecord',fields:{documentTitle:type("label('Document title').and.defaultValue('Untitled document')")},values:{documentTitle:'Quarterly plan'}},
         disabled: {name:'record',fields:{lockedId:type("label('System ID').and.disabled()")},values:{lockedId:'SYS-77'}},
         disabledWhen: {name:'record',fields:{approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved')")},values:{approvalStatus:'draft',budget:5000}},
-        emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').and.emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A'}},
+        emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').and.emptyWhen(value => value === 'N/A').and.required()"),optionalEmptyCode:type("label('Optional reference').and.emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A',optionalEmptyCode:'N/A'}},
         label: {name:'record',fields:{expenseType:choose('Expense type',[['Travel','travel'],['Equipment','equipment']]),dynamicAmount:type("label(record => `Amount for ${record.getField('expenseType')}`).and.type('number')")},values:{expenseType:'travel',dynamicAmount:''}},
         maxLength: {name:'record',fields:{shortCode:type("label('Short code').and.maxLength(12)")},values:{shortCode:''}},
         minLength: {name:'record',fields:{longCode:type(`label('Access code').and.minLength(${settings.minimum ?? 4})`)},values:{longCode:''}},
@@ -120,7 +120,9 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
         markup = markup.replace(`field="${validation}"`, `field="${validation}"\n  .showValidationErrors=\${checked}`);
         markup += `\n\n<button @click=\${() => { checked = true; update(); }}>\n  ${name === 'required' ? 'Check record' : 'Check value'}\n</button>\n<p role="status">\n  \${checked ? (${model.name}.isValid('${validation}')\n    ? 'Valid.' : ${model.name}.readableFieldErrors('${validation}').join('. '))\n    : 'Validation message has not been shown.'}\n</p>`;
     }
-    if (name === 'emptyWhen') markup += `\n\n<p role="status">\n  \${record.fieldTypeForField('emptyCode').empty(record, 'emptyCode')\n    ? 'This field is considered empty'\n    : 'This field is not considered empty'}\n</p>`;
+    if (name === 'emptyWhen') markup = ['emptyCode', 'optionalEmptyCode'].map(field =>
+        `<fdl-field .record=\${record} field="${field}"></fdl-field>\n<p role="status" data-field="${field}">\n  \${record.fieldTypeForField('${field}').empty(record, '${field}')\n    ? 'This field is considered empty'\n    : 'This field is not considered empty'}<br>\n  \${!record.isValid('${field}')\n    ? 'Invalid: Reference is required.'\n    : '${field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}'}\n</p>`
+    ).join('\n\n');
     if (name === 'defaultValue') markup += '\n\n<button @click=${() => defaultRecord.clear()}>Clear the record</button>';
     if (name === 'maxLength') markup += `\n\n<button @click=\${() => {\n  checked = true;\n  record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG');\n}}>Assign an overlong model value</button>`;
     if (name === 'options') markup += `\n\n<button @click=\${() => record.setField('assignee', '')}>\n  Clear stored selection\n</button>`;

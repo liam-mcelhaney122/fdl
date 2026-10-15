@@ -101,14 +101,20 @@ it('exports a named size comparator and sorts sizes in domain order rather than 
 });
 
 
-it('reports emptiness directly in the exported Lit example without requiring the field', () => {
+it('shows how the same empty value affects required and optional field validation', () => {
     const {model, container} = runExample('emptyWhen');
     expect(container.querySelector('button')).toBeNull();
-    for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
-        model.setField('emptyCode', value);
-        expect(container.querySelector('[role=status]')!.textContent!.trim()).toBe(
-            empty ? 'This field is considered empty' : 'This field is not considered empty');
-        expect(model.isValid('emptyCode')).toBe(true);
-        expect(model.getField('emptyCode')).toBe(value);
+    expect(container.querySelectorAll('fdl-field')).toHaveLength(2);
+    for (const field of ['emptyCode', 'optionalEmptyCode']) {
+        for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
+            model.setField(field, value);
+            const status = container.querySelector(`[role=status][data-field="${field}"]`)!.textContent!;
+            expect(status).toContain(empty ? 'This field is considered empty' : 'This field is not considered empty');
+            expect(status).toContain(field === 'emptyCode' && empty ? 'Invalid: Reference is required.' : 'Valid:');
+            expect(model.isValid(field)).toBe(field === 'optionalEmptyCode' || !empty);
+            expect(model.getField(field)).toBe(value);
+        }
     }
+    expect(model.fieldTypeForField('emptyCode').required(model)).toBe(true);
+    expect(model.fieldTypeForField('optionalEmptyCode').required(model)).toBe(false);
 });

@@ -120,7 +120,8 @@ export class FdlModifierCatalog extends LitElement {
             lockedId: new FieldType().with.label('System ID').and.disabled(),
             approvalStatus: new FieldType().with.label('Approval status').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
             budget: new FieldType().with.label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved'),
-            emptyCode: new FieldType().with.label('Reference').and.emptyWhen(value => value === 'N/A'),
+            emptyCode: new FieldType().with.label('Reference').and.emptyWhen(value => value === 'N/A').and.required(),
+            optionalEmptyCode: new FieldType().with.label('Optional reference').and.emptyWhen(value => value === 'N/A'),
             hiddenSearch: new FieldType().with.label('Search directory').and.placeholder('Search directory'),
             expenseType: new FieldType().with.label('Expense type').and.tag('select').and.options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
             dynamicAmount: new FieldType<any>().with.label((record: any) => `Amount for ${record.getField('expenseType')}`).and.type('number'),
@@ -154,7 +155,7 @@ export class FdlModifierCatalog extends LitElement {
         },
         {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
-            emptyCode: 'N/A', hiddenSearch: '', expenseType: 'travel', dynamicAmount: '',
+            emptyCode: 'N/A', optionalEmptyCode: 'N/A', hiddenSearch: '', expenseType: 'travel', dynamicAmount: '',
             money: 1000,
             shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'grace',
             projectName: '', fixedOwner: 'Ada Lovelace', phase: 'draft', conditionalOwner: 'Ada Lovelace', requiredName: '',
@@ -423,7 +424,12 @@ export class FdlModifierCatalog extends LitElement {
             case 'defaultValue': return html`${this.renderField('documentTitle', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('documentTitle')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
-            case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderField('emptyCode')}<p class="computed" role="status">${this.record.fieldTypeForField('emptyCode').empty(this.record, 'emptyCode') ? 'This field is considered empty' : 'This field is not considered empty'}</p>`;
+            case 'emptyWhen': return html`<p class="try">Both fields treat “N/A” as empty. Reference is required; Optional reference can be left empty.</p>${['emptyCode', 'optionalEmptyCode'].map(field => html`
+                ${this.renderField(field)}
+                <p class="computed" role="status" data-field=${field}>
+                    ${this.record.fieldTypeForField(field).empty(this.record, field) ? 'This field is considered empty' : 'This field is not considered empty'}<br>
+                    ${!this.record.isValid(field) ? 'Invalid: Reference is required.' : field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}
+                </p>`)}`;
             case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
             case 'filter': return html`<p class="try">One search text drives the table and both matching rules.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>${filterCases(this.probes.getField('filterProbe'))}`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
@@ -463,7 +469,7 @@ export class FdlModifierCatalog extends LitElement {
 
     private focusedState(name: string): unknown {
         const fields: { [name: string]: string[] } = {
-            disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode'],
+            disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode', 'optionalEmptyCode'],
             label: ['expenseType', 'dynamicAmount'], maxLength: ['shortCode'], minLength: ['longCode'],
             multipleValues: ['skills'], options: ['department', 'assignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
