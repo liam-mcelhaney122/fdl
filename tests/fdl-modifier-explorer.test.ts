@@ -1,3 +1,4 @@
+import { modifierPage, modifierPageGroups } from '../examples/fdl-input/modifier-page-groups';
 import { relatedModifierNames } from '../examples/fdl-input/related-modifiers';
 import { categoryDescriptions } from '../examples/fdl-input/category-icon';
 import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
@@ -29,14 +30,14 @@ describe('modifier explorer', () => {
     it('shows one modifier, supports next/back and direct links, and disables boundary controls', async () => {
         const page = await openPage('#cellClass');
         const root = page.shadowRoot!;
-        expect(root.querySelector('h1')!.textContent).toContain('.cellClass(className)');
+        expect(root.querySelector('h1')!.textContent).toBe('Cell classes');
         expect(root.querySelector<HTMLButtonElement>('.pager')!.disabled).toBe(true);
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.compareFunction(compare)');
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('.cellClass(className)');
+        expect(root.querySelector('h1')!.textContent).toBe('Cell classes');
         root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');
@@ -125,12 +126,13 @@ describe('complete explorer', () => {
         expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(expected);
     });
 
-    it.each(explorerRecipes.map(recipe => [recipe.name, recipe] as const))('opens the %s deep link with one focused example or explicit contract limit', async (name, recipe) => {
+    it.each(explorerRecipes.map(recipe => [recipe.name, recipe] as const))('opens the %s deep link with its example on the appropriate reference page', async (name, recipe) => {
         const page = await openPage(`#${name}`);
+        const section = page.shadowRoot!.getElementById(name)!;
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
         expect(page.shadowRoot!.querySelector('#modifier-jump')).toBeNull();
-        expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
-        expect(page.shadowRoot!.querySelector('h2.modifier-signature')!.textContent).toBe(modifierSignatures[name]);
+        expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(modifierPage(name).title || `.${name}${recipe.signature}`);
+        expect(section.querySelector('h2.modifier-signature')!.textContent).toBe(modifierSignatures[name]);
         const link = page.shadowRoot!.querySelector(`.modifier-list a[href="#${name}"]`)!;
         expect(link.querySelector('small')).toBeNull();
         expect(link.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
@@ -146,9 +148,9 @@ describe('complete explorer', () => {
         const option = [...page.shadowRoot!.querySelectorAll('.category-options label')].find(label => label.textContent === recipe.category)!;
         expect(option.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
 
-        expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(exampleSource(name).definition);
-        expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
-        expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
+        expect(section.querySelector('.code code')!.textContent).toBe(exampleSource(name).definition);
+        expect(section.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
+        expect(section.querySelector('.focused-line')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.chapter')).toBeNull();
         const categoryButton = page.shadowRoot!.querySelector<HTMLButtonElement>('.page-category-icon')!;
         expect(categoryButton.getAttribute('aria-label')).toBe(`Category: ${recipe.category}`);
@@ -161,16 +163,16 @@ describe('complete explorer', () => {
         categoryButton.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
         await settle(page);
         expect(page.shadowRoot!.querySelector('#category-tooltip')).toBeNull();
-        expect(page.shadowRoot!.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
-        const css = page.shadowRoot!.querySelector('.example-css');
+        expect(section.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
+        const css = section.querySelector('.example-css');
         if (exampleSource(name).styles) expect(css!.textContent).toBe(exampleSource(name).styles);
         else expect(css).toBeNull();
-        const demo = page.shadowRoot!.querySelector('.playground')!;
-        for (const section of page.shadowRoot!.querySelectorAll('.code-section, .markup-section, .css-section')) {
-            expect(demo.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const demo = section.querySelector('.playground')!;
+        for (const codeSection of section.querySelectorAll('.code-section, .markup-section, .css-section')) {
+            expect(demo.compareDocumentPosition(codeSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         }
         if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
-            const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+            const catalog = section.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
             await catalog.updateComplete;
             expect(catalog.shadowRoot!.querySelectorAll('[data-modifier]')).toHaveLength(1);
             expect(catalog.shadowRoot!.querySelectorAll('.cookbook-recipe')).toHaveLength(0);
@@ -200,12 +202,12 @@ describe('complete explorer', () => {
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
         expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 38 shown)');
-        expect(root.querySelector('h1')!.textContent).toContain('required');
+        expect(root.querySelector('h1')!.textContent).toBe('Required fields');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('maxColumnWidth');
-        expect(root.querySelector('.page-count')!.textContent).toContain('1 of 3');
-        expect(root.querySelector('.page-count')!.textContent).toContain('Filtered modifiers');
+        expect(root.querySelector('h1')!.textContent).toBe('Column widths');
+        expect(root.querySelector('.page-count')!.textContent).toContain('1 of 1');
+        expect(root.querySelector('.page-count')!.textContent).toContain('Filtered pages');
         search.value = 'no matching modifier';
         search.dispatchEvent(new Event('input'));
         await settle(page);
@@ -268,7 +270,7 @@ describe('extended model exercises', () => {
 
     it('rejects an overlong value assigned directly to the model', async () => {
         const page = await openPage('#maxLength');
-        const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+        const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog[modifier="maxLength"]') as FdlModifierCatalog;
         await catalog.updateComplete;
         catalog.shadowRoot!.querySelector<HTMLButtonElement>('.model-assignment')!.click();
         await catalog.updateComplete;
@@ -402,7 +404,7 @@ it('defines valid, reciprocal related links for every modifier', () => {
 });
 it.each(explorerRecipes.map(recipe => recipe.name))('lists related modifiers on %s', async name => {
     const page = await openPage(`#${name}`);
-    const section = page.shadowRoot!.querySelector('.related-modifiers')!;
+    const section = page.shadowRoot!.getElementById(name)!.querySelector('.related-modifiers')!;
     const links = Array.from(section.querySelectorAll('a'));
     expect(section.querySelector('h3')!.textContent).toBe('Related modifiers');
     expect(links.map(link=>link.getAttribute('href'))).toEqual(relatedModifierNames(name).map(related=>`#${related}`));
@@ -414,8 +416,8 @@ it('links cell styling alternatives in both directions', async () => {
     const link = page.shadowRoot!.querySelector<HTMLAnchorElement>('.related-modifiers a[href="#conditionalCellClass"]')!;
     expect(link.textContent).toBe('.conditionalCellClass()');
     link.click();await settle(page);
-    expect(page.shadowRoot!.activeElement).toBe(page.shadowRoot!.querySelector('h1'));
-    expect(page.shadowRoot!.querySelector('h1')!.textContent).toContain('conditionalCellClass');
+    expect(page.shadowRoot!.activeElement).toBe(page.shadowRoot!.getElementById('conditionalCellClass')!.querySelector('.modifier-signature'));
+    expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe('Cell classes');
     expect(page.shadowRoot!.querySelector('.related-modifiers a[href="#cellClass"]')).not.toBeNull();
 });
 
@@ -441,4 +443,37 @@ it('updates emptiness and validation for required and optional references as the
             expect(status).toContain(name === 'emptyCode' && empty ? 'Invalid: Reference is required.' : 'Valid:');
         }
     }
+});
+
+
+it.each(modifierPageGroups)('groups $title on one page with stable sections and working member links', async group => {
+    const page = await openPage(`#${group.names[0]}`);
+    const root = page.shadowRoot!;
+    expect(root.querySelector('h1')!.textContent).toBe(group.title);
+    expect([...root.querySelectorAll('.modifier-section')].map(section => section.id)).toEqual(group.names);
+    const original = root.querySelectorAll('fdl-modifier-catalog');
+    const target = group.names[group.names.length - 1];
+    root.querySelector<HTMLAnchorElement>(`.page-sections a[href="#${target}"]`)!.click();
+    await settle(page);
+    expect(window.location.hash).toBe(`#${target}`);
+    expect(root.activeElement).toBe(root.getElementById(target)!.querySelector('.modifier-signature'));
+    expect([...root.querySelectorAll('fdl-modifier-catalog')]).toEqual([...original]);
+    expect(root.querySelector('.page-count')!.textContent).toContain('of 31');
+});
+
+it('resets one grouped example without resetting its neighbor', async () => {
+    const page = await openPage('#readOnly');
+    const root = page.shadowRoot!;
+    const conditional = root.querySelector('fdl-modifier-catalog[modifier="readOnlyWhen"]') as FdlModifierCatalog;
+    await conditional.updateComplete;
+    const field = conditional.shadowRoot!.querySelector('fdl-field[field="phase"]') as any;
+    await field.updateComplete;
+    const select = field.shadowRoot.querySelector('select') as HTMLSelectElement;
+    select.value = 'submitted';
+    select.dispatchEvent(new Event('input'));
+    await conditional.updateComplete;
+    root.getElementById('readOnly')!.querySelector<HTMLButtonElement>('.reset')!.click();
+    await settle(page);
+    expect(root.querySelector('fdl-modifier-catalog[modifier="readOnlyWhen"]')).toBe(conditional);
+    expect(field.record.getField('phase')).toBe('submitted');
 });

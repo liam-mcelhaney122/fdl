@@ -1,7 +1,7 @@
 # FDL documentation site
 
 This is the repository's only documentation website. It includes Home, How it
-Works, Learn by exploring, Contributing, and one page per modifier, with live examples, model-level
+Works, Learn by exploring, Contributing, and modifier reference pages that group closely related rules, with live examples, model-level
 exercises, highlighted definitions, and rendering markup. The source uses Lit
 and TypeScript, so serve it through Vite instead of opening HTML files directly.
 
@@ -102,3 +102,10 @@ constraints. Filter text is shared between the table header and comparison.
 Clicking a sortable table heading toggles ascending/descending and makes that
 column the first sort priority. Existing columns remain as tie-breakers; clicking
 a heading never removes its sort. Keyboard activation uses the same button action.
+
+Related modifiers share one reference page: permanent and conditional cell
+classes, disabled state, read-only state, and requiredness; minimum and maximum
+text length; and minimum, target, and maximum column widths. Every modifier
+retains its original hash link and sidebar entry, which opens its section.
+Each section has its own live example, reset, model source, Lit source, and
+download. Previous/Next navigates between distinct reference pages.

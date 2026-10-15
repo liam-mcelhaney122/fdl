@@ -1,3 +1,4 @@
+import { modifierPage } from './modifier-page-groups';
 import './fdl-starter-download';
 import { relatedModifierNames } from './related-modifiers';
 import { modifierSignatures } from './modifier-signatures';
@@ -64,7 +65,7 @@ export class FdlModifierExplorer extends LitElement {
     private page: SitePage | 'modifier' = 'home';
     private checked = false;
     private requiredRule = true;
-    private exampleSettings: ExampleSettings = {};
+    private exampleSettings: {[name: string]: ExampleSettings} = {};
     private amountInput?: string;
     private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
@@ -87,7 +88,7 @@ export class FdlModifierExplorer extends LitElement {
         this.tooltipTimer = setTimeout(this.hideTooltip, 150);
     };
 
-    private resetVersion = 0;
+    private resetVersions: {[name: string]: number} = {};
     private selectedCategories = new Set<string>();
     private person = new Record({ name: new FieldType<string>().with.label('Legal name').and.required() }, { name: '' });
     private money = new Record({ amount: new FieldType<number>().with.label('Amount').and.type('number').and.parser(value => Number(value)).and.formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
@@ -110,7 +111,7 @@ export class FdlModifierExplorer extends LitElement {
                 this.select(index, false);
                 if (new URLSearchParams(window.location.hash.split('?')[1]).get('section') === 'starter') {
                     this.updateComplete.then(() => {
-                        const heading=this.shadowRoot?.querySelector<HTMLElement>('.starter-handoff h3');
+                        const heading=this.shadowRoot?.getElementById(recipes[index].name)?.querySelector<HTMLElement>('.starter-handoff h3');
                         heading?.focus({preventScroll:true});
                         heading?.scrollIntoView?.({block:'start'});
                     });
@@ -153,7 +154,8 @@ export class FdlModifierExplorer extends LitElement {
     }
     private select(index: number, updateUrl = true) {
         if (index < 0 || index >= recipes.length) return;
-        const changed = this.page !== 'modifier' || this.selected !== index;
+        const changed = this.page !== 'modifier' || !modifierPage(this.modifierName).names.includes(recipes[index].name);
+        const targetChanged = this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
         this.navigationOpen = false;
         this.selected = index;
@@ -162,27 +164,33 @@ export class FdlModifierExplorer extends LitElement {
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
             window.location.hash = recipes[index].name;
-            this.updateComplete.then(() => {
-                const heading = this.shadowRoot?.querySelector<HTMLElement>('h1');
-                heading?.focus({ preventScroll: true });
-                heading?.scrollIntoView({ block: 'start' });
-            });
         }
-        document.title = `${recipes[index].name} — FDL Modifier explorer`;
+        if (updateUrl || targetChanged) this.focusModifier(recipes[index].name);
+        document.title = `${modifierPage(recipes[index].name).title || recipes[index].name} — FDL Modifier explorer`;
+    }
+    private focusModifier(name: string) {
+        this.updateComplete.then(() => {
+            const group = modifierPage(name);
+            const heading = group.names[0] === name
+                ? this.shadowRoot?.querySelector<HTMLElement>('h1')
+                : this.shadowRoot?.getElementById(name)?.querySelector<HTMLElement>('.modifier-signature');
+            heading?.focus({preventScroll:true});
+            heading?.scrollIntoView?.({block:'start'});
+        });
     }
     private field(record: Record<any>, field: string) {
         return keyed(record.fieldTypeForField(field), html`<fdl-field .record=${record} field=${field} .showValidationErrors=${this.checked}></fdl-field>`);
     }
-    private reset() {
-        this.resetVersion += 1;
-        if (this.modifierName === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
-        this.exampleSettings = {};
-        if (this.modifierName === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
-        if (this.modifierName === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
+    private reset(name = this.modifierName) {
+        this.resetVersions[name] = (this.resetVersions[name] ?? 0) + 1;
+        if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
+        delete this.exampleSettings[name];
+        if (name === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
+        if (name === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
     }
-    private demo() {
-        if (this.modifierName === 'required') return html`
+    private demo(name: string) {
+        if (name === 'required') return html`
             <label class="rule-control"><input type="checkbox" .checked=${this.requiredRule} @change=${(event: Event) => {
                 this.requiredRule = (event.target as HTMLInputElement).checked;
                 const base = new FieldType<string>().with.label('Legal name');
@@ -192,27 +200,63 @@ export class FdlModifierExplorer extends LitElement {
             ${this.field(this.person, 'name')}
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record</button>
             <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : `${this.person.isValid() ? 'The model is valid.' : 'The model is invalid.'} Check record shows its validation message.`}</p>`;
-        if (this.modifierName === 'formatter') return html`
+        if (name === 'formatter') return html`
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>${valuePipeline(this.money, 'amount', this.amountInput)}`;
-        if (!['required', 'formatter', 'visibleWhen'].includes(this.modifierName)) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
+        if (!['required', 'formatter', 'visibleWhen'].includes(name)) return html`<fdl-modifier-catalog modifier=${name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings[name] = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
+    }
+    private renderModifierSection(recipe: ExplorerRecipe) {
+        const source = exampleSource(recipe.name, {...this.exampleSettings[recipe.name], required: this.requiredRule});
+        const standaloneDemo = ['required', 'formatter', 'visibleWhen'].includes(recipe.name);
+        const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
+        return html`<section class="modifier-section" id=${recipe.name} data-modifier=${recipe.name}>
+                <h2 class="modifier-signature" tabindex="-1"><code>${modifierSignatures[recipe.name]}</code></h2>
+                <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
+                <section class="playground" data-modifier=${recipe.name} aria-label="Interactive example">
+                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${() => this.reset(recipe.name)}>Reset example ↺</button>`}</div>
+                    <p class="instruction">${recipe.prompt}</p>
+                    <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersions[recipe.name] ?? 0}`, this.demo(recipe.name))}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
+                </section>
+                <div class="details">
+                <section class="starter-handoff"><h3 tabindex="-1">Use this example</h3><p>Download the model, Lit UI, and example adapters together. Unzip, run <code>npm install</code>, then <code>npm run dev</code>.</p><fdl-starter-download .source=${source}></fdl-starter-download><p class="markup-note">Includes a snapshot of this FDL version. The adapters and their styles are included; they are not exported by <code>digital-fdl</code>.</p></section>
+                <p class="source-intro">Starting values are shown below. Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
+                <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
+                <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
+                    <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
+                </section>
+                ${source.styles ? html`<section class="css-section"><div class="detail-heading"><h3>Style the example</h3><span>CSS · ${source.stylesComponent}</span></div>
+                    <p class="markup-note">These rules live in <code>${source.stylesComponent}</code>’s shadow-root stylesheet (<code>static styles</code>). ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p>
+                    <pre class="code example-css"><code>${source.styles}</code></pre>
+                </section>` : ''}
+                <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
+                <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
+                <section class="related-modifiers" aria-labelledby=${`${recipe.name}-related-title`}><h3 id=${`${recipe.name}-related-title`}>Related modifiers</h3><ul>${relatedModifierNames(recipe.name).map(name => {
+                    const related = recipes.find(entry => entry.name === name)!;
+                    return html`<li><a href=${`#${name}`} @click=${(event: Event) => { event.preventDefault(); this.select(recipes.indexOf(related)); }}><code>.${name}()</code></a><span>${related.title}</span></li>`;
+                })}</ul></section>
+        </section>`;
     }
     render() {
         const recipe = recipes[this.selected];
-        const source = exampleSource(recipe.name, {...this.exampleSettings, required: this.requiredRule});
+        const group = modifierPage(recipe.name);
         const categories = [...new Set(recipes.map(entry => entry.category))].sort();
         const filtered = recipes.map((entry, index) => ({ entry, index })).filter(({ entry }) =>
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
             entry.name.toLowerCase().includes(this.query.toLowerCase().trim())
         );
         const filtering = Boolean(this.query.trim() || this.selectedCategories.size);
-        const position = filtered.findIndex(item => item.index === this.selected);
-        const previous = position > 0 ? filtered[position - 1] : undefined;
-        const next = filtered[position + 1];
-        const standaloneDemo = ['required', 'formatter', 'visibleWhen'].includes(recipe.name);
-        const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
+        const pages = filtered
+            .filter((item, index) => filtered.findIndex(other => modifierPage(other.entry.name).names[0] === modifierPage(item.entry.name).names[0]) === index)
+            .map(item => {
+                const name = filtering ? item.entry.name : modifierPage(item.entry.name).names[0];
+                const index = recipes.findIndex(entry => entry.name === name);
+                return {entry: recipes[index], index};
+            });
+        const position = pages.findIndex(item => modifierPage(item.entry.name).names.includes(recipe.name));
+        const previous = position > 0 ? pages[position - 1] : undefined;
+        const next = pages[position + 1];
         return html`
         <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
         <div class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}>
@@ -253,43 +297,26 @@ export class FdlModifierExplorer extends LitElement {
             </section></aside>
             <main>
                 ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page, this.learningState, this.compositionForPage())) : html`
-                <div class="modifier-title-row"><h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
+                <div class="modifier-title-row"><h1 tabindex="-1">${group.title || html`.${recipe.name}<span>${recipe.signature}</span>`}</h1>
                     <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
                         <button class="page-category-icon" aria-label=${`Category: ${recipe.category}`} aria-describedby=${this.categoryTooltip ? 'category-tooltip' : ''} @focus=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @blur=${() => { this.categoryTooltip = false; this.requestUpdate(); }} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') { this.categoryTooltip = false; this.requestUpdate(); } }}>${categoryIcon(recipe.category)}</button>
                         ${this.categoryTooltip ? html`<span id="category-tooltip" role="tooltip"><strong>${recipe.category}</strong><span>${categoryDescriptions[recipe.category]}</span></span>` : ''}
                     </div>
                 </div>
-                <h2 class="modifier-signature"><code>${modifierSignatures[recipe.name]}</code></h2>
-                <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
-                <section class="playground" data-modifier=${recipe.name} aria-label="Interactive example">
-                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
-                    <p class="instruction">${recipe.prompt}</p>
-                    <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
-                </section>
-                <div class="details">
-                <section class="starter-handoff"><h3 tabindex="-1">Use this example</h3><p>Download the model, Lit UI, and example adapters together. Unzip, run <code>npm install</code>, then <code>npm run dev</code>.</p><fdl-starter-download .source=${source}></fdl-starter-download><p class="markup-note">Includes a snapshot of this FDL version. The adapters and their styles are included; they are not exported by <code>digital-fdl</code>.</p></section>
-                <p class="source-intro">Starting values are shown below. Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
-                <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
-                <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
-                    <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
-                </section>
-                ${source.styles ? html`<section class="css-section"><div class="detail-heading"><h3>Style the example</h3><span>CSS · ${source.stylesComponent}</span></div>
-                    <p class="markup-note">These rules live in <code>${source.stylesComponent}</code>’s shadow-root stylesheet (<code>static styles</code>). ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p>
-                    <pre class="code example-css"><code>${source.styles}</code></pre>
-                </section>` : ''}
-                <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
-                <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
-                <section class="related-modifiers" aria-labelledby="related-modifiers-title"><h3 id="related-modifiers-title">Related modifiers</h3><ul>${relatedModifierNames(recipe.name).map(name => {
-                    const related = recipes.find(entry => entry.name === name)!;
-                    return html`<li><a href=${`#${name}`} @click=${(event: Event) => { event.preventDefault(); this.select(recipes.indexOf(related)); }}><code>.${name}()</code></a><span>${related.title}</span></li>`;
-                })}</ul></section>
-                <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>.${previous.entry.name}${previous.entry.signature}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${filtered.length}`}${filtering ? html`<small>Filtered modifiers</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>.${next.entry.name}${next.entry.signature}</small>` : ''}</button></footer>
+                ${group.names.length > 1 ? html`<nav class="page-sections" aria-label="On this page">${group.names.map(name => html`<a href=${`#${name}`} @click=${(event: Event) => {event.preventDefault(); this.select(recipes.findIndex(entry => entry.name === name));}}><code>.${name}()</code></a>`)}</nav>` : ''}
+                ${group.names.map(name => keyed(name, this.renderModifierSection(recipes.find(entry => entry.name === name)!)))}
+                <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>${modifierPage(previous.entry.name).title || html`.${previous.entry.name}${previous.entry.signature}`}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${pages.length}`}${filtering ? html`<small>Filtered pages</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>${modifierPage(next.entry.name).title || html`.${next.entry.name}${next.entry.signature}`}</small>` : ''}</button></footer>
                 `}
             </main>
         </div>
         ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
     }
     static styles = css`
+        .page-sections { display:flex; min-height:0; overflow:visible; flex-wrap:wrap; gap:10px 20px; margin:0 0 32px; }
+        .page-sections a { color:var(--accent); text-underline-offset:3px; }
+        .modifier-section + .modifier-section { margin-top:56px; padding-top:40px; border-top:2px solid #cbd5e1; }
+        .modifier-signature { scroll-margin-top:24px; }
+
         .related-modifiers { margin-top:32px; padding-top:24px; border-top:1px solid #e2e8f0; }
         .related-modifiers ul { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
         .related-modifiers li { line-height:1.5; }
