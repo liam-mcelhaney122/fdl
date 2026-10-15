@@ -233,3 +233,26 @@ it('builds a single example through parsing, validation, dependencies, and a col
     expect(root.querySelector('details ol')!.children).toHaveLength(5);
     expect(root.querySelector<HTMLButtonElement>('.next-lesson')!.disabled).toBe(true);
 });
+
+it('shares filter text between the comparison and the table header', async () => {
+    const page = await openExplorer('#filter');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    await editField(catalog.shadowRoot!, 'filterProbe', 'gr');
+    await catalog.updateComplete;
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    await table.updateComplete;
+    await table.recordset.requestUpdate();
+    await table.updateComplete;
+    expect(table.shadowRoot.textContent).toContain('Grace');
+    expect(table.shadowRoot.textContent).not.toContain('Margaret');
+    table.shadowRoot.querySelector('[data-filter-button="name"]').click();
+    await table.updateComplete;
+    const search = table.shadowRoot.querySelector('[data-filter-input="name"]');
+    expect(search.value).toBe('gr');
+    search.value = 'ad'; search.dispatchEvent(new Event('input'));
+    await catalog.updateComplete;
+    const probe = catalog.shadowRoot!.querySelector('fdl-field[field="filterProbe"]') as any;
+    await probe.updateComplete;
+    expect(probe.shadowRoot.querySelector('input').value).toBe('ad');
+});

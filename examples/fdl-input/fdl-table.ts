@@ -78,9 +78,12 @@ export class FdlColumn extends HTMLElement {
 export class FdlTable extends LitElement {
     static properties = {
         recordset: { attribute: false },
+        filters: { attribute: false },
     };
 
     recordset?: Recordset<any>;
+    /** Optional controlled filter text, keyed by field. */
+    filters?: {[field: string]: string};
 
     private observedRecordset?: Recordset<any>;
 
@@ -137,6 +140,13 @@ export class FdlTable extends LitElement {
             this.observedRecordset = this.recordset;
             this.observedRecordset?.addEventListener('page-changed', this.onRecordsetChange);
             void this.observedRecordset?.requestUpdate();
+        }
+        if (this.filters) {
+            const next = Object.entries(this.filters).filter(([,value]) => value.trim());
+            if (JSON.stringify(next) !== JSON.stringify([...this.columnFilters])) {
+                this.columnFilters = new Map(next);
+                this.applyRecordsetFilter();
+            }
         }
     }
 
@@ -209,16 +219,22 @@ export class FdlTable extends LitElement {
         if (!clickedFilter) this.closeFilter(this.activeFilterField, false);
     };
 
+    private notifyFilters() {
+        this.dispatchEvent(new CustomEvent('filters-changed', {detail: Object.fromEntries(this.columnFilters), bubbles:true, composed:true}));
+    }
+
     private updateFilter(column: FdlColumn, value: string) {
         if (value.trim()) this.columnFilters.set(column.field, value);
         else this.columnFilters.delete(column.field);
         this.applyRecordsetFilter();
+        this.notifyFilters();
         this.requestUpdate();
     }
 
     private clearFilter(field: string) {
         this.columnFilters.delete(field);
         this.applyRecordsetFilter();
+        this.notifyFilters();
         this.requestUpdate();
     }
 
@@ -226,6 +242,7 @@ export class FdlTable extends LitElement {
         this.columnFilters.clear();
         this.activeFilterField = undefined;
         this.applyRecordsetFilter();
+        this.notifyFilters();
         this.requestUpdate();
     }
 
