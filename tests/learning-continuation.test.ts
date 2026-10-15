@@ -32,6 +32,7 @@ it('restores the lesson and entered value after a reference detour', async()=>{
     lesson=page.shadowRoot!.querySelector('fdl-learning-path') as any;await lesson.updateComplete;
     expect(lesson.shadowRoot.querySelector('h2').textContent).toBe('What makes a value valid?');
     expect(lesson.record.getField('charge')).toBe(47);
+    expect(lesson.shadowRoot.querySelector('select').value).toBe('2');
     lesson.reset();expect(lesson.record.getField('charge')).toBe(25);
     page.remove();window.location.hash='';
 });
