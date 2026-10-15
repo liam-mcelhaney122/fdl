@@ -154,7 +154,15 @@ describe('complete explorer', () => {
         const page = await openPage();
         const root = page.shadowRoot!;
         const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
-        search.value = 'width';
+        expect(search.getAttribute('aria-label')).toBe('Find a modifier');
+        expect(root.querySelector('.search-label')).toBeNull();
+        expect(root.querySelector('.modifier-search-field svg')!.getAttribute('aria-hidden')).toBe('true');
+        search.value = 'tables';
+        search.dispatchEvent(new Event('input'));
+        await settle(page);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(0);
+        search.value = ' WIDTH ';
+
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);

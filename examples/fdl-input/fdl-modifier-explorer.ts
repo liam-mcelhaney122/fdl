@@ -152,7 +152,7 @@ export class FdlModifierExplorer extends LitElement {
         const categories = [...new Set(recipes.map(entry => entry.category))].sort();
         const filtered = recipes.map((entry, index) => ({ entry, index })).filter(({ entry }) =>
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
-            `${entry.name} ${entry.category}`.toLowerCase().includes(this.query.toLowerCase().trim())
+            entry.name.toLowerCase().includes(this.query.toLowerCase().trim())
         );
         const model = this.selected === 0 ? this.person : this.selected === 1 ? this.money : this.delivery;
         return html`
@@ -162,8 +162,8 @@ export class FdlModifierExplorer extends LitElement {
             <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
             <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
             <div class="modifier-tools"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
-            <label class="search-label" for="modifier-search">Find a modifier</label>
-            <input id="modifier-search" class="modifier-search" type="search" placeholder="Name or category…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}>
+            <div class="modifier-search-field"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+            <input id="modifier-search" class="modifier-search" type="search" aria-label="Find a modifier" placeholder="Find a modifier…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}></div>
             <details class="category-filters">
                 <summary>Categories${this.selectedCategories.size ? html` <span class="filter-count">(${this.selectedCategories.size} selected)</span>` : ''}</summary>
                 <fieldset class="categories">
@@ -225,9 +225,10 @@ export class FdlModifierExplorer extends LitElement {
         .shell { display:grid; grid-template-columns:280px minmax(0,1fr); max-width:1480px; margin:auto; padding:0 32px; }
         aside { position:sticky; top:0; height:calc(100vh - 88px); height:calc(100dvh - 88px); overflow:hidden; padding:28px 24px 24px 0; display:flex; flex-direction:column; align-self:start; border-right:1px solid #e2e8f0; }
         .eyebrow { font-size:.875rem; font-weight:700; letter-spacing:.04em; color:var(--muted); margin:0 0 20px; }
-        .search-label,.categories legend { font-size:1rem; font-weight:600; color:var(--muted); }
-        .search-label { margin-bottom:8px; }
-        .modifier-search { width:100%; height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:#ffffff; color:#0f172a; font-size:1rem; }
+        .categories legend { font-size:1rem; font-weight:600; color:var(--muted); }
+        .modifier-search-field { position:relative; }
+        .modifier-search-field svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; fill:none; stroke:#64748b; stroke-width:1.75; stroke-linecap:round; pointer-events:none; }
+        .modifier-search { width:100%; height:48px; padding:10px 14px 10px 42px; border:1px solid #94a3b8; border-radius:6px; background:#ffffff; color:#0f172a; font-size:1rem; }
         .category-filters { margin-top:16px; }
         .category-filters summary { min-height:44px; padding:8px 0; font-size:1rem; font-weight:600; cursor:pointer; }
         .category-filters summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
