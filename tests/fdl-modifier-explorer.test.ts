@@ -181,7 +181,7 @@ describe('complete explorer', () => {
         }
     });
 
-    it('filters the index without changing the current page or sequence', async () => {
+    it('keeps the current page and navigates within the filtered results', async () => {
         const page = await openPage();
         const root = page.shadowRoot!;
         const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
@@ -202,7 +202,9 @@ describe('complete explorer', () => {
         expect(root.querySelector('h1')!.textContent).toContain('required');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('requiredWhen');
+        expect(root.querySelector('h1')!.textContent).toContain('maxColumnWidth');
+        expect(root.querySelector('.page-count')!.textContent).toContain('1 of 3');
+        expect(root.querySelector('.page-count')!.textContent).toContain('Filtered modifiers');
         search.value = 'no matching modifier';
         search.dispatchEvent(new Event('input'));
         await settle(page);

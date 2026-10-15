@@ -183,6 +183,10 @@ export class FdlModifierExplorer extends LitElement {
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
             entry.name.toLowerCase().includes(this.query.toLowerCase().trim())
         );
+        const filtering = Boolean(this.query.trim() || this.selectedCategories.size);
+        const position = filtered.findIndex(item => item.index === this.selected);
+        const previous = position > 0 ? filtered[position - 1] : undefined;
+        const next = filtered[position + 1];
         const standaloneDemo = ['required', 'formatter', 'visibleWhen'].includes(recipe.name);
         const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
         return html`
@@ -249,7 +253,7 @@ export class FdlModifierExplorer extends LitElement {
                 </section>` : ''}
                 <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
-                <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
+                <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>.${previous.entry.name}${previous.entry.signature}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${filtered.length}`}${filtering ? html`<small>Filtered modifiers</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>.${next.entry.name}${next.entry.signature}</small>` : ''}</button></footer>
                 `}
             </main>
         </div>
@@ -380,6 +384,8 @@ export class FdlModifierExplorer extends LitElement {
         .note p { max-width:70ch; margin:0; font-size:1.125rem; line-height:1.75; }
         footer { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-top:24px; }
         .pager { min-height:48px; min-width:100px; padding:8px 0; border:0; background:none; color:var(--accent); font-size:1.125rem; text-align:left; }
+        .page-count { text-align:center; font-size:.875rem; }
+        .page-count small { display:block; color:var(--muted); }
         .pager small { display:block; margin-top:6px; font: .875rem/1.5 monospace; overflow-wrap:anywhere; }
         .next { text-align:right; }
         .page-count { flex-shrink:0; font-size:.875rem; color:var(--muted); }
@@ -411,7 +417,9 @@ export class FdlModifierExplorer extends LitElement {
             h2,.modifier-title { font-size:1.5rem; }
             .modifier-signature { font-size:.9375rem; }
             .code { padding:16px; }
-            .pager small { display:none; }
+            .page-count { text-align:center; font-size:.875rem; }
+        .page-count small { display:block; color:var(--muted); }
+        .pager small { display:none; }
         }
         ${exampleTheme}
     `;
