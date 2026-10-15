@@ -640,14 +640,15 @@ it.each([['requiredWhen','required'],['disabledWhen','disabled']])('opens retire
     expect(page.shadowRoot!.querySelector(`.modifier-list a[href="#${oldName}"]`)).toBeNull();
 });
 
-it.each(['minColumnWidth', 'maxColumnWidth', 'targetColumnWidth', 'sortable'])('%s documents a context-only callback', async name => {
+it.each(['minColumnWidth', 'maxColumnWidth', 'targetColumnWidth', 'sortable'])('%s documents a callback with no arguments', async name => {
     const page = await openPage(`#${name}`);
     const section = page.shadowRoot!.getElementById(name)!;
     const signature = section.querySelector('.modifier-signature')!.textContent!;
-    expect(signature).toContain('(context: string) =>');
+    expect(signature).toContain('() =>');
+    expect(signature).not.toContain('context:');
     expect(signature).not.toContain('record:');
     expect(signature).not.toContain('value:');
-    expect(section.querySelector('.setting-contract')!.textContent).toContain('(context)');
+    expect(section.querySelector('.setting-contract')!.textContent).toContain('callback with no arguments');
 });
 
 it('documents default factories with only their owning record', async () => {

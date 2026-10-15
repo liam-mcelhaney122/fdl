@@ -297,8 +297,8 @@ export class FdlTable extends LitElement {
     private columnLimits(column: FdlColumn): ColumnWidthLimits {
         const fieldType = this.recordset?.getFieldType(column.field);
         return {
-            min: fieldType?.minColumnWidth('table') ?? 30,
-            max: fieldType?.maxColumnWidth('table'),
+            min: fieldType?.minColumnWidth() ?? 30,
+            max: fieldType?.maxColumnWidth(),
         };
     }
 
@@ -351,7 +351,7 @@ export class FdlTable extends LitElement {
     private resizeWidths() {
         return this.columnWidths ?? this.measureColumnWidths() ?? this.columns.map(column => {
             const limits = this.columnLimits(column);
-            const target = this.recordset?.getFieldType(column.field).targetColumnWidth('table');
+            const target = this.recordset?.getFieldType(column.field).targetColumnWidth();
             return Math.max(limits.min, Math.min(limits.max ?? Infinity, target ?? 160));
         });
     }
@@ -688,7 +688,7 @@ export class FdlTable extends LitElement {
             </div>
             ${this.showWidthDiagnostics ? html`<section class="width-diagnostics" aria-label="Column width measurements"><h3>Live column widths</h3><ul>${columns.map((column,index) => {
                 const fieldType = this.recordset?.getFieldType(column.field);
-                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${fieldType?.targetColumnWidth('table') ? ` · preferred ${fieldType.targetColumnWidth('table')}px` : ''}${fieldType?.maxColumnWidth('table') ? ` · max ${fieldType.maxColumnWidth('table')}px` : ''}</li>`;
+                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${fieldType?.targetColumnWidth() ? ` · preferred ${fieldType.targetColumnWidth()}px` : ''}${fieldType?.maxColumnWidth() ? ` · max ${fieldType.maxColumnWidth()}px` : ''}</li>`;
             })}</ul><p role="status">${this.resizeMessage || 'Drag a divider or use its arrow keys. The table keeps its total width.'}</p></section>` : nothing}
             <slot></slot>
         `;

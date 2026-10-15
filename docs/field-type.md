@@ -76,7 +76,7 @@ inputs follow the scope of the setting:
 | `emptyWhen`, `cellClass` | `(value, record) => result` | `ValueSetting<T, Result, R>` |
 | `columnClass` | `() => string or string[]` | Fixed classes or a callback with no arguments |
 | `textAlign` | `(value, record, context) => result` | `FieldSetting<T, Result, R>` |
-| `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth` | `(context) => result` | `ColumnSetting<Result>` |
+| `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth` | `() => result` | `ColumnSetting<Result>` |
 
 `T` is the stored field type and `R` is the record's backing-data type. Import
 these types from `digital-fdl`. Record settings describe the record's state or
@@ -167,15 +167,20 @@ the source record before constructing the clone.
 ### Column settings
 
 `sortable`, `minColumnWidth`, `maxColumnWidth`, and `targetColumnWidth` accept a
-fixed result or `ColumnSetting<Result>`, a function of `(context: string)`
-returning that result. The table supplies `"table"`; direct column getters
-accept a context string. A column has no single field value or owning record,
-so the callback has no value or record parameters.
+fixed result or `ColumnSetting<Result>`, a callback with no arguments returning
+that result. Neither callbacks nor the corresponding getters receive context,
+a field value, or an owning record. Call `fieldType.sortable()`,
+`fieldType.minColumnWidth()`, `fieldType.maxColumnWidth()`, and
+`fieldType.targetColumnWidth()` directly.
+
+Callbacks are resolved on each read and can close over application state.
+To migrate, replace `context => result` with `() => result`, remove context
+arguments from getter calls, and use separate field definitions for distinct
+consumer policies.
 
 ```ts
 const amount = field
-  .minColumnWidth(context =>
-    context === 'table' ? 100 : 60)
+  .minColumnWidth(() => 100)
   .sortable(true);
 ```
 

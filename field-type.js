@@ -421,20 +421,20 @@ export default class FieldType {
         return resolveSetting(this.properties.textAlign, value, record, context);
     }
 
-    sortable(context = 'table') {
-        return resolveColumnSetting(this.properties.sortable, context);
+    sortable() {
+        return resolveColumnSetting(this.properties.sortable);
     }
 
-    minColumnWidth(context = 'table') {
-        return resolveColumnSetting(this.properties.minColumnWidth, context);
+    minColumnWidth() {
+        return resolveColumnSetting(this.properties.minColumnWidth);
     }
 
-    maxColumnWidth(context = 'table') {
-        return resolveColumnSetting(this.properties.maxColumnWidth, context);
+    maxColumnWidth() {
+        return resolveColumnSetting(this.properties.maxColumnWidth);
     }
 
-    targetColumnWidth(context = 'table') {
-        return resolveColumnSetting(this.properties.targetColumnWidth, context);
+    targetColumnWidth() {
+        return resolveColumnSetting(this.properties.targetColumnWidth);
     }
 
     field() {

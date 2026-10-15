@@ -23,10 +23,10 @@ export function resolveValueSetting<T, Result, R>(
     return typeof setting === 'function' ? (setting as (value: T, record: Record<R>) => Result)(value, record) : setting;
 }
 
-/** A column has no single field value or owning record. */
+/** A fixed column setting or a calculation without per-cell inputs or context. */
 export type ColumnSetting<Result> =
     | Result
-    | ((context: string) => Result);
+    | (() => Result);
 
 /** A default is created for an owning record, without an existing field value. */
 export type DefaultSetting<T, R = any> =
@@ -34,9 +34,9 @@ export type DefaultSetting<T, R = any> =
     | null
     | ((record: Record<R>) => T | null);
 
-export function resolveColumnSetting<Result>(setting: ColumnSetting<Result>, context: string): Result {
+export function resolveColumnSetting<Result>(setting: ColumnSetting<Result>): Result {
     return typeof setting === 'function'
-        ? (setting as (context: string) => Result)(context)
+        ? (setting as () => Result)()
         : setting;
 }
 

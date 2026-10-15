@@ -564,8 +564,8 @@ it.each([true, false])('aligns table headings and cells for sortable=%s', async 
 });
 
 it('resolves column settings without a row and field settings with header and cell contexts', async () => {
-    const width = jest.fn((context: string) => context === 'table' ? 120 : 0);
-    const sortable = jest.fn((context: string) => context === 'table');
+    const width = jest.fn(() => 120);
+    const sortable = jest.fn(() => true);
     const label = jest.fn((record: Record<any>) => `Amount:${record.getField('amount')}`);
     const amount = new FieldTypeBuilder<number>().label(label).minColumnWidth(width)
         .maxColumnWidth(200).targetColumnWidth(150).sortable(sortable)
@@ -576,8 +576,8 @@ it('resolves column settings without a row and field settings with header and ce
     table.innerHTML = '<fdl-column field="amount"></fdl-column>';
     document.body.append(table);
     await settle(table);
-    expect(width).toHaveBeenCalledWith('table');
-    expect(sortable).toHaveBeenCalledWith('table');
+    expect(width).toHaveBeenCalledWith();
+    expect(sortable).toHaveBeenCalledWith();
     expect(label).toHaveBeenCalledWith(recordset.currentPage[0]);
     expect(table.shadowRoot!.querySelector('col')!.style.minWidth).toBe('120px');
     expect((table.shadowRoot!.querySelector('th') as HTMLElement).style.textAlign).toBe('center');

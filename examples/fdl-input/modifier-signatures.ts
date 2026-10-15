@@ -75,7 +75,7 @@ for (const [name, result] of Object.entries(fieldSettingResults)) {
     ].join('\n');
 }
 for (const [name, result] of Object.entries(columnSettingResults)) {
-    displayedModifierSignatures[name] = `.${name}(setting: ${result})\n.${name}(setting: (context: string) => ${result})`;
+    displayedModifierSignatures[name] = `.${name}(setting: ${result})\n.${name}(setting: () => ${result})`;
 }
 
 displayedModifierSignatures.defaultValue = '.defaultValue(value: T | null)\n.defaultValue(factory: (record: Record<any>) => T | null)';

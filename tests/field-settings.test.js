@@ -77,12 +77,15 @@ it('enforces calculated length bounds in synchronous and asynchronous model vali
     expect(record.isValid('text')).toBe(false);
 });
 
-it.each(['sortable', 'minColumnWidth', 'maxColumnWidth', 'targetColumnWidth'])('%s resolves without choosing a row', modifier => {
+it.each(['sortable', 'minColumnWidth', 'maxColumnWidth', 'targetColumnWidth'])('%s resolves without record, value, or context arguments', modifier => {
     const result = modifier === 'sortable' ? false : 100;
-    const callback = jest.fn(context => context === 'export' ? result : undefined);
+    const callback = jest.fn(() => result);
     const field = new FieldTypeBuilder()[modifier](callback);
-    expect(field.valueOf()[modifier]('export')).toBe(result);
-    expect(callback).toHaveBeenCalledWith('export');
+    expect(field.valueOf()[modifier]()).toBe(result);
+    expect(callback).toHaveBeenCalledWith();
+    expect(new FieldTypeBuilder()[modifier](result).valueOf()[modifier]()).toBe(result);
+    callback.mockReturnValue(modifier === 'sortable' ? true : 200);
+    expect(field.valueOf()[modifier]()).toBe(modifier === 'sortable' ? true : 200);
 });
 
 it('supplies only the owning record to default factories', () => {

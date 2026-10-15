@@ -1,6 +1,6 @@
 # ADR-0005: Scope modifier callback inputs to their operation
 
-- Status: Accepted; cell-class context superseded by [ADR-0006](./0006-distinguish-column-and-cell-classes.md)
+- Status: Accepted; cell-class context superseded by [ADR-0006](./0006-distinguish-column-and-cell-classes.md) and column-setting context by [ADR-0007](./0007-remove-column-setting-context.md)
 - Date: 2026-10-15
 - Supersedes the uniform field-setting and default-factory signatures in ADR-0003
 

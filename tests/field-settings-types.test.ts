@@ -12,9 +12,9 @@ function checkSettings() {
     const factory: DefaultSetting<number, { default: number }> = record => record.values.default;
     field.defaultValue(factory);
     field.type(record => record.getField('numeric') ? 'number' : 'text');
-    const column: ColumnSetting<number> = context => context === 'table' ? 100 : 200;
+    const column: ColumnSetting<number> = () => 100;
     field.minColumnWidth(column).maxColumnWidth(column).targetColumnWidth(column);
-    field.sortable(context => context === 'table');
+    field.sortable(() => true);
     field.compareFunction((a, b) => a - b);
     field.filter((query, value) => value === Number(query));
     field.reducer(values => values.reduce((a, b) => a + b, 0));
@@ -30,11 +30,19 @@ function checkSettings() {
     field.minLength(() => 'three');
     // @ts-expect-error Default callbacks return the field's model type.
     field.defaultValue(() => 'zero');
-    // @ts-expect-error Column callbacks accept only context, without placeholder arguments.
+    // @ts-expect-error Column callbacks accept no arguments.
     field.sortable((_value: undefined, _record: undefined, context: string) => true);
+    // @ts-expect-error Column callbacks do not receive context.
+    field.sortable((context: string) => true);
+    // @ts-expect-error Column width callbacks do not receive context.
+    field.maxColumnWidth((context: string) => 100);
+    // @ts-expect-error Preferred-width callbacks do not receive context.
+    field.targetColumnWidth((context: string) => 100);
+    // @ts-expect-error Column getters accept no context.
+    field.valueOf().minColumnWidth('table');
     // @ts-expect-error Default factories accept only a record.
     field.defaultValue((_value: number, record: Record<any>, context: string) => 0);
-    // @ts-expect-error The first column callback argument is the context string.
+    // @ts-expect-error Column callbacks do not receive a record.
     field.minColumnWidth((record: Record<any>) => 100);
     // @ts-expect-error Empty predicates receive value and record, without a display context.
     field.emptyWhen((value: number, record: Record<any>, context: string) => true);
