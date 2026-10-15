@@ -116,7 +116,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     if (validation && markup) {
         setup = 'let checked = false;\n';
         markup = markup.replace(`field="${validation}"`, `field="${validation}"\n  .showValidationErrors=\${checked}`);
-        markup += `\n\n<button @click=\${() => { checked = true; update(); }}>\n  ${name === 'required' ? 'Check record' : 'Check value'}\n</button>\n<p role="status">\n  \${checked ? (${model.name}.isValid('${validation}')\n    ? 'Valid.' : ${model.name}.readableFieldErrors('${validation}').join('. '))\n    : 'Ready to validate.'}\n</p>`;
+        markup += `\n\n<button @click=\${() => { checked = true; update(); }}>\n  ${name === 'required' ? 'Check record' : 'Check value'}\n</button>\n<p role="status">\n  \${checked ? (${model.name}.isValid('${validation}')\n    ? 'Valid.' : ${model.name}.readableFieldErrors('${validation}').join('. '))\n    : 'Validation message has not been shown.'}\n</p>`;
     }
     if (name === 'defaultValue') markup += '\n\n<button @click=${() => defaultRecord.clear()}>Clear the record</button>';
     if (name === 'maxLength') markup += `\n\n<button @click=\${() => {\n  checked = true;\n  record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG');\n}}>Assign an overlong model value</button>`;

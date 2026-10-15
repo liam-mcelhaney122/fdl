@@ -166,8 +166,8 @@ export class FdlModifierExplorer extends LitElement {
                 this.requestUpdate();
             }}> Require a value</label>
             ${this.field(this.person, 'name')}
-            <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record </button>
-            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'Ready to validate. Try an empty value first.'}</p>`;
+            <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record</button>
+            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'The model is already checked. Check record shows its validation message.'}</p>`;
         if (this.modifierName === 'formatter') return html`
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>

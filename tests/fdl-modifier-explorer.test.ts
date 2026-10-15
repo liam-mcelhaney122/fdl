@@ -63,7 +63,7 @@ describe('modifier explorer', () => {
         root.querySelector<HTMLButtonElement>('.reset')!.click();
         await settle(page);
         expect(root.querySelector('.model pre')!.textContent).toContain('"name": ""');
-        expect(root.querySelector('.result')!.textContent).toContain('Ready to validate');
+        expect(root.querySelector('.result')!.textContent).toContain('Check record shows its validation message');
     });
 
     it('loads a formatter deep link and preserves the raw number', async () => {
