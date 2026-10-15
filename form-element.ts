@@ -274,6 +274,8 @@ class FormElement extends ListeningElement {
 
         if (this.fieldType?.hasOptions()) {
             this.element.loading = true;
+            this.element.setAttribute('aria-busy', 'true');
+            this.requestUpdate();
             const options = (await this.fieldType?.options(this.record)) as Array<{
                 text: unknown;
                 value: unknown;
@@ -294,6 +296,7 @@ class FormElement extends ListeningElement {
                 this.element.radios = options; // should deprecate and use options
             }
             this.element.loading = false;
+            this.element.removeAttribute('aria-busy');
         }
         this.updateValidationAccessibility();
         this.requestUpdate();
@@ -388,7 +391,7 @@ class FormElement extends ListeningElement {
         }
         if (this.element instanceof HTMLSelectElement && this.element.multiple) return this.renderMultipleSelect(this.element);
         this.element.hidden = false;
-        return html`<div class="control">${this.element}${this.renderValidationErrors()}</div>`;
+        return html`<div class="control">${this.element}${this.element.loading ? html`<p class="options-loading" role="status">Loading choices…</p>` : nothing}${this.renderValidationErrors()}</div>`;
     }
 
     render() {

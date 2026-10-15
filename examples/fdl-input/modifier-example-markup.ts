@@ -5,7 +5,7 @@ export const exampleFields: { [name: string]: [record: string, fields: string[]]
     disabledWhen: ['record', ['approvalStatus', 'budget']], emptyWhen: ['record', ['emptyCode', 'optionalEmptyCode']],
     label: ['record', ['expenseType', 'dynamicAmount']], maxLength: ['record', ['shortCode']],
     minLength: ['record', ['longCode']], multipleValues: ['record', ['skills']],
-    options: ['record', ['department', 'assignee']], parser: ['record', ['money']],
+    options: ['record', ['department', 'assignee', 'asyncAssignee']], parser: ['record', ['money']],
     placeholder: ['record', ['projectName']], readOnly: ['record', ['fixedOwner']],
     readOnlyWhen: ['record', ['phase', 'conditionalOwner']], requiredWhen: ['record', ['followUp', 'followUpNotes']],
     rowCount: ['record', ['comments']], type: ['record', ['dateType']], validator: ['record', ['projectCode']],

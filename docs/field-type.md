@@ -103,6 +103,24 @@ const contactMethod = new FieldType().with
   ]);
 ```
 
+`options()` can also receive a regular function or an async function. Both
+receive the current record:
+
+```js
+const localAssignee = new FieldType()
+  .with.options(record => directory[record.getField('department')]);
+
+const remoteAssignee = new FieldType()
+  .with.options(async record => {
+    const response = await fetch(`/assignees?department=${encodeURIComponent(record.getField('department'))}`);
+    return response.json();
+  });
+```
+
+If the selected value exists in both the old and new option lists, it remains
+selected. Refreshing choices does not reset the record value. When a value is
+absent from the new list, the application decides whether to clear it.
+
 `options()` also accepts `{ data, text, value, compareFunction, filter, fields
 }` or `{ fetch, ... }`. `fetch` receives the current record and may return an
 array or a promise. `fields` limits cache invalidation to the listed record

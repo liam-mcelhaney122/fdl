@@ -112,3 +112,18 @@ it('shows how the same empty value affects required and optional field validatio
     expect(model.fieldTypeForField('emptyCode').required(model)).toBe(true);
     expect(model.fieldTypeForField('optionalEmptyCode').required(model)).toBe(false);
 });
+
+
+it('exports working function and async options with a shared value that stays selected', async () => {
+    const {model, container} = runExample('options');
+    for (const department of ['engineering', 'finance']) {
+        model.setField('department', department);
+        for (const field of ['assignee', 'asyncAssignee']) {
+            const choices = await model.fieldTypeForField(field).options(model);
+            expect(choices).toContainEqual({text:'Margaret Hamilton', value:'margaret'});
+            expect(choices.map((choice: any) => choice.value)).toContain(department === 'engineering' ? 'grace' : 'katherine');
+            expect(model.getField(field)).toBe('margaret');
+        }
+    }
+    expect(container.querySelectorAll('fdl-field')).toHaveLength(3);
+});

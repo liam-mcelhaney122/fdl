@@ -127,6 +127,7 @@ it('exposes an out-of-list selection and clears it only on request', async () =>
     const page = await openExplorer('#options');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
+    await editField(catalog.shadowRoot!, 'assignee', 'grace');
     await editField(catalog.shadowRoot!, 'department', 'finance');
     await new Promise(resolve => setTimeout(resolve, 0));
     await catalog.updateComplete;
@@ -307,4 +308,28 @@ it('sorts the live T-shirt size column in size order and highlights all comparat
     const focused=page.shadowRoot!.querySelectorAll('.code .focused-line');
     expect([...focused].filter(line=>line.textContent!.includes('.compareFunction('))).toHaveLength(3);
     expect(catalog.shadowRoot!.querySelector('.case-comparison')!.textContent).toContain('XS → S → M → L → XL → XXL');
+});
+
+
+it('keeps a shared selection in both function and async-function options after the department changes', async () => {
+    const page = await openExplorer('#options');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const fields = ['assignee', 'asyncAssignee'].map(name => catalog.shadowRoot!.querySelector(`fdl-field[field="${name}"]`) as any);
+    for (const department of ['engineering', 'finance', 'engineering']) {
+        if (department !== 'engineering' || fields[0].record.getField('department') !== department) {
+            await editField(catalog.shadowRoot!, 'department', department);
+        }
+        await Promise.all(fields.map(field => field.record.fieldTypeForField(field.field).options(field.record)));
+        await Promise.all(fields.map(field => field.updateComplete));
+        await catalog.updateComplete;
+        for (const field of fields) {
+            const select = field.shadowRoot.querySelector('select') as HTMLSelectElement;
+            expect(select.value).toBe('margaret');
+            expect(select.selectedOptions[0].textContent).toBe('Margaret Hamilton');
+            expect(field.record.getField(field.field)).toBe('margaret');
+        }
+    }
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.options(async record =>');
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.options(record =>');
 });

@@ -1,3 +1,4 @@
+import { assigneeDirectory, optionsDelay } from './assignee-options';
 import { compareShirtSizes, compareShirtSizesSource, shirtOrders } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { exampleTheme } from './example-theme';
@@ -139,7 +140,12 @@ export class FdlModifierCatalog extends LitElement {
             quantity: new FieldType<any>().with.label('Quantity').and.tag('select').and.options([{ text: '1', value: 1 }, { text: '2', value: 2 }, { text: '4', value: 4 }]),
             total: new FieldType().with.label('Total at $25 each').and.formatter(value => currency.format(Number(value))).and.readOnly(),
             department: new FieldType().with.label('Department').and.tag('select').and.options([{ text: 'Engineering', value: 'engineering' }, { text: 'Finance', value: 'finance' }]),
-            assignee: new FieldType<any>().with.label('Assignee').and.tag('select').and.options({ fields: ['department'], fetch: (record: any) => Promise.resolve(record.getField('department') === 'finance' ? [{ text: 'Katherine Johnson', value: 'katherine' }, { text: 'Mary Jackson', value: 'mary' }] : [{ text: 'Grace Hopper', value: 'grace' }, { text: 'Margaret Hamilton', value: 'margaret' }]) }),
+            assignee: new FieldType<any>().with.label('Assignee (function)').and.tag('select').and.options((record: any) => assigneeDirectory[record.getField('department')]),
+            asyncAssignee: new FieldType<any>().with.label('Assignee (async function)').and.tag('select').and.options(async (record: any) => {
+                const choices = assigneeDirectory[record.getField('department')];
+                await new Promise(resolve => setTimeout(resolve, optionsDelay));
+                return choices;
+            }),
             projectName: new FieldType().with.label('Project name').and.placeholder('For example, Apollo migration'),
             fixedOwner: new FieldType().with.label('Owner').and.readOnly(),
             phase: new FieldType().with.label('Phase').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
@@ -157,7 +163,7 @@ export class FdlModifierCatalog extends LitElement {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
             emptyCode: 'N/A', optionalEmptyCode: 'N/A', hiddenSearch: '', expenseType: 'travel', dynamicAmount: '',
             money: 1000,
-            shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'grace',
+            shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'margaret', asyncAssignee: 'margaret',
             projectName: '', fixedOwner: 'Ada Lovelace', phase: 'draft', conditionalOwner: 'Ada Lovelace', requiredName: '',
             followUp: 'no', followUpNotes: '', comments: '', dateType: '', projectCode: '',
             fulfillment: 'ship', address: '',
@@ -349,13 +355,18 @@ export class FdlModifierCatalog extends LitElement {
         this.requestUpdate();
     }
     private selectionExplanation() {
-        const selected = this.record.getField('assignee');
-        const matches = this.assigneeChoices.some(choice => choice.value === selected);
         return html`<div class="selection-explanation" role="status">
+            <p>Margaret Hamilton appears in both departments. Switching departments keeps her selected.</p>
             <p>Available choices: ${this.optionsLoading ? 'Loading…' : this.assigneeChoices.map(choice => `${choice.text} (${choice.value})`).join(', ')}.</p>
-            <p>Stored selection: <code>${selected || '(empty)'}</code>.</p>
-            ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected.' : matches ? 'The stored assignee is among the available choices.' : 'The stored assignee is no longer among the available choices. Refreshing choices preserves the stored selection; the application decides whether to clear it.'}</p>`}
-            <button class="clear-selection" ?disabled=${!selected || this.optionsLoading} @click=${() => this.record.setField('assignee', '')}>Clear stored selection</button>
+            ${(['assignee', 'asyncAssignee'] as const).map(field => {
+                const selected = this.record.getField(field);
+                const matches = this.assigneeChoices.some(choice => choice.value === selected);
+                return html`<div data-selection=${field}>
+                    <p>${field === 'assignee' ? 'Function' : 'Async function'} stored selection: <code>${selected || '(empty)'}</code>.</p>
+                    ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected.' : matches ? 'The stored assignee is among the available choices and is not reset when the list changes.' : 'The stored assignee is no longer among the available choices. Refreshing choices preserves the stored selection; the application decides whether to clear it.'}</p>`}
+                    <button class="clear-selection" ?disabled=${!selected || this.optionsLoading} @click=${() => this.record.setField(field, '')}>Clear ${field === 'assignee' ? 'function' : 'async function'} selection</button>
+                </div>`;
+            })}
         </div>`;
     }
 
@@ -442,7 +453,7 @@ export class FdlModifierCatalog extends LitElement {
                 this.requestUpdate();
             }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;
             case 'multipleValues': return html`<p class="try">Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one option.</p>${this.renderField('skills')}`;
-            case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}${this.selectionExplanation()}`;
+            case 'options': return html`<p class="try">Change Department; Assignee choices refresh.</p>${this.renderField('department')}${this.renderField('assignee')}${this.renderField('asyncAssignee')}${this.selectionExplanation()}`;
             case 'parser': return html`<p class="try">Edit the money field. The input is formatted as currency, while the raw stored value updates as you type.</p><div @input=${this.captureMoneyInput}>${this.renderField('money')}</div><p class="computed">Raw stored value: <code>${this.record.getField('money')}</code></p>${valuePipeline(this.record, 'money', this.moneyInput)}`;
             case 'placeholder': return html`${this.renderField('projectName')}`;
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
@@ -467,7 +478,7 @@ export class FdlModifierCatalog extends LitElement {
         const fields: { [name: string]: string[] } = {
             disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode', 'optionalEmptyCode'],
             label: ['expenseType', 'dynamicAmount'], maxLength: ['shortCode'], minLength: ['longCode'],
-            multipleValues: ['skills'], options: ['department', 'assignee'], parser: ['money'],
+            multipleValues: ['skills'], options: ['department', 'assignee', 'asyncAssignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
             required: ['requiredName'], requiredWhen: ['followUp', 'followUpNotes'], rowCount: ['comments'],
             type: ['dateType'], validator: ['projectCode'], visibleWhen: ['fulfillment', 'address'],

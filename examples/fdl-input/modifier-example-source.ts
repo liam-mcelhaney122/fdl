@@ -1,3 +1,4 @@
+import { assigneeDirectory, optionsDelay } from './assignee-options';
 import { shirtOrders, compareShirtSizesSource } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { disabledFieldStyles } from './field-example-styles';
@@ -39,19 +40,18 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     { text: 'Engineering', value: 'engineering' },
     { text: 'Research', value: 'research' },
   ])`)},values:{skills:['design']}},
-        options: {name:'record',prefix:`const directory = {
-  engineering: [
-    { text: 'Grace Hopper', value: 'grace' },
-    { text: 'Margaret Hamilton', value: 'margaret' },
-  ],
-  finance: [
-    { text: 'Katherine Johnson', value: 'katherine' },
-    { text: 'Mary Jackson', value: 'mary' },
-  ],
-};`,fields:{department:choose('Department',[['Engineering','engineering'],['Finance','finance']]),assignee:type(`label('Assignee').and.tag('select').and.options({
-    fields: ['department'],
-    fetch: record => Promise.resolve(directory[record.getField('department')]),
-  })`)},values:{department:'engineering',assignee:'grace'}},
+        options: {name:'record',prefix:`const directory = ${JSON.stringify(assigneeDirectory, null, 2)};`,fields:{
+            department:choose('Department',[['Engineering','engineering'],['Finance','finance']]),
+            assignee:type(`label('Assignee (function)').and.tag('select').and.options(record =>
+      directory[record.getField('department')]
+    )`),
+            asyncAssignee:type(`label('Assignee (async function)').and.tag('select').and.options(async record => {
+      const choices = directory[record.getField('department')];
+      // Simulate an asynchronous directory lookup.
+      await new Promise(resolve => setTimeout(resolve, ${optionsDelay}));
+      return choices;
+    })`),
+        },values:{department:'engineering',assignee:'margaret',asyncAssignee:'margaret'}},
         parser: {name:'record',prefix:currency,fields:{money:type(`label('Money')
     .and.formatter(value => currency.format(Number(value)))
     .and.parser(value => Number(String(value).replace(/[$,]/g, '')))` )},values:{money:1000}},
@@ -124,7 +124,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     ).join('\n\n');
     if (name === 'defaultValue') markup += '\n\n<button @click=${() => defaultRecord.clear()}>Clear the record</button>';
     if (name === 'maxLength') markup += `\n\n<button @click=\${() => {\n  checked = true;\n  record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG');\n}}>Assign an overlong model value</button>`;
-    if (name === 'options') markup += `\n\n<button @click=\${() => record.setField('assignee', '')}>\n  Clear stored selection\n</button>`;
+
     if (name === 'parser') markup += `\n\n<p>Stored number: \${record.getField('money')}</p>`;
     if (name === 'hashFunction') markup += `\n\n<p role="status">\n  \${hashType.hashFunction()({ id: probes.getField('firstId') }) ===\n    hashType.hashFunction()({ id: probes.getField('secondId') })\n    ? 'Same identity' : 'Different identities'}\n</p>`;
     if (name === 'reducer') markup += `\n\n<p role="status">\n  Sum: \${currency.format(reducerType.aggregate([\n    probes.getField('firstAmount'),\n    probes.getField('secondAmount'),\n    probes.getField('thirdAmount'),\n  ]))}\n</p>`;
