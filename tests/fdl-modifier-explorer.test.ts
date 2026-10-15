@@ -1,3 +1,4 @@
+import { categoryDescriptions } from '../examples/fdl-input/category-icon';
 import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
 import FieldType from '../field-type.js';
 import { exampleSource } from '../examples/fdl-input/modifier-example-source';
@@ -151,7 +152,9 @@ describe('complete explorer', () => {
         expect(categoryButton.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
         categoryButton.dispatchEvent(new FocusEvent('focus'));
         await settle(page);
-        expect(page.shadowRoot!.querySelector('#category-tooltip')!.textContent).toBe(recipe.category);
+        expect(page.shadowRoot!.querySelector('#category-tooltip strong')!.textContent).toBe(recipe.category);
+        expect(page.shadowRoot!.querySelector('#category-tooltip > span')!.textContent).toBe(categoryDescriptions[recipe.category]);
+        expect(categoryDescriptions[recipe.category].length).toBeGreaterThan(40);
         categoryButton.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
         await settle(page);
         expect(page.shadowRoot!.querySelector('#category-tooltip')).toBeNull();

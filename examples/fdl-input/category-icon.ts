@@ -10,6 +10,16 @@ const icons = {
     'Adapter contracts': svg`<path d="M9 3v5m6-5v5M6 8h12v3a6 6 0 0 1-12 0Zm6 9v4"></path>`,
 };
 
+export const categoryDescriptions: {[category: string]: string} = {
+    'Validation': 'Rules that determine whether a field value is valid, including requiredness, length limits, and custom checks.',
+    'Display': 'How stored values are formatted or presented to the reader without changing the underlying data.',
+    'Conditional state': 'Whether a field is visible, editable, or required, either permanently or based on other values in the record.',
+    'Tables': 'How table consumers arrange, style, sort, and filter fields across a collection of records.',
+    'Values': 'Defaults, sample data, parsing, identity, and aggregation: how values are created, transformed, and used.',
+    'Input': 'Labels, hints, input types, and character masks that describe how a compatible control presents or accepts input.',
+    'Adapter contracts': 'Metadata that needs a compatible UI adapter. The native example does not implement these interactions.',
+};
+
 export function categoryIcon(category: string) {
     return html`<svg class="category-icon" data-category=${category} aria-hidden="true" focusable="false" viewBox="0 0 24 24">${icons[category as keyof typeof icons]}</svg>`;
 }
