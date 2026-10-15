@@ -79,9 +79,12 @@ export class FdlTable extends LitElement {
     static properties = {
         recordset: { attribute: false },
         filters: { attribute: false },
+        showWidthDiagnostics: {type:Boolean, attribute:'show-width-diagnostics'},
     };
 
     recordset?: Recordset<any>;
+    showWidthDiagnostics = false;
+    private resizeMessage = '';
     /** Optional controlled filter text, keyed by field. */
     filters?: {[field: string]: string};
 
@@ -388,8 +391,20 @@ export class FdlTable extends LitElement {
             leftIndex,
             target - range.now
         );
+        this.describeResize(leftIndex, target);
         this.requestUpdate();
         event.preventDefault();
+    }
+
+    private describeResize(index: number, requested: number) {
+        const width = this.columnWidths?.[index];
+        if (width === undefined) return;
+        const limit = this.columnLimits(this.columns[index]);
+        const neighborAtLimit = this.columnWidths!.slice(index + 1).some((value, offset) => { const neighbor = this.columnLimits(this.columns[index + offset + 1]); return value <= neighbor.min || (neighbor.max !== undefined && value >= neighbor.max); });
+        this.resizeMessage = width <= limit.min ? 'Minimum reached.'
+            : limit.max !== undefined && width >= limit.max ? 'Maximum reached.'
+            : neighborAtLimit || Math.abs(width - requested) > 0.5 ? 'A neighboring column reached its limit; total table width is preserved.'
+            : 'Resizing within the configured limits.';
     }
 
     private startResize(
@@ -426,6 +441,7 @@ export class FdlTable extends LitElement {
             this.resizing.leftIndex,
             event.clientX - this.resizing.startX
         );
+        this.describeResize(this.resizing.leftIndex, this.resizing.widths[this.resizing.leftIndex] + event.clientX - this.resizing.startX);
         this.requestUpdate();
     };
 
@@ -662,6 +678,10 @@ export class FdlTable extends LitElement {
                     </tbody>
                 </table>
             </div>
+            ${this.showWidthDiagnostics ? html`<section class="width-diagnostics" aria-label="Column width measurements"><h3>Live column widths</h3><ul>${columns.map((column,index) => {
+                const properties = this.recordset?.getFieldType(column.field).properties;
+                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${properties?.targetColumnWidth ? ` · preferred ${properties.targetColumnWidth}px` : ''}${properties?.maxColumnWidth ? ` · max ${properties.maxColumnWidth}px` : ''}</li>`;
+            })}</ul><p role="status">${this.resizeMessage || 'Drag a divider or use its arrow keys. The table keeps its total width.'}</p></section>` : nothing}
             <slot></slot>
         `;
     }
@@ -931,6 +951,10 @@ export class FdlTable extends LitElement {
             text-align: center;
         }
 
+        .width-diagnostics { margin-top:16px; padding:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; font-size:.875rem; line-height:1.6; }
+        .width-diagnostics h3 { margin:0 0 8px; font-size:1rem; }
+        .width-diagnostics ul { margin:0; padding-left:20px; }
+        .width-diagnostics p { margin:8px 0 0; }
         slot {
             display: none;
         }

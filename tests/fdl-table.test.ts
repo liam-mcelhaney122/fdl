@@ -63,6 +63,7 @@ describe('<fdl-table>', () => {
         );
         const table = document.createElement('fdl-table') as TestTable;
         table.recordset = recordset;
+        table.setAttribute('show-width-diagnostics', '');
         table.innerHTML = `
             <fdl-column field="left"></fdl-column>
             <fdl-column field="right"></fdl-column>
@@ -112,6 +113,8 @@ describe('<fdl-table>', () => {
             'width:80px'
         );
 
+        expect(table.shadowRoot!.querySelector('.width-diagnostics')!.textContent).toContain('170px');
+        expect(table.shadowRoot!.querySelector('.width-diagnostics [role=status]')!.textContent).toContain('neighboring column');
         await press('Home');
         handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
         expect(handle?.getAttribute('aria-valuenow')).toBe('130');

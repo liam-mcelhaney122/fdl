@@ -407,7 +407,7 @@ export class FdlModifierCatalog extends LitElement {
             targetColumnWidth: 'Drag the divider to resize this preferred-width column; its minimum and maximum still apply.',
         };
         return html`<p class="try">${instructions[name]}</p>
-            <fdl-table class="width-table" .recordset=${this.widthRecordsets[name]}>
+            <fdl-table show-width-diagnostics class="width-table" .recordset=${this.widthRecordsets[name]}>
                 <fdl-column field="constrained"></fdl-column>
                 <fdl-column field="flexible"></fdl-column>
             </fdl-table>`;
