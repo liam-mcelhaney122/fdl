@@ -126,6 +126,7 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
         expect(page.shadowRoot!.querySelector('#modifier-jump')).toBeNull();
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
+        expect(page.shadowRoot!.querySelector('h2.modifier-signature')!.textContent).toBe(modifierSignatures[name]);
         const link = page.shadowRoot!.querySelector(`.modifier-list a[href="#${name}"]`)!;
         expect(link.querySelector('small')).toBeNull();
         expect(link.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);

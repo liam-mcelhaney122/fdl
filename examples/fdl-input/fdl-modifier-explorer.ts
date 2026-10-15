@@ -223,7 +223,8 @@ export class FdlModifierExplorer extends LitElement {
                 ${this.page !== 'modifier' ? renderSitePage(this.page) : html`
                 <div class="chapter"><span>${recipe.category}</span></div>
                 <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
-                <h2>${recipe.title}</h2><p class="description">${recipe.description}</p>
+                <h2 class="modifier-signature"><code>${modifierSignatures[recipe.name]}</code></h2>
+                <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
                 <section class="playground" aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
@@ -321,6 +322,9 @@ export class FdlModifierExplorer extends LitElement {
         h1 { margin:24px 0 16px; font:500 clamp(28px,3.2vw,44px)/1.3 monospace; letter-spacing:-1px; overflow-wrap:anywhere; scroll-margin-top:24px; }
         h1 span { color:#64748b; font-size:.75em; }
         h2 { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }
+        .modifier-title { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }
+        .modifier-signature { margin:0 0 24px; font:400 1rem/1.65 monospace; color:var(--muted); overflow-wrap:anywhere; }
+        .modifier-signature code { font:inherit; }
         .description { max-width:70ch; margin:0 0 28px; font-size:1.125rem; line-height:1.7; color:var(--muted); }
         .playground { border:1px solid var(--example-border); border-radius:var(--example-radius); background:#ffffff; overflow:hidden; }
         .section-bar { min-height:64px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:12px 20px; border-bottom:1px solid #e2e8f0; font-size:.875rem; font-weight:600; }
@@ -389,7 +393,8 @@ export class FdlModifierExplorer extends LitElement {
             main { padding:28px 0; }
             h1 { font-size:clamp(24px,5.5vw,36px); }
             h1 span { display:block; margin-top:8px; }
-            h2 { font-size:1.5rem; }
+            h2,.modifier-title { font-size:1.5rem; }
+            .modifier-signature { font-size:.9375rem; }
             .code { padding:16px; }
             .pager small { display:none; }
         }
