@@ -1,3 +1,4 @@
+import { downloadStarter } from './starter-files';
 import { modifierSignatures } from './modifier-signatures';
 import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
@@ -246,7 +247,8 @@ export class FdlModifierExplorer extends LitElement {
                     <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
                 <div class="details">
-                <p class="source-intro">Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
+                <section class="starter-handoff"><h3>Use this example</h3><p>Download the model, Lit UI, and example adapters together. Unzip, run <code>npm install</code>, then <code>npm run dev</code>.</p><button @click=${async () => { const {default: assets} = await import('virtual:fdl-starter'); downloadStarter(source, assets); }}>Download runnable example</button><p class="markup-note">Includes a snapshot of this FDL version. The adapters and their styles are included; they are not exported by <code>digital-fdl</code>.</p></section>
+                <p class="source-intro">Starting values are shown below. Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
                 <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
@@ -373,6 +375,9 @@ export class FdlModifierExplorer extends LitElement {
         .code .focused-line { border-left-color:#60a5fa; background:#1e3a5f; }
         .markup-note { font-size:1rem; line-height:1.65; margin:0 0 16px; max-width:70ch; }
         .code-section .code { padding-left:0; padding-right:0; }
+        .starter-handoff { padding:20px; border:1px solid #cbd5e1; border-radius:6px; background:#f8fafc; }
+        .starter-handoff p { font-size:1rem; margin:0 0 16px; }
+        .starter-handoff button { min-height:44px; margin-bottom:12px; padding:8px 16px; border:0; border-radius:4px; background:#2563eb; color:white; font-size:1rem; }
         .source-intro { margin:0; max-width:70ch; font-size:1rem; }
         .code-section,.explanation { min-width:0; }
         .code-section,.markup-section,.css-section { min-width:0; padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }

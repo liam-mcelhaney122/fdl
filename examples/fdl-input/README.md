@@ -65,3 +65,10 @@ change the example's rule, but every editable domain value remains bound through
 Disabled field controls use a gray fill, dashed border, and unavailable cursor
 while keeping their values readable. The `disabled` and `disabledWhen` pages
 show the same CSS used by the field adapter.
+
+Every modifier offers a downloadable runnable ZIP with its model/view files,
+compiled example adapters and styles, a bundled snapshot of the current FDL
+model, and a minimal Lit/Vite project. `starter-assets.mjs` supplies those assets
+through a Vite virtual module, loaded only when downloading. The ZIP is created
+locally in the browser; it does not use a download service. Verify representative
+starters independently, including a form, table styling, and dependent options.
