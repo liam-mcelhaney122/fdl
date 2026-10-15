@@ -446,6 +446,27 @@ describe('FieldType', () => {
             ]);
         });
 
+        it.each([false, true])('refreshes direct options functions when record values change (async: %s)', async asynchronous => {
+            const source = record => [{text: record.getField('department'), value: 'shared'}];
+            const fetch = asynchronous ? async record => source(record) : source;
+            const type = new FieldType().with.options(fetch);
+            const record = new Record({department: new FieldType()}, {department: 'engineering'});
+            expect(await type.options(record)).toEqual([{text: 'engineering', value: 'shared'}]);
+            record.setField('department', 'finance');
+            expect(await type.options(record)).toEqual([{text: 'finance', value: 'shared'}]);
+        });
+
+        it('continues to cache direct options functions without record arguments', async () => {
+            let calls = 0;
+            const fetch = () => { calls++; return [{text: 'Shared', value: 'shared'}]; };
+            const type = new FieldType().with.options(fetch);
+            const record = new Record({department: new FieldType()}, {department: 'engineering'});
+            await type.options(record);
+            record.setField('department', 'finance');
+            await type.options(record);
+            expect(calls).toBe(1);
+        });
+
         it('fetch with a record object', async () => {
             const state = new FieldType().with.options({
                 fetch(record) {

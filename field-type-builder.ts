@@ -594,7 +594,8 @@ export default class FieldTypeBuilder<T> {
 
         if (config instanceof Function) {
             config = {
-                fetch: (...args: any) => Promise.resolve((optionsConfig as Function)(...args)),
+                // Preserve callback arity: record-dependent functions must invalidate their cache.
+                fetch: optionsConfig as unknown as FetchFn<T>,
             };
         }
 
