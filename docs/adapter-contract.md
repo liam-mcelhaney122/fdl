@@ -84,8 +84,12 @@ an unrelated internal input.
 - FDL validation is authoritative. Native constraint-validation UI may provide
   useful control behavior, but browser validity is not a substitute for
   `Record.isValid()`.
-- The base adapter creates one child control. Composite controls, focus routing,
-  custom live regions, and field-level error summaries require a specialized
-  adapter.
+- The base adapter creates one configured child control. A multiple-value
+  native select also gets a checkbox dropdown with a summary, Clear, and Done.
+  Other composite controls, custom focus routing, live regions, and field-level
+  error summaries require a specialized adapter.
+- `multipleValues(min, max)` exposes count metadata but does not enforce those
+  bounds in the model or checkbox dropdown. Add an explicit validator when
+  selection counts must be constrained.
 - Generated IDs are stable only for the lifetime of the component instance;
   they are not persisted across removal, recreation, or server rendering.

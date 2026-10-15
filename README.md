@@ -15,7 +15,8 @@ reusable behavior such as parsing, formatting, validation, dependencies,
 comparison, filtering, and aggregation.
 
 The single documentation site includes Home, How it Works, Contributing, and
-one page per modifier with live examples, model state, and highlighted code.
+modifier reference pages that group related rules, with live examples, model
+state, and highlighted code. Each modifier retains its own hash link.
 Run it locally with `npm run docs:dev` and open the root URL printed by Vite.
 Building or previewing the site does not publish it.
 
@@ -24,9 +25,9 @@ Building or previewing the site does not publish it.
 Imagine a scheduling form for a dog-walking business. It has four fields:
 name, date, new-customer status, and comments, with these rules:
 
-- Name must be 2–20 characters and is capitalized for display.
+- Name is required, must be 2–20 characters, and is capitalized for display.
 - The new-customer checkbox is disabled for unrecognized names.
-- Dates must be weekdays, cannot be holidays, and new customers may book only on Friday.
+- Dates are required, must be weekdays, cannot be holidays, and new customers may book only on Friday.
 - Comments are required for new customers.
 
 Putting these rules directly in a template or scattering them through event
@@ -36,14 +37,21 @@ rules alongside each field type; the view only decides where to render fields.
 ```js
 import { string, boolean, date, Record } from "digital-fdl";
 
+const existingCustomers = ["Ada", "Grace"];
+const holidays = [new Date(2026, 11, 25).toDateString()];
+
 const name = string
+  .required()
   .minLength(2)
   .maxLength(20)
   .formatter(capitalize);
 const newCustomer = boolean
+  .type("checkbox")
   .defaultValue(false)
-  .disabled(isNewCustomer);
+  .disabled((_value, record) =>
+    !existingCustomers.includes(record.getField("name")));
 const appointmentDate = date
+  .required()
   .validator({ name: "weekday", validate: isWeekday })
   .validator({ name: "not-holiday", validate: isNotHoliday })
   .validator({
@@ -69,21 +77,31 @@ function capitalize(str) {
 }
 
 function isNewCustomer(_value, record) {
-  return !existingCustomers.includes(record.getField("name"));
+  return record.getField("newCustomer");
+}
+
+function isDate(value) {
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 function isWeekday(value) {
-  return value.getDay() !== 0 && value.getDay() !== 6;
+  return isDate(value) && value.getDay() !== 0 && value.getDay() !== 6;
 }
 
 function isNotHoliday(value) {
-  return !holidays.includes(value);
+  return isDate(value) && !holidays.includes(value.toDateString());
 }
 
 function isExistingCustomerOrNewCustomerDay(value, _, record) {
-  return existingCustomers.includes(record.getField("name")) || value.getDay() === 5;
+  return isDate(value) && (!record.getField("newCustomer") || value.getDay() === 5);
 }
 ```
+
+This example validates model values: assign a JavaScript `Date` to `date`.
+The `date` primitive does not parse native date-input strings automatically;
+a date control needs an explicit parser and formatter. Field-setting callbacks
+such as `required` receive `(value, record, context)`, while validators receive
+`(modelValue, viewValue, record, options, field)`.
 
 ## Docs
 

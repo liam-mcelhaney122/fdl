@@ -118,17 +118,21 @@ removes that error element and the ARIA state. CSS may style
 whether the model is valid.
 
 This behavior uses `Record.readableFieldErrors()`, so it covers synchronous FDL
-validators only. Applications that use asynchronous validators must await the
-async Record APIs and render their result through an application-specific
-adapter. See [Current limits](./adapter-contract.md#current-limits).
+validators only. The adapter also constructs a `Field` facade, which reads
+synchronous validity immediately. An async validator therefore throws even
+when `showValidationErrors` is false. Applications that use asynchronous
+validators must await the async Record APIs directly and render their result
+through an application-specific adapter. See [Current limits](./adapter-contract.md#current-limits).
 
 ## Native dropdowns
 
 For a native `select`, `FormElement` converts the option objects returned by
 `.options(...)` into `<option>` nodes. Each option should provide `text` and
 `value` (or use the documented `options({ data, text, value })` mapping).
-Include an empty option when the field starts empty, and use `.required()` or
-`.required(...)` if choosing an option is part of validation.
+The native adapter converts option values to strings for the DOM. Use string
+identities for this adapter; object-valued option identities need a compatible
+custom control. Include an empty option when the field starts empty, and use
+`.required()` or `.required(...)` if choosing an option is part of validation.
 
 See the working example in [`examples/fdl-input`](../examples/fdl-input/) for
 the unified `fdl-field`, conditional validation, and a live `Record` preview.
@@ -142,5 +146,13 @@ validation, and disabled state are exposed on the dropdown trigger.
 For native text inputs and textareas, input events update the parsed record
 value without replacing the user's editing text or caret. This preserves
 unfinished values such as `12.` and allows clearing a numeric field. Leaving
-the field applies its formatted representation. Programmatic record changes
+the field reapplies its formatted representation using `"input-focus"`, the
+same context used for programmatic synchronization. It does not request
+`"input-blur"`; a formatter that needs a distinct blur representation requires
+an adapter that explicitly uses that context. Programmatic record changes
 still synchronize the displayed value.
+
+`multipleValues(min, max)` does not enforce selection-count bounds. Add a
+model validator when the stored array must contain a particular number of
+items. Native input types and browser attributes also do not add FDL validation
+or parsers; configure those model rules explicitly.

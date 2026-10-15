@@ -25,6 +25,12 @@ All notable changes to FDL will be documented in this file. The format follows
 - The repository landing page now leads with the product problem FDL solves and
   includes a reproducible first-run path.
 
+### Fixed
+
+- Correct the README scheduling example, clarify primitive conversion and default
+  lifecycle behavior, document synchronous/async validation boundaries, and align
+  the adapter and modifier reference with current multiselect and emptiness rules.
+
 ### Removed
 
 - The separate portfolio application, original example home page, and all-in-one

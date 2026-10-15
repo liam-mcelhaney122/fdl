@@ -70,7 +70,7 @@ A field setting accepts its result directly or a synchronous callback with the
 same three arguments:
 
 ```ts
-import type { FieldSetting, ColumnSetting, DefaultSetting } from 'digital-fdl';
+import type { Record, FieldSetting, ColumnSetting, DefaultSetting } from 'digital-fdl';
 
 // T is the stored field type; R is the record's backing-data type.
 type Setting<T, Result, R = any> =
@@ -132,6 +132,19 @@ order. Labels and other scalar settings use the last declaration. Length
 validators accumulate, so every declared length constraint remains enforced.
 Specialization never changes the source field definition.
 
+### Primitive defaults and conversion
+
+Primitives provide starting metadata, not automatic JavaScript type conversion.
+`string` supplies an empty-string default, `boolean` supplies `false`, `number`
+supplies `0` and a numeric character mask, and `date` supplies a `Date` captured
+when the primitives module loads. For a fresh date whenever defaults are
+resolved, specialize it with `date.defaultValue(() => new Date())`.
+
+None of these primitives adds a parser or a type validator. Add `parser(...)`
+and `validator(...)` for the stored values your application requires. A native
+input's `type(...)` changes the control but does not add model conversion or
+validation; for example, use `boolean.type('checkbox')` for a checkbox.
+
 ### Default factories
 
 `defaultValue` accepts a fixed value or `DefaultSetting<T, R>`:
@@ -143,7 +156,12 @@ defaultValue(factory: (record: Record<R>, context: string) => T | null)
 
 A factory receives the owning record and context, without a meaningless missing
 value argument. Existing non-null values are preserved without invoking it.
-The model supplies `"model"` as context. For example:
+The model supplies `"model"` as context. The `Record` constructor keeps the
+supplied backing values as they are, including `null`, `undefined`, and omitted
+fields; it does not fill them from defaults. Defaults are resolved by
+`Record#clear()`, `Recordset#appendRecord()`, and partial cloning for omitted
+values. Supply an initial value for every declared field when constructing a
+record. For example:
 
 ```ts
 const reference = field
@@ -245,9 +263,15 @@ const positiveNumber = number.validator({
 ```
 
 Synchronous validation is available through `FieldType.validate()` and
-`Record#isValid()`. For a field type containing an asynchronous validator, use
-`FieldType.validateAsync()`, `Record#isValidAsync()`, or the corresponding
-`Field` methods.
+`Record#isValid()`. Both throw if a validator returns a promise; they do not
+skip it or treat pending validation as success. For asynchronous validators,
+use `FieldType.validateAsync()`, `Record#isValidAsync()`, or
+`Record#errorsAsync()`. Rejections propagate to the caller.
+
+The current `Field` facade reads synchronous validity during construction and
+on record changes, and `FormElement` uses that facade. A field with async
+validators therefore needs an application-specific integration using the
+async `Record` APIs directly.
 
 `minLength(n)`, `maxLength(n)`, `required(predicate?)`, and
 `emptyWhen(predicate)` add common validation behavior. Predicates receive the
@@ -261,16 +285,18 @@ legacy renderer-oriented metadata for compatibility. See the
 [adapter contract](./adapter-contract.md) before mapping these values into a
 design system or another framework.
 
-Use the following modifiers to describe input controls:
+The current adapter interprets the following metadata. `tag`, `autocomplete`,
+and `autofocus` are deprecated compatibility APIs; their configuration belongs
+in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md)).
 
 | Modifier | Purpose |
 | --- | --- |
 | `tag(name)` / `type(name)` | Choose the child element and native input type. |
 | `label(value)` | Set a string label or compute one from the record. |
 | `placeholder(value)`, `autocomplete(value)`, `autofocus()` | Configure common input attributes. |
-| `defaultValue(value)` | Provide the value used by `Record#clear()` and new records. |
+| `defaultValue(valueOrFactory)` | Provide defaults for clearing a record, appending a row, and omitted values in a partial clone; constructor values are kept as supplied. |
 | `disabled(predicate)`, `readOnlyWhen(predicate)`, `visibleWhen(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
-| `multipleValues(min, max)` | Model the field as an array of values. |
+| `multipleValues(min, max)` | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators. |
 | `options(config)` | Provide options for a select-like control. |
 
 For a native dropdown, use `tag('select')` and option objects with `text` and
@@ -338,7 +364,9 @@ const people = new Recordset(fields, [
   { name: 'Mike' },
 ]);
 
+await people.requestHardUpdate();
 people.sortColumns = [{ field: 'name', sort: 'ascending' }];
+await people.updating;
 // A table bound to people renders: Alpha, Mike, Zulu
 ```
 
@@ -366,10 +394,11 @@ const fields = {
 
 ## Other modifiers
 
-Additional modifiers include `hashFunction(fn)` for matching object-valued options,
-`onValueChange(fn)` for reactions to value changes, and
-`search(config)` for search-capable option controls. `schema(name)` is retained
-for compatibility and should be avoided in new code.
+Additional modifiers include `hashFunction(fn)` for matching object-valued
+options and `search(config)` for search-capable option controls. `schema(name)` and
+`onValueChange(fn)` are deprecated compatibility APIs. The current adapter
+invokes `onValueChange` after control edits; `Record#setField()` does not invoke
+it. Keep cross-field orchestration in the record or application model.
 
 Custom Lit field controls should extend [`FormElement`](./form-element.md),
 which applies a field type's form-related modifiers to its child control.

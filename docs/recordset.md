@@ -66,10 +66,21 @@ await reports.updating;
 
 ## Client-side and server-side data
 
-When the fetched `totalCount` equals the number of returned rows, the
+When the fetched `totalCount` is nonzero and equals the number of returned rows, the
 `Recordset` treats the data as client-side: it sorts, filters, and slices the
 current page locally. Otherwise, it treats the data as server-side and the
-fetch function is responsible for paging and sorting.
+fetch function must return the requested page and honor the requested sort.
+The recordset still applies its local predicate and comparator to returned rows,
+but does not slice them again; `filteredCount` uses the server's `totalCount`.
+An empty response also follows this server-side path.
+
+Pages are one-based (`pageNumber` and request `page`); `pageIndex` and request
+`startIndex` are zero-based. Construction alone does not load rows: call
+`requestHardUpdate()` for the first load, even when supplying an array.
+
+Client-side updates reuse loaded data. Changing `parameters` schedules a view
+update but does not itself invalidate that cache. Call `requestHardUpdate()`
+after changing parameters when the fetch function needs to run again.
 
 For client-side filtering, assign a predicate that receives each `Record`:
 
