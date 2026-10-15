@@ -472,12 +472,7 @@ export class FdlTable extends LitElement {
         if (!this.recordset || !this.isSortable(column)) return;
 
         const currentSort = this.sortFor(column.field)?.sort;
-        const sort =
-            currentSort === 'ascending'
-                ? 'descending'
-                : currentSort === 'descending'
-                  ? 'UNSORTED'
-                  : 'ascending';
+        const sort = currentSort === 'ascending' ? 'descending' : 'ascending';
 
         await this.recordset.sort({ field: column.field, sort });
         await this.recordset.requestUpdate();

@@ -334,6 +334,40 @@ describe('<fdl-table>', () => {
             ['Ada', 'Zulu'],
         ]);
 
+        // An existing secondary sort toggles and becomes the primary sort.
+        headers?.[1].click();
+        await settle(table);
+        expect(recordset.sortColumns).toEqual([
+            {field:'lastName',sort:'descending'},
+            {field:'firstName',sort:'descending'},
+        ]);
+        expect(rows(table)).toEqual([
+            ['Ada','Zulu'], ['Ada','Mike'], ['Grace','Beta'], ['Grace','Alpha'],
+        ]);
+        expect(headers?.[1].title).toContain('sort priority 1');
+        expect(headers?.[0].title).toContain('sort priority 2');
+        expect(headers?.[1].closest('th')!.getAttribute('aria-sort')).toBe('descending');
+        expect(headers?.[0].closest('th')!.hasAttribute('aria-sort')).toBe(false);
+
+        // Further clicks alternate directions without removing either sort.
+        headers?.[1].click();
+        await settle(table);
+        expect(recordset.sortColumns).toEqual([
+            {field:'lastName',sort:'ascending'},
+            {field:'firstName',sort:'descending'},
+        ]);
+        expect(rows(table)).toEqual([
+            ['Grace','Alpha'], ['Grace','Beta'], ['Ada','Mike'], ['Ada','Zulu'],
+        ]);
+        headers?.[0].click();
+        await settle(table);
+        expect(recordset.sortColumns).toEqual([
+            {field:'firstName',sort:'ascending'},
+            {field:'lastName',sort:'ascending'},
+        ]);
+        expect(rows(table)).toEqual([
+            ['Ada','Mike'], ['Ada','Zulu'], ['Grace','Alpha'], ['Grace','Beta'],
+        ]);
         table.remove();
     });
 

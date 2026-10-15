@@ -98,3 +98,7 @@ Reference paging follows active search/category results. Narrow screens collapse
 navigation behind Browse modifiers. Conditional-cell styling exposes an editable
 threshold and boundary cases; width examples expose measured widths and active
 constraints. Filter text is shared between the table header and comparison.
+
+Clicking a sortable table heading toggles ascending/descending and makes that
+column the first sort priority. Existing columns remain as tie-breakers; clicking
+a heading never removes its sort. Keyboard activation uses the same button action.
