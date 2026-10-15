@@ -38,5 +38,6 @@ export const modifierSignatures: {[name: string]: string} = {
 /** Present supported call forms separately when the implementation uses a broader signature. */
 export const displayedModifierSignatures: {[name: string]: string} = {
     ...modifierSignatures,
+    rowClass: '.rowClass(className: string)\n.rowClass(classNames: string[])\n.rowClass(classes: (value: T, record: Record<any>) => string | string[])',
     cellClass: '.cellClass(className: string)\n.cellClass(classNames: string[])\n.cellClass(classes: (value: T, record: Record<any>) => string | string[])',
 };

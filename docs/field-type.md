@@ -245,12 +245,16 @@ const status = new FieldType<string>()
   .and.rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
 ```
 
-The supported cell-class signatures are:
+The supported cell and row class signatures are:
 
 ```ts
 cellClass(className: string)
 cellClass(classNames: string[])
 cellClass(classes: (value: T, record: Record<any>) => string | string[])
+
+rowClass(className: string)
+rowClass(classNames: string[])
+rowClass(classes: (value: T, record: Record<any>) => string | string[])
 ```
 
 The value type `T` comes from the field type. The callback can read other
@@ -259,7 +263,9 @@ fields through `record.getField(name)`, for example:
 ```ts
 const amount = new FieldType<number>()
   .with.cellClass((value, record) =>
-    value > record.getField('limit') ? ['warning', 'over-limit'] : []);
+    value > record.getField('limit') ? ['warning', 'over-limit'] : [])
+  .and.rowClass((value, record) =>
+    value > record.getField('limit') ? 'over-limit-row' : []);
 ```
 
 The old two-argument predicate form is no longer supported. Replace

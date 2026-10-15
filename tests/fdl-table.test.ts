@@ -21,12 +21,12 @@ const settle = async (table: TestTable) => {
 };
 
 describe('<fdl-table>', () => {
-    it('evaluates cell classes with each row record and updates them when another field changes', async () => {
+    it.each(['cellClass', 'rowClass'] as const)('%s evaluates classes with each row record and updates them when another field changes', async modifier => {
         const classForAmount = jest.fn((value: number, record: Record<any>) =>
             value > record.getField('limit') ? ['warning', 'over-limit'] : []);
         const recordset = new Recordset(
             {
-                amount: new FieldType<number>().with.cellClass('amount').and.cellClass(classForAmount),
+                amount: new FieldType<number>().with[modifier]('amount').and[modifier](['numeric']).and[modifier](classForAmount),
                 limit: new FieldType<number>(),
             },
             [{ amount: 150, limit: 100 }, { amount: 150, limit: 200 }]
@@ -37,14 +37,14 @@ describe('<fdl-table>', () => {
         document.body.append(table);
         await settle(table);
 
-        const cells = () => [...table.shadowRoot!.querySelectorAll('tbody td')];
-        expect(cells().map(cell => cell.className)).toEqual(['amount warning over-limit', 'amount']);
+        const targets = () => [...table.shadowRoot!.querySelectorAll(modifier === 'cellClass' ? 'tbody td' : 'tbody tr')];
+        expect(targets().map(target => target.className)).toEqual(['amount numeric warning over-limit', 'amount numeric']);
         expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0]);
         expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1]);
 
         recordset.currentPage[0].setField('limit', 200);
         await settle(table);
-        expect(cells().map(cell => cell.className)).toEqual(['amount', 'amount']);
+        expect(targets().map(target => target.className)).toEqual(['amount numeric', 'amount numeric']);
         table.remove();
     });
 
