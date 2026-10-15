@@ -18,6 +18,8 @@ export class FdlCompositionExperiment extends LitElement {
     }, {...defaultCompositionRules});
     private get rules(): CompositionRules { return this.configuration.values as CompositionRules; }
     private record = compositionRecord(this.rules, this.continuation?.method ?? 'ship', '42 Orchard Street');
+    private savedCases: {rules:CompositionRules; method:string; address:string}[] = [];
+    private caseNotice = '';
     private appliedRules = JSON.stringify(this.rules);
     private refresh = () => this.requestUpdate();
     private changeRules = () => {
@@ -45,7 +47,14 @@ export class FdlCompositionExperiment extends LitElement {
             heading?.scrollIntoView?.({block: 'nearest'});
         });
     }
+    private keepCase = () => {
+        const sample={rules:{...this.rules},method:this.record.getField('fulfillment'),address:this.record.getField('address')};
+        if (this.savedCases.some(saved=>JSON.stringify(saved)===JSON.stringify(sample))) this.caseNotice='This case is already kept.';
+        else if(this.savedCases.length < 6) { this.savedCases=[...this.savedCases,sample]; this.caseNotice='Case kept with its rules. Change a rule to compare the outcome.'; }
+        this.requestUpdate();
+    };
     private reset = () => {
+        this.savedCases=[]; this.caseNotice='';
         this.configuration.setFields({...defaultCompositionRules});
         this.record.setFields({fulfillment: 'ship', address: '42 Orchard Street'});
     };
@@ -61,6 +70,14 @@ export class FdlCompositionExperiment extends LitElement {
                     <strong>${record.isValid() ? 'Valid record' : 'Invalid record'}</strong><span>${type.visible(record) ? 'Visible' : 'Hidden'} · ${type.required(record) ? 'Required' : 'Optional'}</span>${hiddenInvalid ? html`<em>Hidden, but still invalid</em>` : ''}<span class="case-action">${selected ? 'Selected kind of case' : 'Inspect this case →'}</span>
                 </button></td>`;
             })}</tr>`)}</tbody></table></div>`;
+    }
+    private collectedCases() {
+        if(!this.savedCases.length) return '';
+        return html`<section class="collected-cases"><h3>Your kept cases</h3><p>Saved outcomes keep the rules from that moment. The last column applies the rules currently selected above.</p><div class="outcomes"><table><thead><tr><th>Case</th><th>With saved rules</th><th>With current rules</th><th>Actions</th></tr></thead><tbody>${this.savedCases.map((sample,index)=>{
+            const saved=compositionRecord(sample.rules,sample.method,sample.address),current=compositionRecord(this.rules,sample.method,sample.address);
+            const describe=(record: ReturnType<typeof compositionRecord>)=>`${record.fieldTypeForField('address').visible(record)?'Visible':'Hidden'} · ${record.fieldTypeForField('address').required(record)?'Required':'Optional'} · ${record.isValid()?'Valid':'Invalid'}`;
+            return html`<tr><th scope="row">${sample.method}<small>${JSON.stringify(sample.address)}</small></th><td>${describe(saved)}</td><td>${describe(current)}</td><td><button @click=${()=>{this.configuration.setFields({...sample.rules});this.selectCase(sample.method,sample.address);}}>Restore case ${index+1}</button><button aria-label=${`Remove case ${index+1}`} @click=${()=>{this.savedCases=this.savedCases.filter((_,i)=>i!==index);this.requestUpdate();}}>Remove</button></td></tr>`;
+        })}</tbody></table></div><button @click=${()=>{this.savedCases=[];this.caseNotice='';this.requestUpdate();}}>Clear kept cases</button></section>`;
     }
     private explanation() {
         const type = this.record.fieldTypeForField('address');
@@ -90,7 +107,8 @@ export class FdlCompositionExperiment extends LitElement {
                 <fdl-field .record=${this.record} field="fulfillment"></fdl-field>
                 ${keyed(this.record.fieldTypeForField('address'), html`<fdl-field .record=${this.record} field="address" .showValidationErrors=${true}></fdl-field>`)}
                 <p>Try your own address. The number check is an illustrative format rule, not proof that an address exists or accepts deliveries.</p>
-            </div>${this.explanation()}</div></section>
+            </div>${this.explanation()}</div><button class="keep-case" ?disabled=${this.savedCases.length >= 6} @click=${this.keepCase}>Keep this case</button><p class="case-notice" role="status">${this.caseNotice || 'Keep up to six cases to compare your own counterexamples.'}</p></section>
+            ${this.collectedCases()}
             <section class="definition"><h3>The resulting definition</h3><pre><code>${highlightJavaScript(compositionDefinition(this.rules))}</code></pre><p>This is the address definition used by every case and by the live form.</p></section>
             <details class="questions"><summary>Questions to investigate</summary><ul><li>Does hiding a field make it optional? Choose Always under requiredness, then inspect Pickup × Empty.</li><li>Does optional mean any value is allowed? Choose Never under requiredness and inspect an address without a number.</li><li>Which rule would you change to get the behavior you intended? Compare switching off the format check with showing the field for both delivery methods.</li></ul></details>
         </section>`;
@@ -120,6 +138,9 @@ export class FdlCompositionExperiment extends LitElement {
         .state ol { margin:0; padding-left:20px; font-size:1rem; } .state li { margin-bottom:12px; }
         .state p { font-size:1rem; } .state p:last-child { margin-bottom:0; } .verdict { margin:20px 0 12px; }
         .errors { color:#9f2920; padding-left:20px; } .surprise { padding-top:12px; border-top:1px solid var(--example-border); }
+        .keep-case,.collected-cases button { border:1px solid #94a3b8; border-radius:4px; padding:8px 12px; background:white; color:#1d4ed8; margin:4px; }
+        .collected-cases td { padding:12px 8px; height:auto; font-size:.875rem; }
+        .case-notice { font-size:.875rem; color:#475569; margin:8px 0 0; }
         .continuation { padding:16px; margin-bottom:20px; border-left:3px solid #2563eb; background:#eff6ff; }
         .continuation p:last-child { margin:0; }
         .questions { border-top:1px solid var(--example-border); padding-top:12px; } summary { cursor:pointer; min-height:44px; padding:8px 0; }

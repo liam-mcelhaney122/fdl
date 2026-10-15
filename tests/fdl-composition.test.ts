@@ -94,3 +94,17 @@ it('lets readers inspect hidden requiredness, reveal the field, and edit back in
     expect(root.querySelector('.definition')!.textContent).toContain('.requiredWhen(');
     expect(root.querySelector('.case[aria-pressed="true"]')!.getAttribute('data-method')).toBe('ship');
 });
+
+
+it('keeps custom cases and compares saved rules with changed rules',async()=>{
+ const demo=await openDemo();
+ await edit(demo,'address','Orchard Street');
+ await edit(demo,'fulfillment','pickup');
+ demo.shadowRoot!.querySelector<HTMLButtonElement>('.keep-case')!.click();await demo.updateComplete;
+ await edit(demo,'validation','off');await demo.updateComplete;
+ const cells=demo.shadowRoot!.querySelectorAll('.collected-cases tbody td');
+ expect(cells[0].textContent).toContain('Hidden · Optional · Invalid');
+ expect(cells[1].textContent).toContain('Hidden · Optional · Valid');
+ demo.shadowRoot!.querySelector<HTMLButtonElement>('.collected-cases button')!.click();await demo.updateComplete;
+ expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('The record is invalid');
+});
