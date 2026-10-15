@@ -1,7 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import FieldType from '../../field-type.js';
 import Record from '../../record.js';
-import { addressCases, compositionRecord, defaultCompositionRules, type CompositionRules } from './composition-model';
+import { addressCases, compositionExplanation, compositionRecord, defaultCompositionRules, type CompositionRules } from './composition-model';
 import { exampleTheme } from './example-theme';
 import './fdl-field';
 
@@ -30,10 +30,12 @@ export class FdlPrediction extends LitElement {
         this.result={visible:type.visible(record),required:type.required(record),valid:record.isValid()}; this.requestUpdate();
     };
     render() {
+        const sample=addressCases.find(sample=>sample.id===this.guesses.getField('sample'))!;
+        const explanation=compositionExplanation(this.rules,this.guesses.getField('method'),sample.value);
         return html`<p>Use the current rules above. Choose a case and predict each result, then ask the FDL model to check it. This is optional practice; the comparison remains available.</p>
         <div class="choices">${['method','sample','visible','required','valid'].map(field=>html`<fdl-field .record=${this.guesses} field=${field}></fdl-field>`)}</div>
         <button ?disabled=${!this.guesses.isValid()} @click=${this.reveal}>Reveal model result</button>
-        ${this.result ? html`<section role="status"><h3>What the model says</h3><ul>${(['visible','required','valid'] as const).map(key=>html`<li><strong>${key === 'visible' ? 'Visibility' : key === 'required' ? 'Requiredness' : 'Validity'}</strong>: ${key==='visible' ? this.result![key]?'Visible':'Hidden' : key==='required' ? this.result![key]?'Required':'Optional' : this.result![key]?'Valid':'Invalid'} — ${String(this.result![key])===this.guesses.getField(key)?'matches your prediction':'differs from your prediction'}</li>`)}</ul><p>Visibility and requiredness read the delivery method independently. Validity checks the stored address even when its control is hidden. Change one rule above and try again.</p></section>` : ''}`;
+        ${this.result ? html`<section role="status"><h3>What the model says</h3><ul>${(['visible','required','valid'] as const).map(key=>html`<li><strong>${key === 'visible' ? 'Visibility' : key === 'required' ? 'Requiredness' : 'Validity'}</strong>: ${key==='visible' ? this.result![key]?'Visible':'Hidden' : key==='required' ? this.result![key]?'Required':'Optional' : this.result![key]?'Valid':'Invalid'} — ${String(this.result![key])===this.guesses.getField(key)?'matches your prediction':'differs from your prediction'}</li>`)}</ul><p>${explanation.visibility} ${explanation.requiredness} ${explanation.format} Validity checks the stored address even when its control is hidden. Change one rule above and try again.</p></section>` : ''}`;
     }
     static styles=css`
         :host{display:block;font-size:1rem;line-height:1.6} .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px} fdl-field{--field-label-width:100%;--field-control-width:100%} button{font:inherit;min-height:44px;padding:8px 16px;border:0;border-radius:4px;background:#2563eb;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible{outline:3px solid #2563eb;outline-offset:3px}section{padding:16px;margin-top:16px;background:#eff6ff;border-radius:6px}h3{margin:0} ${exampleTheme}

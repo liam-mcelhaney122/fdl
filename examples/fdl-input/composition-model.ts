@@ -43,3 +43,11 @@ export function compositionDefinition(rules: CompositionRules) {
     validate: value => value === '' || /^\\d+\\s+\\S/.test(value.trim()),
   })` : ''};`;
 }
+
+export function compositionExplanation(rules: CompositionRules, method: string, value: string) {
+    return {
+        visibility: rules.visibility === 'all' ? 'Both delivery methods show the address.' : `The shipping predicate is ${method === 'ship'}.`,
+        requiredness: rules.requiredness === 'always' ? 'The required rule always applies.' : rules.requiredness === 'never' ? 'No required rule is declared.' : `The shipping predicate is ${method === 'ship'}.`,
+        format: rules.validation === 'off' ? 'No format validator is declared.' : value === '' ? 'The format validator accepts an empty value; requiredness is checked separately.' : hasStreetNumber(value) ? 'The stored address passes the street-number check.' : 'The stored address fails the street-number check.',
+    };
+}

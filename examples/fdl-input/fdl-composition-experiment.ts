@@ -7,7 +7,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import { exampleTheme } from './example-theme';
 import { highlightJavaScript } from './highlight-javascript';
-import { addressCases, addressCase, compositionFields, compositionRecord, compositionDefinition, defaultCompositionRules, type CompositionRules } from './composition-model';
+import { addressCases, addressCase, compositionFields, compositionRecord, compositionExplanation, compositionDefinition, defaultCompositionRules, type CompositionRules } from './composition-model';
 import './fdl-field';
 
 export class FdlCompositionExperiment extends LitElement {
@@ -86,11 +86,12 @@ export class FdlCompositionExperiment extends LitElement {
         const value = this.record.getField('address');
         const visible = type.visible(this.record);
         const required = type.required(this.record);
+        const explanation = compositionExplanation(this.rules, method, value);
         const errors: string[] = this.record.readableFieldErrors('address');
         return html`<div class="state" role="status"><h3>Why this result?</h3><ol>
-            <li><strong>Visibility:</strong> ${this.rules.visibility === 'all' ? 'Both delivery methods show the address.' : html`The shipping predicate is <code>${String(method === 'ship')}</code>.`} The control is ${visible ? 'visible' : 'hidden'}.</li>
-            <li><strong>Requiredness:</strong> ${this.rules.requiredness === 'always' ? 'The required rule always applies.' : this.rules.requiredness === 'never' ? 'No required rule is declared.' : html`The shipping predicate is <code>${String(method === 'ship')}</code>.`} The address is ${required ? 'required' : 'optional'}.</li>
-            <li><strong>Format:</strong> ${this.rules.validation === 'off' ? 'No format validator is declared.' : value === '' ? 'The format validator accepts an empty value; requiredness is checked separately.' : addressCase(value) === 'numbered' ? 'The stored address passes the street-number check.' : 'The stored address fails the street-number check.'}</li>
+            <li><strong>Visibility:</strong> ${explanation.visibility} The control is ${visible ? 'visible' : 'hidden'}.</li>
+            <li><strong>Requiredness:</strong> ${explanation.requiredness} The address is ${required ? 'required' : 'optional'}.</li>
+            <li><strong>Format:</strong> ${explanation.format}</li>
         </ol><p class="verdict"><strong>${this.record.isValid() ? 'The record is valid.' : 'The record is invalid.'}</strong></p>
             ${errors.length ? html`<ul class="errors">${errors.map(error => html`<li>${error}</li>`)}</ul>` : ''}
             ${!visible && errors.length ? html`<p class="surprise">Hiding the control leaves the value and its validation rules in the model. Switch to shipping to edit it, or change the rules above.</p>` : ''}
