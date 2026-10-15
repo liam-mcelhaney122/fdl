@@ -15,7 +15,7 @@ export const categoryDescriptions: {[category: string]: string} = {
     'Display': 'How stored values are formatted or presented to the reader without changing the underlying data.',
     'Conditional state': 'Whether a field is visible, editable, or required, either permanently or based on other values in the record.',
     'Tables': 'How table consumers arrange, style, sort, and filter fields across a collection of records.',
-    'Values': 'Defaults, sample data, parsing, identity, and aggregation: how values are created, transformed, and used.',
+    'Values': 'Defaults, parsing, identity, and aggregation: how values are initialized, transformed, and used.',
     'Input': 'Labels, hints, input types, and character masks that describe how a compatible control presents or accepts input.',
     'Adapter contracts': 'Metadata that needs a compatible UI adapter. The native example does not implement these interactions.',
 };

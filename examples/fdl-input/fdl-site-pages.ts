@@ -1,3 +1,5 @@
+import { renderCategoryOverview } from './category-overview';
+import type { ExplorerRecipe } from './modifier-explorer-recipes';
 import { html } from 'lit';
 import './fdl-delivery-experiment';
 import './fdl-specialization-experiment';
@@ -11,6 +13,7 @@ export const sitePages = [
     { id: 'how-it-works', title: 'How it Works' },
     { id: 'learn', title: 'Learn by exploring' },
     { id: 'composition', title: 'Combine the rules' },
+    { id: 'categories', title: 'Modifier categories' },
     { id: 'contributing', title: 'Contributing' },
 ] as const;
 export type SitePage = typeof sitePages[number]['id'];
@@ -29,7 +32,8 @@ person.isValid(); // false
 person.setField('name', 'Ada');
 person.isValid(); // true`;
 
-export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement) {
+export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement, recipes: readonly ExplorerRecipe[] = []) {
+    if (page === 'categories') return renderCategoryOverview(recipes);
     if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1>${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</article>`;
     if (page === 'learn') return html`<article class="site-page"><h1 tabindex="-1">Learn by exploring</h1><p class="description">Build one delivery example from a field into a collection. Follow the questions in order or jump to the one you want to investigate.</p><fdl-learning-path .session=${learningState}></fdl-learning-path></article>`;
     if (page === 'home') return html`

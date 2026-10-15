@@ -1,7 +1,7 @@
 # FDL documentation site
 
 This is the repository's only documentation website. It includes Home, How it
-Works, Learn by exploring, Contributing, and modifier reference pages that group closely related rules, with live examples, model-level
+Works, Learn by exploring, Modifier categories, Contributing, and modifier reference pages that group closely related rules, with live examples, model-level
 exercises, highlighted definitions, and rendering markup. The source uses Lit
 and TypeScript, so serve it through Vite instead of opening HTML files directly.
 
@@ -31,6 +31,10 @@ and Home/End for the available minimum/maximum.
 Repository API references and architecture decision records remain in `docs/`.
 
 ## Exploring the explanations
+
+- `#categories` explains all seven category purposes, lists each current modifier,
+  and connects related rules with links to their live examples. Category jump
+  links preserve the section in the URL.
 
 - Home starts with a delivery experiment; `#learn` builds one example through
   storage, parsing, validation, dependencies, and collection reuse.

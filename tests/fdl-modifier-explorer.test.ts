@@ -350,7 +350,7 @@ describe('FDL site pages', () => {
         const root = page.shadowRoot!;
         expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
         expect(root.querySelector('.site-page')!.textContent).toContain('Recordset');
-        expect(root.querySelectorAll('.site-nav a')).toHaveLength(5);
+        expect(root.querySelectorAll('.site-nav a')).toHaveLength(6);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
         expect(root.querySelector('a[href="../cookbook/"]')).toBeNull();
         expect(root.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
@@ -583,4 +583,38 @@ it('previews every declared input type and keeps the source and record panel in 
     const preview = resetCatalog.shadowRoot!.querySelector('fdl-field[field="inputValue"]') as any;
     await preview.updateComplete;
     expect(preview.shadowRoot.querySelector('input').type).toBe('text');
+});
+
+
+it('lists every category and modifier once with purposes and linked relationships', async () => {
+    const page = await openPage('#categories');
+    const root = page.shadowRoot!;
+    expect(document.title).toBe('Modifier categories — FDL');
+    expect(root.querySelector('.site-nav a[href="#categories"]')!.getAttribute('aria-current')).toBe('page');
+    const sections = [...root.querySelectorAll('.category-overview-section')];
+    expect(sections).toHaveLength(new Set(explorerRecipes.map(recipe => recipe.category)).size);
+    const listed = [...root.querySelectorAll('.category-modifiers [data-modifier]')];
+    expect(listed.map(item => item.getAttribute('data-modifier')).sort()).toEqual(explorerRecipes.map(recipe => recipe.name).sort());
+    for (const section of sections) {
+        const category = section.querySelector('h2')!.textContent!.trim();
+        expect(section.textContent).toContain(categoryDescriptions[category]);
+        expect(section.querySelector('.category-relationships a')).not.toBeNull();
+        const names = [...section.querySelectorAll('[data-modifier]')].map(item => item.getAttribute('data-modifier'));
+        expect(names).toEqual(explorerRecipes.filter(recipe => recipe.category === category).map(recipe => recipe.name));
+    }
+    const validNames = new Set(explorerRecipes.map(recipe => recipe.name));
+    for (const link of root.querySelectorAll<HTMLAnchorElement>('.category-overview-section a')) {
+        expect(validNames.has(link.getAttribute('href')!.slice(1))).toBe(true);
+    }
+    window.location.hash = 'categories?category=category-validation';
+    window.dispatchEvent(new Event('hashchange'));
+    await settle(page);
+    expect(root.activeElement?.id).toBe('category-validation');
+    const modifier = root.querySelector<HTMLAnchorElement>('#category-validation')!.closest('section')!.querySelector<HTMLAnchorElement>('a[href="#emptyWhen"]')!;
+    modifier.click();
+    // Native anchor navigation is handled by hashchange in the browser.
+    window.location.hash = 'emptyWhen';
+    window.dispatchEvent(new Event('hashchange'));
+    await settle(page);
+    expect(root.getElementById('emptyWhen')).not.toBeNull();
 });

@@ -104,7 +104,17 @@ export class FdlModifierExplorer extends LitElement {
     private readLocation = () => {
         const hash = window.location.hash.slice(1).split('?')[0];
         const page = sitePages.find(page => page.id === hash);
-        if (page || !hash) this.showPage(page?.id ?? 'home', false);
+        if (page || !hash) {
+            this.showPage(page?.id ?? 'home', false);
+            if (page?.id === 'categories') {
+                const category = new URLSearchParams(window.location.hash.split('?')[1]).get('category');
+                if (category) this.updateComplete.then(() => {
+                    const heading = this.shadowRoot?.getElementById(category);
+                    heading?.focus({preventScroll:true});
+                    heading?.scrollIntoView?.({block:'start'});
+                });
+            }
+        }
         else {
             const index = recipes.findIndex(recipe => recipe.name === hash);
             if (index >= 0) {
@@ -296,7 +306,7 @@ export class FdlModifierExplorer extends LitElement {
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
-                ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page, this.learningState, this.compositionForPage())) : html`
+                ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page, this.learningState, this.compositionForPage(), recipes)) : html`
                 <div class="modifier-title-row"><h1 tabindex="-1">${group.title || html`.${recipe.name}<span>${recipe.signature}</span>`}</h1>
                     <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
                         <button class="page-category-icon" aria-label=${`Category: ${recipe.category}`} aria-describedby=${this.categoryTooltip ? 'category-tooltip' : ''} @focus=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @blur=${() => { this.categoryTooltip = false; this.requestUpdate(); }} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') { this.categoryTooltip = false; this.requestUpdate(); } }}>${categoryIcon(recipe.category)}</button>
@@ -387,6 +397,15 @@ export class FdlModifierExplorer extends LitElement {
         .site-page h2 { margin-top:32px; font-size:1.5rem; }
         .site-page p,.site-page li,.site-page dd { font-size:1.125rem; line-height:1.75; }
         .site-page a { color:var(--accent); text-underline-offset:3px; }
+        .category-index { display:flex; flex-wrap:wrap; gap:12px 24px; min-height:0; overflow:visible; margin:24px 0; }
+        .category-index a { display:inline-flex; align-items:center; gap:8px; }
+        .category-overview-section { padding-top:12px; margin-top:32px; border-top:1px solid #dfe3ee; }
+        .category-overview-section h2 { display:flex; align-items:center; gap:12px; scroll-margin-top:24px; }
+        .category-modifiers { margin:24px 0; }
+        .category-modifiers > div { display:grid; grid-template-columns:minmax(0, 13rem) minmax(0, 1fr); gap:12px 24px; padding:14px 0; border-top:1px solid #dfe3ee; }
+        .category-modifiers dt { font-size:1rem; line-height:1.75; overflow-wrap:anywhere; }
+        .category-modifiers dd { margin:0; }
+        @media (max-width:700px) { .category-modifiers > div { grid-template-columns:minmax(0, 1fr); gap:4px; } }
         .site-page .code { margin:20px 0; }
         .concepts dt { margin-top:20px; font:600 1.125rem monospace; }
         .concepts dd { margin:8px 0 0; }
