@@ -83,7 +83,8 @@ charge snapshot in the link; plain composition links start a fresh experiment.
 Composition places rule controls directly before the outcome comparison. Optional
 prediction practice reveals actual model outcomes after a guess. Keep up to six
 custom cases to compare their saved rules with current rules, restore them, or
-remove them. These cases live only in the current experiment. Reset clears them.
+remove them. These cases live only in the current experiment. Reset rules and example preserves
+them; Remove and Clear kept cases delete them.
 The optional field builder uses structured rules, previews an actual FDL Record,
 and exports matching model/Lit files in the same runnable starter format.
 

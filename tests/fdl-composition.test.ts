@@ -110,3 +110,15 @@ it('keeps custom cases and compares saved rules with changed rules',async()=>{
  expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('The record is invalid');
  expect(demo.shadowRoot!.querySelector('.collected-cases')!.textContent).toContain('Rules unchanged');
 });
+
+it('preserves kept cases when resetting rules and the current example',async()=>{
+ const demo=await openDemo();await edit(demo,'address','Orchard Street');
+ demo.shadowRoot!.querySelector<HTMLButtonElement>('.keep-case')!.click();await demo.updateComplete;
+ await edit(demo,'validation','off');
+ demo.shadowRoot!.querySelector<HTMLButtonElement>('.reset')!.click();await demo.updateComplete;
+ expect(demo.shadowRoot!.querySelector('.collected-cases')!.textContent).toContain('Orchard Street');
+ expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('42 Orchard Street');
+ const buttons=Array.from(demo.shadowRoot!.querySelectorAll<HTMLButtonElement>('.collected-cases button'));
+ buttons.find(button=>button.textContent==='Clear kept cases')!.click();await demo.updateComplete;
+ expect(demo.shadowRoot!.querySelector('.collected-cases')).toBeNull();
+});

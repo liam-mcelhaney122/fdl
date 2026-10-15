@@ -55,7 +55,7 @@ export class FdlCompositionExperiment extends LitElement {
         this.requestUpdate();
     };
     private reset = () => {
-        this.savedCases=[]; this.caseNotice='';
+        this.caseNotice='';
         this.configuration.setFields({...defaultCompositionRules});
         this.record.setFields({fulfillment: 'ship', address: '42 Orchard Street'});
     };
@@ -99,7 +99,7 @@ export class FdlCompositionExperiment extends LitElement {
         </div>`;
     }
     render() {
-        return html`<section aria-labelledby="composition-title"><div class="title-row"><h2 id="composition-title">How do independent rules combine?</h2><button class="reset" @click=${this.reset}>Reset experiment</button></div>
+        return html`<section aria-labelledby="composition-title"><div class="title-row"><h2 id="composition-title">How do independent rules combine?</h2><button class="reset" @click=${this.reset}>Reset rules and example</button></div>
             ${this.continuation ? html`<section class="continuation"><h3>Your delivery continues here</h3><p>You chose <strong>${this.continuation.method === 'ship' ? 'Shipping' : 'Pickup'}</strong> and stored charge <code>${this.continuation.charge}</code>. We keep the delivery method and carry this charge snapshot forward. Now add a shipping address.</p><p>The form and six outcomes below evaluate the address rules independently of the charge. This is a new record using the same delivery scenario.</p></section>` : ''}
             <p>Change one rule and compare all six outcomes. Visibility, requiredness, and validity are independent decisions.</p>
             <section class="rule-controls" aria-label="Choose the rules"><h3>1. Choose the rules</h3><div class="rule-workspace">${['visibility','requiredness','validation'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</div></section>
