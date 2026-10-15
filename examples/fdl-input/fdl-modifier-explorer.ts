@@ -1,3 +1,4 @@
+import { categoryIcon } from './category-icon';
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleSource, type ExampleSettings } from './modifier-example-source';
@@ -187,7 +188,7 @@ export class FdlModifierExplorer extends LitElement {
                     if ((event.target as HTMLInputElement).checked) this.selectedCategories.add(category);
                     else this.selectedCategories.delete(category);
                     this.requestUpdate();
-                }}><span>${category}</span></label>`)}</div>
+                }}>${categoryIcon(category)}<span>${category}</span></label>`)}</div>
             </fieldset><div class="category-actions"><button @click=${() => { this.selectedCategories.clear(); this.requestUpdate(); }}>All categories</button><button @click=${(event: Event) => {
                 const menu = (event.currentTarget as HTMLElement).closest('details')!;
                 menu.open = false;
@@ -195,7 +196,7 @@ export class FdlModifierExplorer extends LitElement {
             }}>Done</button></div></div></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             </div>
-            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
+            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} title=${entry.category} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
@@ -272,12 +273,15 @@ export class FdlModifierExplorer extends LitElement {
         nav a:hover { background:#f1f5f9; }
         nav a[aria-current=page] { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; box-shadow:inset 3px 0 #2563eb; }
         nav strong { font:600 .9375rem/1.5 monospace; overflow-wrap:anywhere; }
-        nav small { display:block; font-size:.875rem; line-height:1.5; color:var(--muted); }
+        .category-icon { width:20px; height:20px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+        .modifier-list a { min-height:44px; gap:10px; padding:8px; }
+        .modifier-list .category-icon { color:var(--muted); }
+        .modifier-list a[aria-current=page] .category-icon { color:var(--accent); }
         .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #cbd5e1; gap:4px; }
         .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
         .modifier-navigation { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
         .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow:visible; margin-bottom:12px; }
-        .modifier-list { flex:1 1 0; min-height:120px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; overscroll-behavior:contain; }
+        .modifier-list { align-content:start; flex:1 1 0; min-height:120px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .site-page { max-width:75ch; }
         .site-page h1 { font-family:Arial,Helvetica,sans-serif; font-size:clamp(30px,3vw,42px); font-weight:650; }
         .site-page h2 { margin-top:32px; font-size:1.5rem; }

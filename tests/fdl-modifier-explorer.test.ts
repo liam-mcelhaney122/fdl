@@ -125,6 +125,14 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelectorAll('h1')).toHaveLength(1);
         expect(page.shadowRoot!.querySelector('#modifier-jump')).toBeNull();
         expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}${recipe.signature}`);
+        const link = page.shadowRoot!.querySelector(`.modifier-list a[href="#${name}"]`)!;
+        expect(link.querySelector('small')).toBeNull();
+        expect(link.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
+        expect(link.querySelector('.category-icon path, .category-icon rect, .category-icon ellipse')!.namespaceURI).toBe('http://www.w3.org/2000/svg');
+        expect(link.getAttribute('aria-label')).toBe(`${name} — ${recipe.category}`);
+        const option = [...page.shadowRoot!.querySelectorAll('.category-options label')].find(label => label.textContent === recipe.category)!;
+        expect(option.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
+
         expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(exampleSource(name).definition);
         expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
