@@ -661,14 +661,14 @@ export default class FieldTypeBuilder<T> {
 
     /**
      *
-     * @param {{(record:Record) : boolean}} fn
+     * @param {{(record:Record) : boolean}} predicate
      */
-    disabledWhen(fn: BooleanPredicate) {
+    disabledWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
-        copy.properties.disableFunctions = [...copy.properties.disableFunctions, fn];
+        copy.properties.disableFunctions = [...copy.properties.disableFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `disabled when ${printFunction(fn)}`,
+            `disabled when ${printFunction(predicate)}`,
         ];
         return copy;
     }
@@ -689,12 +689,12 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    visibleWhen(fn: BooleanPredicate) {
+    visibleWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
-        copy.properties.visibleFunctions = [...copy.properties.visibleFunctions, fn];
+        copy.properties.visibleFunctions = [...copy.properties.visibleFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `visible when ${printFunction(fn)}}`,
+            `visible when ${printFunction(predicate)}}`,
         ];
         return copy;
     }
@@ -737,15 +737,15 @@ export default class FieldTypeBuilder<T> {
 
     /**
      * Sets a field to inline based on a conditional expression
-     * @param {{(record:Record) : boolean}} fn - Conditional expression that should return true when a field should be inline
+     * @param {{(record:Record) : boolean}} predicate - Conditional expression that should return true when a field should be inline
      * @deprecated Inline layout is no longer part of the cookbook's supported modifier surface.
      */
-    inlineWhen(fn: BooleanPredicate) {
+    inlineWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
-        copy.properties.inlineFunctions = [...copy.properties.inlineFunctions, fn];
+        copy.properties.inlineFunctions = [...copy.properties.inlineFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `inline when ${printFunction(fn)}}`,
+            `inline when ${printFunction(predicate)}}`,
         ];
         return copy;
     }
@@ -763,14 +763,14 @@ export default class FieldTypeBuilder<T> {
 
     /**
      * Sets a field to readonly based on a conditional expression
-     * @param {{(record:Record) : boolean}} fn
+     * @param {{(record:Record) : boolean}} predicate
      */
-    readOnlyWhen(fn: BooleanPredicate) {
+    readOnlyWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
-        copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, fn];
+        copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `read only when ${printFunction(fn)}}`,
+            `read only when ${printFunction(predicate)}}`,
         ];
         return copy;
     }
@@ -779,17 +779,17 @@ export default class FieldTypeBuilder<T> {
      * @deprecated Composite-control read-only exceptions belong to the renderer.
      * Determines whether an exception exists for another read only condition.
      * For example, if a field has multiple sub-components with different read-only conditions
-     * @param {{(record:Record) : boolean}} fn
+     * @param {{(record:Record) : boolean}} predicate
      */
-    readOnlyExceptionWhen(fn: BooleanPredicate) {
+    readOnlyExceptionWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
         copy.properties.readonlyexceptionFunctions = [
             ...copy.properties.readonlyexceptionFunctions,
-            fn,
+            predicate,
         ];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `read only exception when ${printFunction(fn)}}`,
+            `read only exception when ${printFunction(predicate)}}`,
         ];
         return copy;
     }
@@ -827,19 +827,19 @@ export default class FieldTypeBuilder<T> {
 
     /**
      * Sets a field to required based on a conditional expression
-     * @param {(record:Record) => boolean} fn
+     * @param {(record:Record) => boolean} predicate
      */
-    requiredWhen(fn: BooleanPredicate) {
+    requiredWhen(predicate: (record: Record<any>) => boolean) {
         const copy = this.copy();
-        copy.properties.requiredFunctions = [...copy.properties.requiredFunctions, fn];
+        copy.properties.requiredFunctions = [...copy.properties.requiredFunctions, predicate];
         copy.properties.validators = [
             ...copy.properties.validators,
             {
                 name: 'is required',
                 validate: (mv: any, vv: any, record: Record, options: any, field: never) => {
-                    if (!fn(record)) return true;
+                    if (!predicate(record)) return true;
                     return (
-                        fn(record) &&
+                        predicate(record) &&
                         !copy.properties.emptyFunctions.some((emptyFn: Function) =>
                             emptyFn(record.getField(field))
                         )
@@ -849,7 +849,7 @@ export default class FieldTypeBuilder<T> {
         ];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `required when ${printFunction(fn)}}`,
+            `required when ${printFunction(predicate)}}`,
         ];
         return copy;
     }

@@ -16,6 +16,7 @@ it('keeps tooltip signatures aligned with the actual TypeScript builder API', ()
         const actual = checker.signatureToString(signature, method, ts.TypeFormatFlags.NoTruncation)
             .replace(/_FieldType/g, 'FieldType')
             .replace(/BooleanPredicate/g, '(value: any) => boolean')
+            .replace(/predicate: \(record: Record<any>\)/g, 'predicate: (record: Record)')
             .replace(/: FieldType<T>$/, '');
         expect(documented).toBe(`${name}${actual}`);
     }
