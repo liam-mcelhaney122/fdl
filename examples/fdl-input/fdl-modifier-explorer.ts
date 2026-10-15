@@ -53,6 +53,24 @@ export class FdlModifierExplorer extends LitElement {
     private amountInput?: string;
     private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
+    private tooltip?: {recipe: ExplorerRecipe; left: number; top: number};
+    private tooltipTimer?: ReturnType<typeof setTimeout>;
+    private showTooltip(event: Event, recipe: ExplorerRecipe) {
+        clearTimeout(this.tooltipTimer);
+        const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        this.tooltip = {recipe, left: Math.max(8, Math.min(bounds.right + 8, window.innerWidth - 296)), top: Math.max(8, Math.min(bounds.top, window.innerHeight - 140))};
+        this.requestUpdate();
+    }
+    private hideTooltip = () => {
+        clearTimeout(this.tooltipTimer);
+        this.tooltip = undefined;
+        this.requestUpdate();
+    };
+    private deferHideTooltip = () => {
+        clearTimeout(this.tooltipTimer);
+        this.tooltipTimer = setTimeout(this.hideTooltip, 150);
+    };
+
     private resetVersion = 0;
     private selectedCategories = new Set<string>();
     private person = new Record({ name: new FieldType<string>().with.label('Legal name').and.required() }, { name: '' });
@@ -104,6 +122,7 @@ export class FdlModifierExplorer extends LitElement {
         [this.person, this.money, this.delivery].forEach(record => record.removeEventListener('change', this.refresh));
         window.removeEventListener('hashchange', this.readLocation);
         window.removeEventListener('click', this.closeCategoryMenu);
+        clearTimeout(this.tooltipTimer);
         super.disconnectedCallback();
     }
     private select(index: number, updateUrl = true) {
@@ -196,7 +215,7 @@ export class FdlModifierExplorer extends LitElement {
             }}>Done</button></div></div></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             </div>
-            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} title=${`.${entry.name}${entry.signature}\n${entry.title}`} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
+            <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-describedby=${this.tooltip?.recipe.name === entry.name ? 'modifier-tooltip' : ''} @mouseenter=${(event: Event) => this.showTooltip(event, entry)} @mouseleave=${this.deferHideTooltip} @focus=${(event: Event) => this.showTooltip(event, entry)} @blur=${this.hideTooltip} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') this.hideTooltip(); }} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.hideTooltip(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
@@ -224,9 +243,13 @@ export class FdlModifierExplorer extends LitElement {
                 <footer><button class="pager" ?disabled=${this.selected === 0} @click=${() => this.select(this.selected - 1)}>← Back${this.selected > 0 ? html`<small>.${recipes[this.selected - 1].name}${recipes[this.selected - 1].signature}</small>` : ''}</button><span class="page-count">${this.selected + 1} of ${recipes.length}</span><button class="pager next" ?disabled=${this.selected === recipes.length - 1} @click=${() => this.select(this.selected + 1)}>Next →${this.selected < recipes.length - 1 ? html`<small>.${recipes[this.selected + 1].name}${recipes[this.selected + 1].signature}</small>` : ''}</button></footer>
                 `}
             </main>
-        </div>`;
+        </div>
+        ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><strong>.${this.tooltip.recipe.name}${this.tooltip.recipe.signature}</strong><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
     }
     static styles = css`
+        #modifier-tooltip { position:fixed; z-index:100; width:280px; max-width:calc(100vw - 16px); padding:14px 16px; border:1px solid #334155; border-radius:6px; background:#0f172a; color:#f8fafc; box-shadow:0 6px 20px #0f172a33; font-size:.9375rem; line-height:1.5; }
+        #modifier-tooltip strong { font-family:monospace; overflow-wrap:anywhere; }
+        #modifier-tooltip p { margin:8px 0 0; }
         :host { display:block; min-height:100vh; background:#ffffff; color:#0f172a; font:1.125rem/1.65 Arial,Helvetica,sans-serif; --accent:#2563eb; --muted:#475569; }
         * { box-sizing:border-box; }
         a { color:inherit; }
