@@ -19,7 +19,7 @@ export const exampleTables: { [name: string]: [recordset: string, columns: strin
     sortable: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
     filter: ['filterRecordset', ['name', 'team']],
     rowClasses: ['rowClassRecordset', ['status', 'owner']],
-    template: ['templateRecordset', ['invoice', 'status']],
+    template: ['templateRecordset', ['invoice', 'balance']],
     textAlign: ['alignRecordset', ['left', 'center', 'right']],
     maxColumnWidth: ['widthRecordset', ['constrained', 'flexible']],
     minColumnWidth: ['widthRecordset', ['constrained', 'flexible']],

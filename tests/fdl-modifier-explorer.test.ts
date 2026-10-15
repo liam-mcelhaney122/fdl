@@ -517,3 +517,32 @@ it('changes textarea rows while retaining the comment and updating the example s
     comments = await findField('comments');
     expect(comments.shadowRoot.querySelector('textarea').rows).toBe(4);
 });
+
+
+it('switches invoice template output when its balance is edited, even after sorting', async () => {
+    const page = await openPage('#template');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    await table.recordset.requestUpdate();
+    await catalog.updateComplete;
+    await table.updateComplete;
+    expect(table.shadowRoot.querySelectorAll('.paid-balance')).toHaveLength(1);
+    expect(table.shadowRoot.querySelector('.due-balance').textContent).toContain('$1,250.00');
+    await table.recordset.sort({field:'invoice', sort:'descending'});
+    await table.recordset.requestUpdate();
+    await catalog.updateComplete;
+    const editor = catalog.shadowRoot!.querySelector('fdl-field[field="balance"]') as any;
+    await editor.updateComplete;
+    expect(editor.record.getField('invoice')).toBe('1048');
+    const input = editor.shadowRoot.querySelector('input') as HTMLInputElement;
+    for (const amount of ['0', '42.5']) {
+        input.value = amount;
+        input.dispatchEvent(new Event('input'));
+        await catalog.updateComplete;
+        await table.updateComplete;
+        expect(editor.record.getField('balance')).toBe(Number(amount));
+        expect(table.shadowRoot.querySelectorAll('.paid-balance')).toHaveLength(amount === '0' ? 2 : 1);
+        if (amount === '42.5') expect(table.shadowRoot.textContent).toContain('$42.50');
+    }
+});

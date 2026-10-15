@@ -142,6 +142,7 @@ export class FdlTable extends LitElement {
             this.stopObservingRecordset();
             this.observedRecordset = this.recordset;
             this.observedRecordset?.addEventListener('page-changed', this.onRecordsetChange);
+            this.observedRecordset?.addEventListener('updated', this.onRecordsetChange);
             void this.observedRecordset?.requestUpdate();
         }
         if (this.filters) {
@@ -155,6 +156,7 @@ export class FdlTable extends LitElement {
 
     private stopObservingRecordset() {
         this.observedRecordset?.removeEventListener('page-changed', this.onRecordsetChange);
+        this.observedRecordset?.removeEventListener('updated', this.onRecordsetChange);
         this.observedRecordset = undefined;
     }
 
@@ -743,6 +745,7 @@ export class FdlTable extends LitElement {
         ${tableExampleStyles.cellClass}
         ${tableExampleStyles.conditionalCellClass}
         ${tableExampleStyles.rowClasses}
+        ${tableExampleStyles.template}
 
         th {
             position: relative;

@@ -241,12 +241,15 @@ export class FdlModifierCatalog extends LitElement {
     );
     private templateRecordset = new Recordset(
         {
-            invoice: new FieldType().with
-                .label('Invoice')
-                .and.template(value => `Invoice #${value}`),
-            status: new FieldType().with.label('Status'),
+            invoice: new FieldType().with.label('Invoice'),
+            balance: new FieldType().with.label('Balance').and.type('number').and.parser(Number)
+                .and.textAlign('right')
+                .and.formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : currency.format(Number(value)))
+                .and.template((formattedBalance, record) => record.getField('balance') === 0
+                    ? html`<span class="paid-balance">✓ Paid in full</span>`
+                    : html`<span class="due-balance"><strong>${formattedBalance}</strong><small>Payment due</small></span>`),
         },
-        [{ invoice: '1048', status: 'Open' }, { invoice: '1049', status: 'Paid' }]
+        [{ invoice: '1048', balance: 1250 }, { invoice: '1049', balance: 0 }, { invoice: '1050', balance: 85.5 }]
     );
     private alignRecordset = new Recordset(
         {
@@ -307,6 +310,7 @@ export class FdlModifierCatalog extends LitElement {
         this.record.addEventListener('change', this.onRecordChange);
         this.defaultRecord.addEventListener('change', this.onRecordChange);
         this.probes.addEventListener('change', this.onProbeChange);
+        this.templateRecordset.addEventListener('updated', this.onRecordChange);
         if (this.modifier === 'options') this.loadAssigneeChoices();
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.addEventListener('page-changed', this.onRecordChange));
     }
@@ -315,6 +319,7 @@ export class FdlModifierCatalog extends LitElement {
         this.record.removeEventListener('change', this.onRecordChange);
         this.defaultRecord.removeEventListener('change', this.onRecordChange);
         this.probes.removeEventListener('change', this.onProbeChange);
+        this.templateRecordset.removeEventListener('updated', this.onRecordChange);
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.removeEventListener('page-changed', this.onRecordChange));
         super.disconnectedCallback();
     }
@@ -466,7 +471,9 @@ export class FdlModifierCatalog extends LitElement {
             case 'rowCount': return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
             case 'sortable': return html`<p class="try">First name and Last name can sort. T-shirt size has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="shirtSize"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
-            case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
+            case 'template': return html`
+                ${this.templateRecordset.allRecords[0] ? this.renderField('balance', this.templateRecordset.allRecords[0]) : nothing}
+                <fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="balance"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
             case 'type': return html`${this.renderField('dateType')}`;
             case 'validator': return html`${this.renderValidation('projectCode')}${validatorCases(this.record.fieldTypeForField('projectCode'))}`;

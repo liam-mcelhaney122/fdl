@@ -138,3 +138,26 @@ it('exports a T-shirt order table with sorting disabled for sizes', async () => 
     expect(model.getFieldType('firstName').sortable()).toBe(true);
     expect([...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))).toEqual(['firstName', 'lastName', 'shirtSize']);
 });
+
+
+it('renders conditional invoice balances without changing the stored number', async () => {
+    const {model, container, update} = runExample('template');
+    await model.requestUpdate();
+    update();
+    const first = model.allRecords[0];
+    const cell = document.createElement('div');
+    render(first.print('balance'), cell);
+    expect(cell.querySelector('.due-balance')!.textContent).toBe('$1,250.00Payment due');
+    expect(first.getField('balance')).toBe(1250);
+    first.setField('balance', 0);
+    render(first.print('balance'), cell);
+    expect(cell.querySelector('.paid-balance')!.textContent).toBe('✓ Paid in full');
+    expect(first.getField('balance')).toBe(0);
+    first.setField('balance', 85.5);
+    render(first.print('balance'), cell);
+    expect(cell.querySelector('.due-balance')!.textContent).toBe('$85.50Payment due');
+    const editor = container.querySelector('fdl-field') as any;
+    expect(editor.record).toBe(first);
+    expect(editor.getAttribute('field')).toBe('balance');
+    expect(exampleSource('template').styles).toContain('.paid-balance');
+});
