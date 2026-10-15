@@ -70,12 +70,6 @@ it('shows the declared default when the Lit clear button is used', () => {
     expect(model.getField('documentTitle')).toBe('Untitled document');
 });
 
-it('generates the next examples through its declared factory', () => {
-    const {container} = runExample('exampleValue');
-    container.querySelector('button')!.click();
-    expect(container.textContent).toContain('Sample contact 4, Sample contact 5, Sample contact 6');
-});
-
 it('exports the same weekday expenses, dollar formatting, and strict threshold', async () => {
     const {model, container} = runExample('conditionalCellClass', {threshold:125.25});
     await model.requestUpdate();

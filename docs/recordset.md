@@ -80,11 +80,20 @@ Useful read-only properties include `allRecords`, `currentPage`,
 ## ExampleRecordset
 
 `ExampleRecordset` is intended for prototypes and demos. It creates the given
-number of rows using each field type's `exampleValue()` function.
+number of rows using an explicit row factory owned by the application.
 
 ```js
 import ExampleRecordset from '../example-recordset';
 
-const exampleReports = new ExampleRecordset(fields, 100);
+const exampleReports = new ExampleRecordset(fields, 100, index => ({
+  id: String(index + 1),
+  title: `Report ${index + 1}`,
+  isFavorite: false,
+}));
 await exampleReports.requestHardUpdate();
 ```
+
+The row factory receives a zero-based index and returns a complete data row
+matching the fields. This replaces the removed `exampleValue()` field modifier;
+move former per-field generators into this factory. Existing two-argument
+`ExampleRecordset(fields, count)` calls must supply the third argument.

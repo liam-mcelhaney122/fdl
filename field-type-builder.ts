@@ -105,7 +105,6 @@ export interface Properties<T = unknown> {
     descriptions: Array<string>;
     disableFunctions: Array<BooleanPredicate>;
     emptyFunctions: Array<BooleanPredicate>;
-    exampleValue: (index: number) => T;
     field?: string;
     filter: (searchText: string, value: any) => boolean;
     filtering?: boolean;
@@ -181,7 +180,6 @@ export const defaultProperties: Properties = {
     descriptions: [],
     disableFunctions: [() => false],
     emptyFunctions: [defaultEmptyFunction],
-    exampleValue: (index: number) => index,
     filter: (_searchText: string, _value: any) => true,
     formatters: [],
     formatOnChange: false,
@@ -507,13 +505,6 @@ export default class FieldTypeBuilder<T> {
         const copy = this.copy();
         copy.properties.defaultValue = value;
         copy.properties.descriptions = [...copy.properties.descriptions, `default value: ${value}`];
-        return copy;
-    }
-
-    exampleValue(value: T | ((index: number) => T)) {
-        const copy = this.copy();
-        copy.properties.exampleValue =
-            value instanceof Function ? value : () => value;
         return copy;
     }
 

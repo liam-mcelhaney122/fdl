@@ -4,7 +4,6 @@ const relationships: readonly (readonly string[])[] = [
     ['cellClass', 'conditionalCellClass', 'rowClasses'],
     ['compareFunction', 'sortable'],
     ['compareFunction', 'filter'],
-    ['defaultValue', 'exampleValue'],
     ['defaultValue', 'placeholder'],
     ['disabled', 'disabledWhen'],
     ['readOnly', 'readOnlyWhen'],

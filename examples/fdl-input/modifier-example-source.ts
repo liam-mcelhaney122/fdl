@@ -68,7 +68,6 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         hashFunction: {name:'probes',prefix:"const hashType = new FieldType().with.hashFunction(employee => employee.id);",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
         inputMask: {name:'probes',prefix:'const maskType = new FieldType().with.inputMask(/[0-9.]/);',fields:{input:type("label('Characters to test')")},values:{input:'7.A'}},
         reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldType().with.reducer('sum');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').and.type('number').and.parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
-        exampleValue: {name:'samples',prefix:'const exampleType = new FieldType().with.exampleValue(index => `Sample contact ${index + 1}`);',fields:{first:'exampleType',second:'exampleType',third:'exampleType'},values:{first:'Sample contact 1',second:'Sample contact 2',third:'Sample contact 3'}},
     };
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {
@@ -106,7 +105,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const kind = model.kind ?? 'Record';
     const helpers: {[key: string]: string[]} = {
         hashFunction: ['hashType'], inputMask: ['maskType'],
-        reducer: ['currency', 'reducerType'], exampleValue: ['exampleType'],
+        reducer: ['currency', 'reducerType'],
     };
     const exports = [model.name, ...(helpers[name] ?? [])];
     const modelFile = `${name}-model.js`;
@@ -130,10 +129,6 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     if (name === 'hashFunction') markup += `\n\n<p role="status">\n  \${hashType.hashFunction()({ id: probes.getField('firstId') }) ===\n    hashType.hashFunction()({ id: probes.getField('secondId') })\n    ? 'Same identity' : 'Different identities'}\n</p>`;
     if (name === 'inputMask') markup += `\n\n<p>\n  \${[...probes.getField('input')].map(character =>\n    html\`<span>\${character}: \${maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>\`)}\n</p>\n<p>The native adapter does not block typing.</p>`;
     if (name === 'reducer') markup += `\n\n<p role="status">\n  Sum: \${currency.format(reducerType.aggregate([\n    probes.getField('firstAmount'),\n    probes.getField('secondAmount'),\n    probes.getField('thirdAmount'),\n  ]))}\n</p>`;
-    if (name === 'exampleValue') {
-        setup = 'let exampleOffset = 0;\n';
-        markup = `<button @click=\${() => {\n  exampleOffset += 3;\n  samples.setFields(Object.fromEntries(\n    ['first', 'second', 'third'].map((field, index) =>\n      [field, exampleType.exampleValue()(exampleOffset + index)])\n  ));\n}}>Generate next three</button>\n<p>\${Object.values(samples.values).join(', ')}</p>`;
-    }
     const contract = !markup;
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;
     const adapters = exampleTables[name] ? "import './fdl-table';\n" : exampleFields[name] ? "import './fdl-field';\n" : '';

@@ -38,6 +38,5 @@ export function exampleMarkup(name: string): string | undefined {
         const [recordset, columns] = exampleTables[name];
         return `<fdl-table .recordset=\${${recordset}}>\n${columns.map(column => `  <fdl-column field="${column}"></fdl-column>`).join('\n')}\n</fdl-table>`;
     }
-    if (name === 'exampleValue') return `<p>\n  \${[0, 1, 2].map(index =>\n    exampleType.exampleValue()(index)\n  ).join(', ')}\n</p>`;
     return undefined;
 }

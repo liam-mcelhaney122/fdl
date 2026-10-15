@@ -2,8 +2,8 @@
 
 ## Status
 
-Adopted — 2026-07-30. The listed modifiers are deprecated and will be removed
-in a future breaking release. This record remains the inventory of their
+Adopted — 2026-07-30. Inventory entries record deprecated modifiers awaiting
+a breaking release and modifiers already removed. This record remains the inventory of their
 retirement.
 
 ## Decision
@@ -62,6 +62,10 @@ Consumers must move presentation and control configuration to the renderer or
 form adapter. Some former shortcuts no longer have an FDL-level replacement;
 that is intentional when the behavior is not reusable model behavior.
 
+The `exampleValue()` removal is immediate. Consumers must move sample generators
+out of field definitions and pass a row factory as the third `ExampleRecordset`
+constructor argument.
+
 FDL gains a smaller, more durable public vocabulary. Its modifiers become easier
 to understand, test, and render consistently in forms, tables, documents, and
 other consumers. The explicit inventory makes removals auditable and prevents
@@ -80,6 +84,7 @@ future retirement work from losing historical context.
 | `additionalProperties` | Deprecated | Renderer integration | Arbitrary renderer-property pass-through. |
 | `autocomplete` | Deprecated | Renderer-specific input configuration | Browser interaction hint. |
 | `autofocus` | Deprecated | Renderer-specific input configuration | Focus behavior belongs to the component. |
+| `exampleValue` | Removed — 2026-10-15 | Application/test fixtures or an explicit `ExampleRecordset` row factory | Sample-data generation belongs to application tooling rather than reusable field behavior. |
 | `field` | Deprecated | Record/renderer binding | View binding alias, not field behavior. |
 | `filtering` | Deprecated | Renderer-specific option-control configuration | Interactive option-control behavior is not reusable field behavior. |
 | `formElement` | Deprecated | Renderer integration | Component selection and private properties. |

@@ -10,7 +10,6 @@ export const modifierSignatures: {[name: string]: string} = {
     "disabled": "disabled()",
     "disabledWhen": "disabledWhen(predicate: (record: Record) => boolean)",
     "emptyWhen": "emptyWhen(predicate: (value: any) => boolean)",
-    "exampleValue": "exampleValue(value: T | ((index: number) => T))",
     "filter": "filter(predicate?: ((searchText: string, value: any) => boolean) | undefined)",
     "hashFunction": "hashFunction<V = unknown>(fn: (values: V) => string)",
     "inputMask": "inputMask(regex: RegExp)",

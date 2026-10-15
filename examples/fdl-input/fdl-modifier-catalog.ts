@@ -16,7 +16,7 @@ import './fdl-table';
 type DemoName =
     | 'cellClass' | 'compareFunction' | 'conditionalCellClass'
     | 'defaultValue' | 'disabled' | 'disabledWhen' | 'emptyWhen'
-    | 'exampleValue' | 'filter' | 'formatter' | 'hashFunction'
+    | 'filter' | 'formatter' | 'hashFunction'
     | 'inputMask' | 'label' | 'maxColumnWidth' | 'maxLength'
     | 'minColumnWidth' | 'minLength' | 'multipleValues' | 'options'
     | 'placeholder' | 'readOnly' | 'readOnlyWhen' | 'reducer' | 'required'
@@ -52,7 +52,6 @@ new FieldType().with.label('T-shirt size')
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
     live('emptyWhen', 'Define when a value is considered empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
-    live('exampleValue', 'Supplies fixed or index-derived values for generated example records.', 'exampleValue', `.exampleValue(index => \`Sample contact \${index + 1}\`)`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
     live('hashFunction', 'Defines stable identity for complex option values.', 'hashFunction', `.hashFunction(employee => employee.id)`),
@@ -164,7 +163,6 @@ export class FdlModifierCatalog extends LitElement {
         }
     );
 
-    private exampleType = new FieldType<string>().with.exampleValue(index => `Sample contact ${index + 1}`);
     private filterRecordset = new Recordset(
         {
             name: new FieldType<string>().with
@@ -292,7 +290,6 @@ export class FdlModifierCatalog extends LitElement {
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
     }, { classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
-    private exampleOffset = 0;
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
         return {
@@ -430,7 +427,6 @@ export class FdlModifierCatalog extends LitElement {
                     ${this.record.fieldTypeForField(field).empty(this.record, field) ? 'This field is considered empty' : 'This field is not considered empty'}<br>
                     ${!this.record.isValid(field) ? 'Invalid: Reference is required.' : field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}
                 </p>`)}`;
-            case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
             case 'filter': return html`<p class="try">One search text drives the table and both matching rules.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>${filterCases(this.probes.getField('filterProbe'))}`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
             case 'hashFunction': return html`${this.renderField('firstId', this.probes)}${this.renderField('secondId', this.probes)}<p class="computed" role="status">Hash comparison: ${this.hashType.hashFunction()({ id: this.probes.getField('firstId') }) === this.hashType.hashFunction()({ id: this.probes.getField('secondId') }) ? 'same identity' : 'different identities'}. Separate objects match when their IDs match.</p>`;
@@ -478,7 +474,6 @@ export class FdlModifierCatalog extends LitElement {
         };
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
         if (name === 'defaultValue') return this.defaultRecord.values;
-        if (name === 'exampleValue') return [0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset));
         if (name === 'hashFunction') return { firstObject: { id: this.probes.getField('firstId') }, secondObject: { id: this.probes.getField('secondId') } };
         if (name === 'inputMask') return [...this.probes.getField('input')].map(character => ({ character, allowed: this.maskType.allowInputChar(character) }));
         if (name === 'reducer') return { values: (['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field)), sum: this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))) };
@@ -495,7 +490,7 @@ export class FdlModifierCatalog extends LitElement {
         if (table) return tableSummary(table);
         if (name === 'defaultValue') return recordSummary(this.defaultRecord);
         const state = this.focusedState(name);
-        if (state && !['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(name)) return recordSummary(this.record, Object.keys(state as object));
+        if (state && !['hashFunction', 'inputMask', 'reducer'].includes(name)) return recordSummary(this.record, Object.keys(state as object));
         if (name === 'reducer') return html`<p class="state-summary">Three values aggregate to ${currency.format(this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))))}.</p>`;
         return html`<p class="state-summary">${describeValue(state)}</p>`;
     }
@@ -504,7 +499,7 @@ export class FdlModifierCatalog extends LitElement {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
             if (!entry) return nothing;
             return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
-                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['exampleValue', 'hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
+                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;
     }

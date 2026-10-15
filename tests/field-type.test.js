@@ -590,20 +590,11 @@ describe('FieldType', () => {
         });
     });
 
-    describe('.with.exampleValue(fn)', () => {
-        it('default exampleValue is the identity function', () => {
-            const base = new FieldType();
-            expect(base.exampleValue()(0)).toEqual(0);
-            expect(base.exampleValue()(100)).toEqual(100);
-        });
-
-        it('uses the input as a seed to generate an example value', () => {
-            const phoneType = new FieldType().with.exampleValue(i =>
-                i % 2 ? 'iPhone' : 'Android'
-            );
-            expect(phoneType.exampleValue()(0)).toEqual('Android');
-            expect(phoneType.exampleValue()(1)).toEqual('iPhone');
-        });
+    it('keeps sample-data generation outside the field type API', () => {
+        const type = new FieldType();
+        expect(type.exampleValue).toBeUndefined();
+        expect(type.with.exampleValue).toBeUndefined();
+        expect(type.properties).not.toHaveProperty('exampleValue');
     });
 
     describe('with.filter', () => {

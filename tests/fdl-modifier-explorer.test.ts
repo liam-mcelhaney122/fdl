@@ -199,7 +199,7 @@ describe('complete explorer', () => {
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
-        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 39 shown)');
+        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 38 shown)');
         expect(root.querySelector('h1')!.textContent).toContain('required');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);

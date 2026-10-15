@@ -162,10 +162,17 @@ const fields = {
 
 ## Other modifiers
 
-Additional modifiers include `hashFunction(fn)` for matching object-valued options, `exampleValue(value)`
-for `ExampleRecordset`, `onValueChange(fn)` for reactions to value changes, and
+Additional modifiers include `hashFunction(fn)` for matching object-valued options,
+`onValueChange(fn)` for reactions to value changes, and
 `search(config)` for search-capable option controls. `schema(name)` is retained
 for compatibility and should be avoided in new code.
 
 Custom Lit field controls should extend [`FormElement`](./form-element.md),
 which applies a field type's form-related modifiers to its child control.
+
+## Removed sample-data modifier
+
+`exampleValue()` was removed on 2026-10-15. Keep fixtures and sample-data
+factories in application or test code, separate from field definitions.
+For generated demo rows, pass a row factory to
+[`ExampleRecordset`](./recordset.md#examplerecordset).

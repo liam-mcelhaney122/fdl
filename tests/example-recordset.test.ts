@@ -1,33 +1,23 @@
 import ExampleRecordset from '../example-recordset';
-import Recordset from '../recordset';
 import FieldType from '../field-type.js';
 
-interface ExampleData {
-    name: string;
-    info: string;
-}
+it('creates example rows through an explicit application factory', async () => {
+    const rows = new ExampleRecordset({
+        name: new FieldType<string>(),
+        info: new FieldType<string>(),
+    }, 3, index => ({name: `Person ${index + 1}`, info: 'administrator'}));
+    await rows.requestUpdate();
+    expect(rows.allRecords.map(record => record.values)).toEqual([
+        {name: 'Person 1', info: 'administrator'},
+        {name: 'Person 2', info: 'administrator'},
+        {name: 'Person 3', info: 'administrator'},
+    ]);
+});
 
-let exampleRecordset: Recordset<ExampleData>;
-const nameOnRow = (index:number) => exampleRecordset.allRecords[index].values.name as string;
-
-describe('An Example Recordset', () => {
-    beforeEach(() => {
-        exampleRecordset = new ExampleRecordset<ExampleData>(
-            {
-                name: new FieldType<string>().with.exampleValue(() => 'Bobby'),
-                info: new FieldType<string>().with.exampleValue(() => 'administrator'),
-            },
-            5
-        );
-    });
-
-    it('exists', async () => {
-        await exampleRecordset.requestUpdate();
-        expect(exampleRecordset).toBeDefined();
-        expect(exampleRecordset.allRecords.length).toEqual(5);
-    });
-    it('creates a recordset with example data', async () => {
-        await exampleRecordset.requestUpdate();
-        expect(nameOnRow(0)).toEqual('Bobby');
-    });
+it('does not call the row factory for an empty example recordset', async () => {
+    const createRow = jest.fn(() => ({name: 'Unused'}));
+    const rows = new ExampleRecordset({name: new FieldType<string>()}, 0, createRow);
+    await rows.requestUpdate();
+    expect(createRow).not.toHaveBeenCalled();
+    expect(rows.allRecords).toEqual([]);
 });

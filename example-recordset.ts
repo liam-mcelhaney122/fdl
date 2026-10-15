@@ -8,15 +8,8 @@ type ExampleFields<T extends object> = {
 export default class ExampleRecordset<
     T extends object
 > extends Recordset<T> {
-    constructor(fields: ExampleFields<T>, rowCount: number) {
-        const data = Array.from({ length: rowCount }, (_, index) =>
-            Object.fromEntries(
-                Object.keys(fields).map(fieldName => {
-                    const fieldType = fields[fieldName as keyof T];
-                    return [fieldName, fieldType.exampleValue()(index)];
-                })
-            ) as T
-        );
+    constructor(fields: ExampleFields<T>, rowCount: number, createRow: (index: number) => T) {
+        const data = Array.from({ length: rowCount }, (_, index) => createRow(index));
         super(fields, () => data);
     }
 }

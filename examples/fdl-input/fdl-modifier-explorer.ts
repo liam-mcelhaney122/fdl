@@ -262,7 +262,7 @@ export class FdlModifierExplorer extends LitElement {
                 <h2 class="modifier-signature"><code>${modifierSignatures[recipe.name]}</code></h2>
                 <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
                 <section class="playground" aria-label="Interactive example">
-                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
+                    <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
                     <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>

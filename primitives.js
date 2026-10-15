@@ -7,7 +7,6 @@ export const boolean = new FieldType().with.schema('boolean').and.defaultValue(f
 
 export const number = new FieldType().with
     .cellClass('numeric')
-    .and.exampleValue(1234.56)
     .and.defaultValue(0)
     .and.inputMask(/[0-9$.,]/);
 

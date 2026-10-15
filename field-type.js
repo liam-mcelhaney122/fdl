@@ -185,10 +185,6 @@ export default class FieldType {
         return this.properties.list;
     }
 
-    exampleValue() {
-        return this.properties.exampleValue;
-    }
-
     schema() {
         return this.properties.schema;
     }
