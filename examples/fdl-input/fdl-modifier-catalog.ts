@@ -83,7 +83,6 @@ new FieldType()
     live('rowClasses', 'Computes CSS classes for the table row containing a value.', 'rowClasses', `.rowClasses(value => value === 'Disputed' ? ['disputed-row'] : [])`),
     live('rowCount', 'Sets the visible row count of textarea-like controls.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
-    placeholder('selectOnFocus', 'Requests selecting all text when a compatible control receives focus.', 'The flag is forwarded as an expando property, but FormElement does not attach a focus handler and native inputs do not interpret that property.'),
     live('sortable', 'Enables or disables sorting for a table column.', 'sortable', `.sortable(false)`),
     live('targetColumnWidth', 'Sets the preferred width requested for a table column.', 'targetColumnWidth', `.targetColumnWidth(140)`),
     live('template', 'Transforms a formatted value into its final printed or table representation.', 'template', `.template(value => \`Invoice #\${value}\`)`),

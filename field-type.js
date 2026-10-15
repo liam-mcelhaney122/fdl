@@ -422,10 +422,6 @@ export default class FieldType {
         return this.properties.descriptions;
     }
 
-    selectOnFocus() {
-        return this.properties.selectOnFocus;
-    }
-
     formatOnChange() {
         return this.properties.formatOnChange;
     }

@@ -30,7 +30,6 @@ export const modifierSignatures: {[name: string]: string} = {
     "rowClasses": "rowClasses(fn: Function)",
     "rowCount": "rowCount(numberOfRows: number)",
     "search": "search(config: SearchConfig<T>)",
-    "selectOnFocus": "selectOnFocus()",
     "sortable": "sortable(sortable: boolean)",
     "targetColumnWidth": "targetColumnWidth(width: number)",
     "template": "template(fn: (field: T, record: Record<any>) => string | number | boolean | TemplateResult | Array<TemplateResult>)",

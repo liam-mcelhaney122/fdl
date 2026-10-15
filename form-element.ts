@@ -268,7 +268,6 @@ class FormElement extends ListeningElement {
          */
         this.element.fieldModel = this.record?.field(this.field);
         this.element.field = this.record?.field(this.field); // weird name here, we need to deprecate this and fieldModel
-        this.element.selectOnFocus = this.fieldType?.selectOnFocus();
         this.element.formatOnChange = this.fieldType?.formatOnChange();
         this.element.searchConfig = this.fieldType?.searchConfig();
         this.element.hasSearch = this.fieldType?.hasSearch();

@@ -785,13 +785,11 @@ describe('FieldType', () => {
         });
     });
 
-    describe('selectOnFocus', () => {
-        it('selectOnFocus() (false by default)', () => {
-            expect(new FieldType().selectOnFocus()).toBe(false);
-        });
-        it('adds a validator for max length', () => {
-            expect(new FieldType().with.selectOnFocus().selectOnFocus()).toBe(true);
-        });
+    it('keeps focus selection outside the field type API', () => {
+        const type = new FieldType();
+        expect(type.selectOnFocus).toBeUndefined();
+        expect(type.with.selectOnFocus).toBeUndefined();
+        expect(type.properties).not.toHaveProperty('selectOnFocus');
     });
 
     describe('form element', () => {

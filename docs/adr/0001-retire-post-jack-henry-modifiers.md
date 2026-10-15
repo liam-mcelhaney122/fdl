@@ -66,6 +66,10 @@ The `exampleValue()` removal is immediate. Consumers must move sample generators
 out of field definitions and pass a row factory as the third `ExampleRecordset`
 constructor argument.
 
+The `selectOnFocus()` removal is immediate. Consumers that need to select text
+on focus must implement that interaction in their component or form adapter.
+There is no replacement modifier in FDL.
+
 FDL gains a smaller, more durable public vocabulary. Its modifiers become easier
 to understand, test, and render consistently in forms, tables, documents, and
 other consumers. The explicit inventory makes removals auditable and prevents
@@ -102,6 +106,7 @@ future retirement work from losing historical context.
 | `readOnlyExceptionWhen` | Deprecated | Renderer | Composite-control exception. |
 | `schema` | Deprecated | Application metadata outside `FieldType` | Legacy metadata without reusable field behavior. |
 | `selectionDisabledFunctions` | Deprecated | Renderer or form adapter | Individual choice disabling is renderer-specific and is not enforced by the FDL model or native controls. |
+| `selectOnFocus` | Removed — 2026-10-15 | Component or form adapter | Focus and text selection are control interactions, not reusable field behavior. |
 | `segmented` | Deprecated | Renderer-specific control configuration | Control presentation choice. |
 | `step` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
 | `tag` | Deprecated | Renderer-specific control configuration | HTML/control selection. |

@@ -26,8 +26,6 @@ const relationships: readonly (readonly string[])[] = [
     ['reducer', 'filter'],
     ['reducer', 'formatter'],
     ['rowCount', 'type'],
-    ['selectOnFocus', 'placeholder'],
-    ['selectOnFocus', 'parser'],
     ['toggle', 'type'],
     ['toggle', 'options'],
 ];

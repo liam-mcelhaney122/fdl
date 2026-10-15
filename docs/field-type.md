@@ -205,3 +205,10 @@ For example, `inputMask(/[0-9.]/)` accepts digits and periods.
 A character mask is not whole-value validation: multiple periods still match
 that mask. Use `validator(...)` for complete-value rules. Programmatic record
 assignments bypass input filtering.
+
+## Removed focus-selection modifier
+
+`selectOnFocus()` was removed on 2026-10-15. Text selection on focus belongs to
+components and form adapters. Remove `.selectOnFocus()` from field definitions
+and, where needed, handle focus and select the input's text in the component.
+There is no replacement FDL modifier.

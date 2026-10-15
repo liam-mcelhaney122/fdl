@@ -151,7 +151,6 @@ export interface Properties<T = unknown> {
     segmentedFunctions: Array<BooleanPredicate>;
     selectionDisabledFunctions: Object;
     x?: boolean;
-    selectOnFocus: boolean;
     sortable?: boolean;
     specificDate?: boolean;
     step?: number;
@@ -219,7 +218,6 @@ export const defaultProperties: Properties = {
     segmentedFunctions: [() => false],
     selectionDisabledFunctions: {},
     tag: 'input',
-    selectOnFocus: false,
     sortable: true,
     template: (value: any) => value,
     textAlign: 'left',
@@ -978,13 +976,6 @@ export default class FieldTypeBuilder<T> {
     description(text: string) {
         const copy = this.copy();
         copy.properties.descriptions = [...copy.properties.descriptions, text];
-        return copy;
-    }
-
-    selectOnFocus() {
-        const copy = this.copy();
-        copy.properties.selectOnFocus = true;
-        copy.properties.descriptions = [...copy.properties.descriptions, 'select on focus'];
         return copy;
     }
 
