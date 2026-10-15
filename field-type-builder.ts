@@ -640,26 +640,13 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    disabled() {
-        const copy = this.copy();
-        copy.properties.disableFunctions = [
-            ...copy.properties.disableFunctions,
-            defaultTrueFunction,
-        ];
-        copy.properties.descriptions = [...copy.properties.descriptions, `disabled`];
-        return copy;
-    }
-
-    /**
-     *
-     * @param {{(record:Record) : boolean}} predicate
-     */
-    disabledWhen(predicate: (record: Record<any>) => boolean) {
+    /** Disable the field always, or when a record predicate returns true. */
+    disabled(predicate: (record: Record<any>) => boolean = defaultTrueFunction) {
         const copy = this.copy();
         copy.properties.disableFunctions = [...copy.properties.disableFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `disabled when ${printFunction(predicate)}`,
+            predicate === defaultTrueFunction ? 'disabled' : `disabled when ${printFunction(predicate)}`,
         ];
         return copy;
     }
@@ -785,62 +772,21 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    /**
-     * Sets the field to required
-     *
-     */
-    required() {
-        const copy = this.copy();
-        copy.properties.requiredFunctions = [
-            ...copy.properties.requiredFunctions,
-            defaultTrueFunction,
-        ];
-        // add validator
-        copy.properties.validators = [
-            ...copy.properties.validators,
-            {
-                name: 'is required',
-                validate: (
-                    modelValue: any,
-                    viewValue: any,
-                    record: Record<any>,
-                    options: OptionsApi<T>,
-                    field: any
-                ) =>
-                    !copy.properties.emptyFunctions.some((fn: Function) =>
-                        fn(record.getField(field))
-                    ),
-            },
-        ];
-        copy.properties.descriptions = [...copy.properties.descriptions, `required`];
-        return copy;
-    }
-
-    /**
-     * Sets a field to required based on a conditional expression
-     * @param {(record:Record) => boolean} predicate
-     */
-    requiredWhen(predicate: (record: Record<any>) => boolean) {
+    /** Require a non-empty value always, or when a record predicate returns true. */
+    required(predicate: (record: Record<any>) => boolean = defaultTrueFunction) {
         const copy = this.copy();
         copy.properties.requiredFunctions = [...copy.properties.requiredFunctions, predicate];
         copy.properties.validators = [
             ...copy.properties.validators,
             {
                 name: 'is required',
-                validate: (mv: any, vv: any, record: Record, options: any, field: never) => {
-                    if (!predicate(record)) return true;
-                    return (
-                        predicate(record) &&
-                        !copy.properties.emptyFunctions.some((emptyFn: Function) =>
-                            emptyFn(record.getField(field))
-                        )
-                    );
-                },
+                validate: (modelValue: any, viewValue: any, record: Record<any>, options: OptionsApi<T>, field: any) =>
+                    !predicate(record) || !copy.properties.emptyFunctions.some((fn: Function) => fn(record.getField(field))),
             },
         ];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            `required when ${printFunction(predicate)}}`,
+            predicate === defaultTrueFunction ? 'required' : `required when ${printFunction(predicate)}`,
         ];
         return copy;
     }

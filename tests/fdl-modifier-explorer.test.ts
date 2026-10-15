@@ -202,8 +202,8 @@ describe('complete explorer', () => {
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
-        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 35 shown)');
-        expect(root.querySelector('h1')!.textContent).toBe('Required fields');
+        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 33 shown)');
+        expect(root.querySelector('h1')!.textContent).toBe('.required(predicate?)');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toBe('Column widths');
@@ -321,7 +321,7 @@ describe('category navigation filters', () => {
         search.value = 'required';
         search.dispatchEvent(new Event('input'));
         await settle(page);
-        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(2);
+        expect(root.querySelectorAll('.modifier-list a')).toHaveLength(1);
         root.querySelector<HTMLButtonElement>('.clear-filters')!.click();
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
@@ -632,4 +632,10 @@ it('opens the singular rowClass page from its old plural URL', async () => {
     await table.recordset.requestUpdate();await table.updateComplete;
     expect(table.shadowRoot.querySelectorAll('tr.invoice-row')).toHaveLength(2);
     expect(table.shadowRoot.querySelectorAll('tr.disputed-row.needs-review')).toHaveLength(1);
+});
+
+it.each([['requiredWhen','required'],['disabledWhen','disabled']])('opens retired %s links on %s', async (oldName, name) => {
+    const page = await openPage(`#${oldName}`);
+    expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}(predicate?)`);
+    expect(page.shadowRoot!.querySelector(`.modifier-list a[href="#${oldName}"]`)).toBeNull();
 });

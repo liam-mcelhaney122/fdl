@@ -67,8 +67,8 @@ change the example's rule, but every editable domain value remains bound through
 `fdl-field`. Preserve explicit adapter limitations instead of inventing support.
 
 Disabled field controls use a gray fill, dashed border, and unavailable cursor
-while keeping their values readable. The `disabled` and `disabledWhen` pages
-show the same CSS used by the field adapter.
+while keeping their values readable. The `disabled` page
+shows the same CSS used by the field adapter.
 
 Every modifier offers a downloadable runnable ZIP with its model/view files,
 compiled example adapters and styles, a bundled snapshot of the current FDL

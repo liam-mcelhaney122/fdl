@@ -19,7 +19,7 @@ export function compositionFields(rules: CompositionRules) {
     let address = new FieldType<string>().with.label('Shipping address');
     if (rules.visibility === 'shipping') address = address.with.visibleWhen(record => record.getField('fulfillment') === 'ship');
     if (rules.requiredness === 'always') address = address.with.required();
-    if (rules.requiredness === 'shipping') address = address.with.requiredWhen(record => record.getField('fulfillment') === 'ship');
+    if (rules.requiredness === 'shipping') address = address.with.required(record => record.getField('fulfillment') === 'ship');
     if (rules.validation === 'on') address = address.with.validator({
         name: 'must start with a street number and a street name',
         validate: value => value === '' || hasStreetNumber(value),
@@ -37,7 +37,7 @@ export function compositionRecord(rules: CompositionRules, fulfillment: string, 
 export function compositionDefinition(rules: CompositionRules) {
     return `const address = new FieldType()\n  .with.label('Shipping address')${rules.visibility === 'shipping' ? `
   .and.visibleWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.requiredness === 'always' ? '\n  .and.required()' : rules.requiredness === 'shipping' ? `
-  .and.requiredWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.validation === 'on' ? `
+  .and.required(record => record.getField('fulfillment') === 'ship')` : ''}${rules.validation === 'on' ? `
   .and.validator({
     name: 'must start with a street number and a street name',
     validate: value => value === '' || /^\\d+\\s+\\S/.test(value.trim()),

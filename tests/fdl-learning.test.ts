@@ -62,15 +62,13 @@ it('explains the actual visibility result and retained value', async () => {
     expect(trace).toContain('42 Orchard Street');
 });
 it('explains conditional requiredness as the dependency changes', async () => {
-    const page = await openExplorer('#requiredWhen');
-    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
-    await catalog.updateComplete;
-    await editField(catalog.shadowRoot!, 'followUp', 'yes');
-    await catalog.updateComplete;
-    expect(catalog.shadowRoot!.querySelector('.dependency-trace')!.textContent).toContain('true → Required');
-    await editField(catalog.shadowRoot!, 'followUp', 'no');
-    await catalog.updateComplete;
-    expect(catalog.shadowRoot!.querySelector('.dependency-trace')!.textContent).toContain('false → Optional');
+    const page = await openExplorer('#required');
+    await editField(page.shadowRoot!, 'followUp', 'yes');
+    await page.updateComplete;
+    expect(page.shadowRoot!.querySelector('.dependency-trace')!.textContent).toContain('true → Required');
+    await editField(page.shadowRoot!, 'followUp', 'no');
+    await page.updateComplete;
+    expect(page.shadowRoot!.querySelector('.dependency-trace')!.textContent).toContain('false → Optional');
 });
 
 it('removes requiredness from both model validation and the displayed definition', async () => {

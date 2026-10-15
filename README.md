@@ -42,7 +42,7 @@ const name = string.with
   .and.formatter(capitalize);
 const newCustomer = boolean.with
   .defaultValue(false)
-  .thatIs.disabledWhen(isNewCustomer);
+  .thatIs.disabled(isNewCustomer);
 const appointmentDate = date.with
   .validator({ name: "weekday", validate: isWeekday })
   .and.validator({ name: "not-holiday", validate: isNotHoliday })
@@ -50,7 +50,7 @@ const appointmentDate = date.with
     name: "new-customer-day",
     validate: isExistingCustomerOrNewCustomerDay,
   });
-const comments = string.thatIs.requiredWhen(isNewCustomer);
+const comments = string.thatIs.required(isNewCustomer);
 
 const appointment = new Record({
   name,

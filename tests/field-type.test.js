@@ -657,8 +657,8 @@ describe('FieldType', () => {
             expect(a.isDisabled()).toBe(false);
         });
 
-        it('is disabled when any disabledWhen function is true', () => {
-            const a = new FieldType().thatIs.disabledWhen(() => true).and.disabledWhen(() => false);
+        it('is disabled when any disabled function is true', () => {
+            const a = new FieldType().thatIs.disabled(() => true).and.disabled(() => false);
             expect(a.isDisabled()).toBe(true);
         });
 
@@ -763,13 +763,13 @@ describe('FieldType', () => {
         });
     });
 
-    describe('requiredWhen', () => {
+    describe('required', () => {
         it('is not required by default', () => {
             const type = new FieldType();
             expect(type.required()).toEqual(false);
         });
-        it('is required when requiredWhen() is true', () => {
-            const type = new FieldType().thatIs.requiredWhen(() => true);
+        it('is required when required() is true', () => {
+            const type = new FieldType().thatIs.required(() => true);
             expect(type.required()).toEqual(true);
         });
 
@@ -820,11 +820,11 @@ describe('FieldType', () => {
             expect(account.info()).toEqual(['a bank account']);
         });
 
-        it('reports other descriptions (using disabledWhen for an example)', () => {
+        it('reports other descriptions (using disabled for an example)', () => {
             function amountIsZero() {
                 return false;
             }
-            const account = new FieldType().thatIs.disabledWhen(amountIsZero);
+            const account = new FieldType().thatIs.disabled(amountIsZero);
             expect(account.info()).toEqual(['disabled when amountIsZero']);
         });
     });
@@ -975,5 +975,50 @@ describe('FieldType', () => {
             const field = new FieldType().with.type('invalid');
             expect(field.type()).toEqual(new Error('Invalid input type: invalid'));
         });
+    });
+});
+
+describe('consolidated state modifiers', () => {
+    it('removes the redundant conditional modifier names', () => {
+        expect(new FieldType().with.requiredWhen).toBeUndefined();
+        expect(new FieldType().with.disabledWhen).toBeUndefined();
+    });
+
+    it('keeps required state and validation in sync as record dependencies change', () => {
+        const required = new FieldType().with.emptyWhen(value => value === 'N/A')
+            .and.required(record => record.getField('needsReference'));
+        const record = new Record({needsReference: new FieldType(), reference: required}, {needsReference:false, reference:'N/A'});
+        expect(required.required(record)).toBe(false);
+        expect(record.isValid('reference')).toBe(true);
+        record.setField('needsReference', true);
+        expect(required.required(record)).toBe(true);
+        expect(record.isValid('reference')).toBe(false);
+        record.setField('reference', 'REF-42');
+        expect(record.isValid('reference')).toBe(true);
+        record.setField('reference', '');
+        record.setField('needsReference', false);
+        expect(record.isValid('reference')).toBe(true);
+    });
+
+    it('composes predicates and unconditional rules without changing their baselines', () => {
+        const base = new FieldType();
+        const conditional = base.with.required(record => record.getField('first'))
+            .and.required(record => record.getField('second'))
+            .and.disabled(record => record.getField('first'))
+            .and.disabled(record => record.getField('second'));
+        const always = conditional.with.required().and.disabled();
+        const record = new Record({first:new FieldType(),second:new FieldType(),value:conditional}, {first:false,second:false,value:''});
+        expect(conditional.required(record)).toBe(false);
+        expect(conditional.isDisabled(record)).toBe(false);
+        expect(always.required(record)).toBe(true);
+        expect(always.isDisabled(record)).toBe(true);
+        record.setField('second', true);
+        expect(conditional.required(record)).toBe(true);
+        expect(conditional.isDisabled(record)).toBe(true);
+        expect(record.isValid('value')).toBe(false);
+        expect(base.required(record)).toBe(false);
+        expect(base.isDisabled(record)).toBe(false);
+        record.setField('second', false);
+        expect(record.isValid('value')).toBe(true);
     });
 });

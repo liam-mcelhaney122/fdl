@@ -203,3 +203,24 @@ it('exports rowClass declarations with fixed and returned array classes', async 
     expect(status.rowClasses('Disputed')).toEqual(['invoice-row', 'disputed-row', 'needs-review']);
     expect(status.rowClasses('Paid')).toEqual(['invoice-row']);
 });
+
+it('shows both required forms and validates conditional notes in the runnable UI', () => {
+    const {model,container} = runExample('required');
+    model.setField('name','Ada Lovelace');
+    model.setField('followUp','yes');
+    container.querySelector('button')!.click();
+    expect(model.isValid()).toBe(false);
+    expect(container.querySelector('[role="status"]')!.textContent).toContain('Follow-up notes');
+    model.setField('followUp','no');
+    expect(model.isValid()).toBe(true);
+    expect(container.querySelector('[role="status"]')!.textContent).toContain('Valid.');
+});
+
+it('exports unconditional and conditional disabled rules together', () => {
+    const {model} = runExample('disabled');
+    expect(model.fieldTypeForField('lockedId').isDisabled(model)).toBe(true);
+    expect(model.fieldTypeForField('budget').isDisabled(model)).toBe(false);
+    model.setField('approvalStatus','approved');
+    expect(model.fieldTypeForField('budget').isDisabled(model)).toBe(true);
+    expect(model.getField('budget')).toBe(5000);
+});

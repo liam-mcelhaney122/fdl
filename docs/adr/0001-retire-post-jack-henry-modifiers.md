@@ -93,6 +93,7 @@ future retirement work from losing historical context.
 | `autocomplete` | Deprecated | Renderer-specific input configuration | Browser interaction hint. |
 | `autofocus` | Deprecated | Renderer-specific input configuration | Focus behavior belongs to the component. |
 | `conditionalCellClass` | Removed — 2026-10-15 | `cellClass(predicate, className)` | Consolidate fixed and conditional cell classes in one modifier. |
+| `disabledWhen` | Removed — 2026-10-15 | `disabled(predicate)` | Consolidate unconditional and conditional disabled state in one modifier. |
 | `exampleValue` | Removed — 2026-10-15 | Application/test fixtures or an explicit `ExampleRecordset` row factory | Sample-data generation belongs to application tooling rather than reusable field behavior. |
 | `field` | Deprecated | Record/renderer binding | View binding alias, not field behavior. |
 | `filtering` | Deprecated | Renderer-specific option-control configuration | Interactive option-control behavior is not reusable field behavior. |
@@ -109,6 +110,7 @@ future retirement work from losing historical context.
 | `parseDynamicRange` | Deprecated | `parser(...)` | Parsing belongs in the value pipeline. |
 | `pattern` | Deprecated | Model validation or renderer input configuration | Browser constraint is not model-enforced. |
 | `readOnlyExceptionWhen` | Deprecated | Renderer | Composite-control exception. |
+| `requiredWhen` | Removed — 2026-10-15 | `required(predicate)` | Consolidate unconditional and conditional requiredness while preserving model validation. |
 | `rowClasses` | Removed — 2026-10-15 | `rowClass(classes)` | Use a singular modifier for each declaration; strings, arrays, and functions returning either compose consistently with `cellClass`. |
 | `rowCount` | Deprecated | `fdl-field` presentation configuration | Textarea sizing is a presentation concern rather than reusable field behavior. |
 | `schema` | Deprecated | Application metadata outside `FieldType` | Legacy metadata without reusable field behavior. |

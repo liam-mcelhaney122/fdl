@@ -5,7 +5,7 @@ export function cancellationFields(rules:CancellationRules) {
     let reason=new FieldType<string>().with.label('Cancellation reason').and.tag('textarea').and.rowCount(2);
     if(rules.visibility==='cancelled') reason=reason.with.visibleWhen(record=>record.getField('status')==='cancelled');
     if(rules.requiredness==='always') reason=reason.with.required();
-    if(rules.requiredness==='cancelled') reason=reason.with.requiredWhen(record=>record.getField('status')==='cancelled');
+    if(rules.requiredness==='cancelled') reason=reason.with.required(record=>record.getField('status')==='cancelled');
     return {status:new FieldType<string>().with.label('Request status').and.tag('select').and.options([{text:'Active',value:'active'},{text:'Cancelled',value:'cancelled'}]),reason};
 }
 export const cancellationCases=[{status:'active',reason:'',visible:false,required:false,valid:true},{status:'active',reason:'Changed plans',visible:false,required:false,valid:true},{status:'cancelled',reason:'',visible:true,required:true,valid:false},{status:'cancelled',reason:'Changed plans',visible:true,required:true,valid:true}];
@@ -17,7 +17,7 @@ export function checkCancellation(rules:CancellationRules) {
     });
 }
 export function cancellationDefinition(rules:CancellationRules) {
-    return `const reason = new FieldType()\n  .with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.requiredWhen(record => record.getField('status') === 'cancelled')" : ''};`;
+    return `const reason = new FieldType()\n  .with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.required(record => record.getField('status') === 'cancelled')" : ''};`;
 }
 
 export function checkCancellationTransition(rules:CancellationRules) {

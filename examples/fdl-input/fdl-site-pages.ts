@@ -42,7 +42,7 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
             <p class="description">Define field rules once. Use them consistently in forms, tables, and validation.</p>
             <fdl-delivery-experiment></fdl-delivery-experiment><p><a href="#learn">Build this understanding one question at a time →</a> · <a href="#visibleWhen?section=starter">Run a complete example locally</a></p>
             <section class="task-links" aria-labelledby="task-links-title"><h2 id="task-links-title">What are you trying to do?</h2><ul>
-                <li><a href="#requiredWhen">Require an answer only when another answer needs it</a></li>
+                <li><a href="#required">Require an answer only when another answer needs it</a></li>
                 <li><a href="#parser">Turn currency input into a stored number</a></li>
                 <li><a href="#options">Refresh choices when a related field changes</a></li>
                 <li><a href="#validator">Check a value against a business rule</a></li>
@@ -93,7 +93,7 @@ person.isValid(); // true`)}</code></pre>
             <pre class="code markup"><code>${highlightMarkup('<fdl-field .record=${person} field="name"></fdl-field>')}</code></pre>
             <p>The component is the integration layer. FDL does not choose your page layout or visual theme. Other adapters can interpret the model for different interfaces.</p>
             <h2>4. Express dependencies as predicates</h2>
-            <p>For rules that depend on another field, a callback reads the current record. For example, <a href="#visibleWhen">visibleWhen()</a> can show an address only when shipping is selected. <a href="#requiredWhen">requiredWhen()</a> separately controls whether that address is required.</p>
+            <p>For rules that depend on another field, a callback reads the current record. For example, <a href="#visibleWhen">visibleWhen()</a> can show an address only when shipping is selected. <a href="#required">required()</a> separately controls whether that address is required.</p>
             <h2>5. Reuse definitions in a collection</h2>
             <p>A <code>Recordset</code> applies field definitions to multiple records. The table example reads comparison, filtering, formatting, and alignment behavior from those definitions. Start with <a href="#compareFunction">compareFunction()</a> or <a href="#filter">filter()</a>.</p>
             <h2>Who owns what?</h2>

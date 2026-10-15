@@ -19,12 +19,12 @@ import './fdl-table';
 
 type DemoName =
     | 'cellClass' | 'compareFunction'
-    | 'defaultValue' | 'disabled' | 'disabledWhen' | 'emptyWhen'
+    | 'defaultValue' | 'disabled' | 'emptyWhen'
     | 'filter' | 'formatter' | 'hashFunction'
     | 'inputMask' | 'label' | 'maxColumnWidth' | 'maxLength'
     | 'minColumnWidth' | 'minLength' | 'multipleValues' | 'options'
     | 'placeholder' | 'readOnly' | 'readOnlyWhen' | 'reducer' | 'required'
-    | 'parser' | 'requiredWhen' | 'rowClass' | 'rowCount' | 'sortable'
+    | 'parser' | 'rowClass' | 'rowCount' | 'sortable'
     | 'targetColumnWidth' | 'template' | 'textAlign' | 'type' | 'validator'
     | 'visibleWhen';
 
@@ -53,8 +53,7 @@ new FieldType()
   .with.label('T-shirt size')
   .and.compareFunction(compareShirtSizes)`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
-    live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
-    live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
+    live('disabled', 'Disables editing always, or while a record predicate is true.', 'disabled', `.disabled(record => record.getField('approvalStatus') === 'approved')`),
     live('emptyWhen', 'Define when a value is considered empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
@@ -80,8 +79,7 @@ new FieldType()
     live('readOnly', 'Always renders the field as a printed, non-editable value.', 'readOnly', `.readOnly()`),
     live('readOnlyWhen', 'Switches a field to printed, non-editable output while a predicate is true.', 'readOnlyWhen', `.readOnlyWhen(record => record.getField('phase') === 'submitted')`),
     live('reducer', 'Aggregates a column’s values, with sum available as a built-in reducer.', 'reducer', `.reducer('sum')`),
-    live('required', 'Always requires a non-empty value and adds record validation.', 'required', `.required()`),
-    live('requiredWhen', 'Requires a value only while a record predicate is true.', 'requiredWhen', `.requiredWhen(record => record.getField('followUp') === 'yes')`),
+    live('required', 'Requires a non-empty value always, or while a record predicate is true, with matching record validation.', 'required', `.required()`),
     live('rowClass', 'Computes CSS classes for the table row containing a value.', 'rowClass', `.rowClass('invoice-row').and.rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])`),
     live('rowCount', 'Deprecated: textarea sizing belongs in fdl-field rather than the field model.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
@@ -121,7 +119,7 @@ export class FdlModifierCatalog extends LitElement {
             extraProperty: new FieldType().with.label('Extra property example'),
             lockedId: new FieldType().with.label('System ID').and.disabled(),
             approvalStatus: new FieldType().with.label('Approval status').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
-            budget: new FieldType().with.label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved'),
+            budget: new FieldType().with.label('Budget').and.type('number').and.disabled(record => record.getField('approvalStatus') === 'approved'),
             emptyCode: new FieldType().with.label('Reference').and.emptyWhen(value => value === 'N/A').and.required(),
             optionalEmptyCode: new FieldType().with.label('Optional reference').and.emptyWhen(value => value === 'N/A'),
             hiddenSearch: new FieldType().with.label('Search directory').and.placeholder('Search directory'),
@@ -153,7 +151,7 @@ export class FdlModifierCatalog extends LitElement {
             conditionalOwner: new FieldType().with.label('Request owner').and.readOnlyWhen(record => record.getField('phase') === 'submitted'),
             requiredName: new FieldType().with.label('Legal name').and.required(),
             followUp: new FieldType().with.label('Follow-up needed?').and.tag('select').and.options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
-            followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes'),
+            followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required(record => record.getField('followUp') === 'yes'),
             comments: new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(4),
             email: new FieldType().with.label('Email address').and.type('email')
                 .and.validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
@@ -447,8 +445,7 @@ export class FdlModifierCatalog extends LitElement {
             }
             case 'cellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.cellClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('documentTitle', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('documentTitle')}</p>`;
-            case 'disabled': return html`${this.renderField('lockedId')}`;
-            case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
+            case 'disabled': return html`${this.renderField('lockedId')}<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
             case 'emptyWhen': return html`<p class="try">Both fields treat “N/A” as empty. Reference is required; Optional reference can be left empty.</p>${['emptyCode', 'optionalEmptyCode'].map(field => html`
                 ${this.renderField(field)}
                 <p class="computed" role="status" data-field=${field}>
@@ -476,8 +473,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'readOnly': return html`${this.renderField('fixedOwner')}`;
             case 'readOnlyWhen': return html`<p class="try">Choose Submitted to replace the owner input with printed text.</p>${this.renderField('phase')}${this.renderField('conditionalOwner')}${explainDependency(this.record, 'conditionalOwner', 'phase', `phase === 'submitted'`, 'readonly')}`;
             case 'reducer': return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p class="computed" role="status">Sum: ${currency.format(this.reducerType.aggregate([this.probes.getField('firstAmount'), this.probes.getField('secondAmount'), this.probes.getField('thirdAmount')]))}</p>`;
-            case 'required': return this.renderValidation('requiredName');
-            case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
+            case 'required': return html`${this.renderValidation('requiredName')}<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClass': return html`<p class="try">Every row receives <code>invoice-row</code>. The Disputed row also receives <code>disputed-row</code> and <code>needs-review</code>.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
             case 'sortable': return html`<p class="try">First name and Last name can sort. T-shirt size has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="shirtSize"></fdl-column></fdl-table>`;
@@ -499,11 +495,11 @@ export class FdlModifierCatalog extends LitElement {
 
     private focusedState(name: string): unknown {
         const fields: { [name: string]: string[] } = {
-            disabled: ['lockedId'], disabledWhen: ['approvalStatus', 'budget'], emptyWhen: ['emptyCode', 'optionalEmptyCode'],
+            disabled: ['lockedId', 'approvalStatus', 'budget'], emptyWhen: ['emptyCode', 'optionalEmptyCode'],
             label: ['expenseType', 'dynamicAmount'], maxLength: ['shortCode'], minLength: ['longCode'],
             multipleValues: ['skills'], options: ['department', 'assignee', 'asyncAssignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
-            required: ['requiredName'], requiredWhen: ['followUp', 'followUpNotes'], rowCount: ['comments'],
+            required: ['requiredName', 'followUp', 'followUpNotes'], rowCount: ['comments'],
             validator: ['email', 'orderQuantity', 'username'], visibleWhen: ['fulfillment', 'address'],
         };
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));

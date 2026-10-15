@@ -475,7 +475,7 @@ describe('Recordset', () => {
 
     describe('working with a field across all records (i.e. a column)', () => {
         it('sets a column value', async () => {
-            const disabledVowels = new FieldType().thatIs.disabledWhen(
+            const disabledVowels = new FieldType().thatIs.disabled(
                 record => 'aeiou'.includes(record.getField('letter')) // cSpell:disable-line
             );
             const rs = new Recordset({ letter: disabledVowels }, () => [

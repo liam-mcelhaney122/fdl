@@ -11,7 +11,7 @@ export class FdlDeliveryExperiment extends LitElement {
         ]),
         address: new FieldType<string>().with.label('Shipping address')
             .and.visibleWhen(record => record.getField('fulfillment') === 'ship')
-            .and.requiredWhen(record => record.getField('fulfillment') === 'ship'),
+            .and.required(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
@@ -26,7 +26,7 @@ export class FdlDeliveryExperiment extends LitElement {
                 <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
             </div>
             <p>${address.visible(this.delivery) ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Pickup hides the address and makes it optional. The stored address is preserved; switch back to see it again.'}</p>
-            <p><a href="#visibleWhen">Explore visibility</a> · <a href="#requiredWhen">Explore requiredness</a></p>
+            <p><a href="#visibleWhen">Explore visibility</a> · <a href="#required">Explore requiredness</a></p>
         </section>`;
     }
     static styles = css`

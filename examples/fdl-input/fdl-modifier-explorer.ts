@@ -20,10 +20,10 @@ import { additionalRecipes, type ExplorerRecipe } from './modifier-explorer-reci
 
 export const explorerRecipes: ExplorerRecipe[] = [
     {
-        name: 'required', signature: '()', category: 'Validation', title: 'Require a non-empty value.',
+        name: 'required', signature: '(predicate?)', category: 'Validation', title: 'Require a non-empty value.',
         description: 'Declare that a field needs a value. FDL carries that rule from the record to the control, so validation and the interface agree.',
-        prompt: 'Leave the name empty and check the record. Then enter a name and check again.',
-        steps: ['Declare the rule once with .required().', 'The component exposes the required state on the input.', 'Record.isValid() checks the same rule without a browser.'],
+        prompt: 'Legal name is always required while its rule is enabled. Follow-up notes are required only when Follow-up needed is Yes.',
+        steps: ['Use required() for an unconditional rule or required(record => ...) for a conditional rule.', 'The component exposes the required state on the input.', 'Record.isValid() checks the same rule without a browser.'],
         note: 'Required means non-empty according to the field’s emptiness rules. It does not validate a name’s spelling or format. Use a validator for an additional business rule.',
         use: 'Names, reference numbers, and other values a record always needs.',
     },
@@ -40,7 +40,7 @@ export const explorerRecipes: ExplorerRecipe[] = [
         description: 'Evaluate a predicate against the record to determine whether a field is visible. The component updates when the record changes.',
         prompt: 'Switch between shipping and pickup. The address disappears for pickup; its stored value is preserved.',
         steps: ['Read the related value from the record.', 'FDL evaluates the predicate as record values change.', 'The component includes the address only when the predicate passes.'],
-        note: 'Visibility does not erase a value or make it optional. If a field should be required only while visible, declare the matching requiredWhen rule separately.',
+        note: 'Visibility does not erase a value or make it optional. If a field should be required only while visible, declare the matching required rule separately.',
         use: 'Shipping details, payment-specific fields, and branching forms.',
     },
     ...additionalRecipes,
@@ -90,7 +90,7 @@ export class FdlModifierExplorer extends LitElement {
 
     private resetVersions: {[name: string]: number} = {};
     private selectedCategories = new Set<string>();
-    private person = new Record({ name: new FieldType<string>().with.label('Legal name').and.required() }, { name: '' });
+    private person = new Record({ name: new FieldType<string>().with.label('Legal name').and.required(), followUp: new FieldType<string>().with.label('Follow-up needed?').and.options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).and.tag('select'), followUpNotes:new FieldType<string>().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required(record => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
     private money = new Record({ amount: new FieldType<number>().with.label('Amount').and.type('number').and.parser(value => Number(value)).and.formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
     private delivery = new Record({
         fulfillment: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
@@ -103,7 +103,8 @@ export class FdlModifierExplorer extends LitElement {
     };
     private readLocation = () => {
         const route = window.location.hash.slice(1).split('?')[0];
-        const hash = route === 'conditionalCellClass' ? 'cellClass' : route === 'rowClasses' ? 'rowClass' : route;
+        const aliases: {[key: string]: string} = {conditionalCellClass:'cellClass', rowClasses:'rowClass', requiredWhen:'required', disabledWhen:'disabled'};
+        const hash = aliases[route] ?? route;
         const page = sitePages.find(page => page.id === hash);
         if (page || !hash) {
             this.showPage(page?.id ?? 'home', false);
@@ -194,7 +195,7 @@ export class FdlModifierExplorer extends LitElement {
     }
     private reset(name = this.modifierName) {
         this.resetVersions[name] = (this.resetVersions[name] ?? 0) + 1;
-        if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
+        if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); this.person.setField('followUp','no'); this.person.setField('followUpNotes',''); }
         delete this.exampleSettings[name];
         if (name === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
         if (name === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
@@ -209,8 +210,11 @@ export class FdlModifierExplorer extends LitElement {
                 this.requestUpdate();
             }}> Require a value</label>
             ${this.field(this.person, 'name')}
+            ${this.field(this.person, 'followUp')}
+            ${this.field(this.person, 'followUpNotes')}
+            ${explainDependency(this.person, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record</button>
-            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : `${this.person.isValid() ? 'The model is valid.' : 'The model is invalid.'} Check record shows its validation message.`}</p>`;
+            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : !this.person.isValid('name') ? 'Legal name is required. Add a value to continue.' : 'Follow-up notes are required. Add notes or choose No.') : `${this.person.isValid() ? 'The model is valid.' : 'The model is invalid.'} Check record shows its validation message.`}</p>`;
         if (name === 'formatter') return html`
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>

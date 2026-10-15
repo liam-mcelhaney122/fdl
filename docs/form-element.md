@@ -126,7 +126,7 @@ For a native `select`, `FormElement` converts the option objects returned by
 `.options(...)` into `<option>` nodes. Each option should provide `text` and
 `value` (or use the documented `options({ data, text, value })` mapping).
 Include an empty option when the field starts empty, and use `.required()` or
-`.requiredWhen(...)` if choosing an option is part of validation.
+`.required(...)` if choosing an option is part of validation.
 
 See the working example in [`examples/fdl-input`](../examples/fdl-input/) for
 the unified `fdl-field`, conditional validation, and a live `Record` preview.

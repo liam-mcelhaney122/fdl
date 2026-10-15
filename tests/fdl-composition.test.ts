@@ -91,7 +91,7 @@ it('lets readers inspect hidden requiredness, reveal the field, and edit back in
     root.querySelector<HTMLButtonElement>('.reset')!.click();
     await demo.updateComplete;
     expect(root.querySelector('.state')!.textContent).toContain('42 Orchard Street');
-    expect(root.querySelector('.definition')!.textContent).toContain('.requiredWhen(');
+    expect(root.querySelector('.definition')!.textContent).toContain('.required(');
     expect(root.querySelector('.case[aria-pressed="true"]')!.getAttribute('data-method')).toBe('ship');
 });
 

@@ -23,15 +23,14 @@ const peopleFields = {
 /** Complete model declarations paired with the bindings in modifier-example-markup. */
 function modelFor(name: string, settings: ExampleSettings): Model {
     const records: {[key: string]: Model} = {
-        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.and.required()'}`)}, values:{name:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional.' : undefined},
+        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.and.required()'}`),followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required(record => record.getField('followUp') === 'yes')")}, values:{name:'',followUp:'no',followUpNotes:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional. Follow-up notes keep their conditional rule.' : undefined},
         formatter: {name:'money', prefix:currency, fields:{amount:type(`label('Amount').and.type('number')
     .and.parser(value => Number(value))
     .and.formatter((value, record, context) =>
       context === 'input-focus' ? String(value) : currency.format(value))`)}, values:{amount:1250}},
         visibleWhen: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
         defaultValue: {name:'defaultRecord',fields:{documentTitle:type("label('Document title').and.defaultValue('Untitled document')")},values:{documentTitle:'Quarterly plan'}},
-        disabled: {name:'record',fields:{lockedId:type("label('System ID').and.disabled()")},values:{lockedId:'SYS-77'}},
-        disabledWhen: {name:'record',fields:{approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved')")},values:{approvalStatus:'draft',budget:5000}},
+        disabled: {name:'record',fields:{lockedId:type("label('System ID').and.disabled()"),approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').and.type('number').and.disabled(record => record.getField('approvalStatus') === 'approved')")},values:{lockedId:'SYS-77',approvalStatus:'draft',budget:5000}},
         emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').and.emptyWhen(value => value === 'N/A').and.required()"),optionalEmptyCode:type("label('Optional reference').and.emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A',optionalEmptyCode:'N/A'}},
         label: {name:'record',fields:{expenseType:choose('Expense type',[['Travel','travel'],['Equipment','equipment']]),dynamicAmount:type("label(record => `Amount for ${record.getField('expenseType')}`).and.type('number')")},values:{expenseType:'travel',dynamicAmount:''}},
         maxLength: {name:'record',fields:{shortCode:type("label('Short code').and.maxLength(12)")},values:{shortCode:''}},
@@ -59,7 +58,6 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         placeholder: {name:'record',fields:{projectName:type("label('Project name').and.placeholder('For example, Apollo migration')")},values:{projectName:''}},
         readOnly: {name:'record',fields:{fixedOwner:type("label('Owner').and.readOnly()")},values:{fixedOwner:'Ada Lovelace'}},
         readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').and.readOnlyWhen(record => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
-        requiredWhen: {name:'record',fields:{followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes')")},values:{followUp:'no',followUpNotes:''}},
         rowCount: {name:'record',prefix:'// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',fields:{comments:type(`label('Comments').and.tag('textarea').and.rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{inputValue:type(`label('Example: ${settings.inputType ?? 'text'}').and.type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.and.parser(Number)' : ''}`)},values:{inputValue:inputTypeInitialValue(settings.inputType ?? 'text')}},
         validator: {name:'record',fields:{
@@ -113,7 +111,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     throw new Error(`Missing complete example for ${name}`);
 }
 
-const validationFields: {[key: string]: string} = {required:'name',maxLength:'shortCode',minLength:'longCode',requiredWhen:'followUpNotes'};
+const validationFields: {[key: string]: string} = {required:'name',maxLength:'shortCode',minLength:'longCode'};
 export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const model = modelFor(name, settings);
     const kind = model.kind ?? 'Record';
@@ -132,6 +130,11 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
         setup = 'let checked = false;\n';
         markup = markup.replace(`field="${validation}"`, `field="${validation}"\n  .showValidationErrors=\${checked}`);
         markup += `\n\n<button @click=\${() => { checked = true; update(); }}>\n  ${name === 'required' ? 'Check record' : 'Check value'}\n</button>\n<p role="status">\n  \${checked ? (${model.name}.isValid('${validation}')\n    ? 'Valid.' : ${model.name}.readableFieldErrors('${validation}').join('. '))\n    : 'Validation message has not been shown.'}\n</p>`;
+    }
+    if (name === 'required' && markup) {
+        markup = markup.replace('field="followUpNotes"', 'field="followUpNotes"\n  .showValidationErrors=${checked}');
+        markup = markup.replace("person.isValid('name')", 'person.isValid()')
+            .replace("person.readableFieldErrors('name')", 'person.readableRecordErrors()');
     }
     if (name === 'validator') {
         setup = 'const checked = new Set();\n';
@@ -153,7 +156,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;
     const adapters = exampleTables[name] ? "import './fdl-table';\n" : exampleFields[name] ? "import './fdl-field';\n" : '';
     const ui = `import { html, render } from 'lit';\nimport { ${exports.join(', ')} } from './${modelFile}';\n${adapters}\nconst container = document.createElement('div');\ndocument.body.append(container);\n${setup}\nconst view = () => html\`\n${markup!.split('\n').map(line => `  ${line}`).join('\n')}\n\`;\n\nconst update = () => render(view(), container);\n${model.name}.addEventListener('${kind === 'Recordset' ? 'page-changed' : 'change'}', update);\nupdate();`;
-    const fieldStyles = name === 'disabled' || name === 'disabledWhen';
+    const fieldStyles = name === 'disabled';
     const styles = (fieldStyles ? disabledFieldStyles : tableExampleStyles[name as keyof typeof tableExampleStyles])?.cssText.trim();
     const stylesComponent = fieldStyles ? 'fdl-field' : 'fdl-table';
     return {definition, ui, styles, stylesComponent, modelFile, uiFile, modelName:model.name, fields:Object.keys(model.fields), kind, contract};

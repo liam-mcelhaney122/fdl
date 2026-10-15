@@ -106,7 +106,7 @@ Good modifiers describe concepts such as:
 - stable presentation intent that multiple consumers can interpret, such as
   text alignment, column-width guidance, or semantic cell classes.
 
-For example, `formatter(currency)`, `requiredWhen(isInternational)`, and
+For example, `formatter(currency)`, `required(isInternational)`, and
 `compareFunction(compareDates)` describe field behavior. They do not need to
 know which component, framework, or HTML element will consume them.
 

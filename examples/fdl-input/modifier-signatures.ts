@@ -1,13 +1,12 @@
 // Signatures from field-type-builder.ts; preserve the API's declared parameter types.
 export const modifierSignatures: {[name: string]: string} = {
-    "required": "required()",
+    "required": "required(predicate?: (record: Record<any>) => boolean)",
     "formatter": "formatter(fn: (value: T) => any)",
     "visibleWhen": "visibleWhen(predicate: (record: Record) => boolean)",
     "cellClass": "cellClass(classes: string | string[] | ((value: T) => string | string[] | boolean), className?: string | string[] | undefined)",
     "compareFunction": "compareFunction(fn: (a: any, b: any) => 1 | -1 | 0)",
     "defaultValue": "defaultValue(value: T | string | null)",
-    "disabled": "disabled()",
-    "disabledWhen": "disabledWhen(predicate: (record: Record) => boolean)",
+    "disabled": "disabled(predicate?: (record: Record<any>) => boolean)",
     "emptyWhen": "emptyWhen(predicate: (value: any) => boolean)",
     "filter": "filter(predicate?: ((searchText: string, value: any) => boolean) | undefined)",
     "hashFunction": "hashFunction<V = unknown>(fn: (values: V) => string)",
@@ -25,7 +24,6 @@ export const modifierSignatures: {[name: string]: string} = {
     "readOnly": "readOnly()",
     "readOnlyWhen": "readOnlyWhen(predicate: (record: Record) => boolean)",
     "reducer": "reducer(nameOrFunction: string | Function)",
-    "requiredWhen": "requiredWhen(predicate: (record: Record) => boolean)",
     "rowClass": "rowClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[]))",
     "rowCount": "rowCount(numberOfRows: number)",
     "search": "search(config: SearchConfig<T>)",

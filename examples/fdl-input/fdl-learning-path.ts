@@ -15,7 +15,7 @@ const lessons = [
     { question: 'What does a field store?', explanation: 'Start with one delivery charge. Without a parser, the text you enter is the stored value.', reference: 'type', rule: 'A field connects an input to a stored value.' },
     { question: 'How does text become a number?', explanation: 'Add a currency parser and formatter. Try $1,234.50. The model now stores a number; printed output adds currency punctuation.', reference: 'parser', rule: 'Parsing converts currency text to a number; formatting produces display text.' },
     { question: 'What makes a value valid?', explanation: 'Add requiredness and a non-negative, finite-number validator. Try -1 or clear the charge. Parsing does not establish validity.', reference: 'validator', rule: 'The record checks requiredness and the charge validator.' },
-    { question: 'What changes when another field changes?', explanation: 'Make the charge visible and required only for shipping. Choose pickup: the charge is preserved and becomes optional. Its number validator remains independent of visibility.', reference: 'requiredWhen', rule: 'Delivery method determines visibility and requiredness independently.' },
+    { question: 'What changes when another field changes?', explanation: 'Make the charge visible and required only for shipping. Choose pickup: the charge is preserved and becomes optional. Its number validator remains independent of visibility.', reference: 'required', rule: 'Delivery method determines visibility and requiredness independently.' },
     { question: 'How do the rules work across records?', explanation: 'Reuse the same definitions for a table of deliveries. Edit the current delivery above; its table row updates. Other rows show the same rules applied to different values.', reference: 'compareFunction', rule: 'A Recordset reuses the field definitions for multiple records.' },
 ];
 const currency = new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'});
@@ -31,7 +31,7 @@ export class FdlLearningPath extends LitElement {
             .and.formatter((value: unknown, _record?: unknown, context?: string) => value == null ? '' : context === 'input-focus' ? String(value) : currency.format(Number(value)));
         if (this.step >= 2) {
             charge = charge.with.validator({name: 'must be a finite, non-negative number', validate: value => value == null || (typeof value === 'number' && Number.isFinite(value) && value >= 0)});
-            charge = this.step >= 3 ? charge.with.requiredWhen(record => record.getField('method') === 'ship') : charge.with.required();
+            charge = this.step >= 3 ? charge.with.required(record => record.getField('method') === 'ship') : charge.with.required();
         }
         if (this.step >= 3) charge = charge.with.visibleWhen(record => record.getField('method') === 'ship');
         return {
@@ -82,7 +82,7 @@ export class FdlLearningPath extends LitElement {
   .and.validator({ name: 'must be a finite, non-negative number',
     validate: value => value == null ||
       (typeof value === 'number' && Number.isFinite(value) && value >= 0) })
-  .and.${this.step >= 3 ? "requiredWhen(record => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
+  .and.${this.step >= 3 ? "required(record => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
   .and.visibleWhen(record => record.getField('method') === 'ship')` : ''};${this.step >= 4 ? `
 
 const deliveries = new Recordset({ method, charge }, data);` : ''}`;

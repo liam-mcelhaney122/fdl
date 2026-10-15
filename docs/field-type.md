@@ -65,7 +65,7 @@ Synchronous validation is available through `FieldType.validate()` and
 `FieldType.validateAsync()`, `Record#isValidAsync()`, or the corresponding
 `Field` methods.
 
-`minLength(n)`, `maxLength(n)`, `required()`, `requiredWhen(predicate)`, and
+`minLength(n)`, `maxLength(n)`, `required(predicate?)`, and
 `emptyWhen(predicate)` add common validation behavior. Predicates receive the
 current `Record` unless the modifier states otherwise.
 
@@ -85,7 +85,7 @@ Use the following modifiers to describe input controls:
 | `label(value)` | Set a string label or compute one from the record. |
 | `placeholder(value)`, `autocomplete(value)`, `autofocus()` | Configure common input attributes. |
 | `defaultValue(value)` | Provide the value used by `Record#clear()` and new records. |
-| `disabledWhen(predicate)`, `readOnlyWhen(predicate)`, `visibleWhen(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
+| `disabled(predicate)`, `readOnlyWhen(predicate)`, `visibleWhen(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
 | `multipleValues(min, max)` | Model the field as an array of values. |
 | `options(config)` | Provide options for a select-like control. |
 
@@ -256,3 +256,17 @@ still return the accumulated arrays.
 `conditionalCellClass(predicate, className)` was removed on 2026-10-15. Rename
 those calls to `cellClass(predicate, className)`; the arguments and behavior
 remain the same.
+
+## Consolidated required and disabled rules
+
+`required()` always requires a non-empty value; `required(predicate)` requires
+one only when the record predicate returns true. `disabled()` always disables
+a field; `disabled(predicate)` disables it only while the predicate is true.
+Multiple declarations accumulate: any true predicate enables that state.
+Calling either modifier without a predicate adds an unconditional rule.
+
+`requiredWhen(predicate)` and `disabledWhen(predicate)` were removed on
+2026-10-15. Rename those calls to `required(predicate)` and
+`disabled(predicate)` respectively; their predicate arguments and behavior
+remain the same. Conditional requiredness continues to affect model validation
+as well as the control's required state. Disabled fields retain their values.
