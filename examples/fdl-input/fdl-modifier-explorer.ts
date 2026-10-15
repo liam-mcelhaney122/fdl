@@ -171,7 +171,7 @@ export class FdlModifierExplorer extends LitElement {
             }}> Require a value</label>
             ${this.field(this.person, 'name')}
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record</button>
-            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'The model is already checked. Check record shows its validation message.'}</p>`;
+            <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : `${this.person.isValid() ? 'The model is valid.' : 'The model is invalid.'} Check record shows its validation message.`}</p>`;
         if (this.modifierName === 'formatter') return html`
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
@@ -232,7 +232,7 @@ export class FdlModifierExplorer extends LitElement {
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
             <main>
-                ${this.page !== 'modifier' ? renderSitePage(this.page) : html`
+                ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page)) : html`
                 <div class="modifier-title-row"><h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
                     <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
                         <button class="page-category-icon" aria-label=${`Category: ${recipe.category}`} aria-describedby=${this.categoryTooltip ? 'category-tooltip' : ''} @focus=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @blur=${() => { this.categoryTooltip = false; this.requestUpdate(); }} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') { this.categoryTooltip = false; this.requestUpdate(); } }}>${categoryIcon(recipe.category)}</button>

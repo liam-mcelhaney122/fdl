@@ -8,7 +8,8 @@ import {highlightJavaScript} from './highlight-javascript';
 import {downloadStarter} from './starter-files';
 import {exampleTheme} from './example-theme';
 import './fdl-field';
-const choice=(label:string,values:string[])=>new FieldType<string>().with.label(label).and.tag('select').and.options(values.map(value=>({text:value,value})));
+const choiceText:{[value:string]:string}={always:'Always',enabled:'When Condition is Enabled',never:'Never',none:'No value check',minimum:'At least 3 characters',digits:'Digits only'};
+const choice=(label:string,values:string[])=>new FieldType<string>().with.label(label).and.tag('select').and.options(values.map(value=>({text:choiceText[value],value})));
 export class FdlFieldBuilder extends LitElement{
     private configuration=new Record({
         name:new FieldType<string>().with.label('Field name').and.required().and.validator({name:'must be a distinct field name using letters, numbers, or underscores',validate:value=>/^[A-Za-z_]\w*$/.test(value)&&!['condition','__proto__','constructor','prototype'].includes(value)}),
@@ -29,7 +30,7 @@ export class FdlFieldBuilder extends LitElement{
     connectedCallback(){super.connectedCallback();this.configuration.addEventListener('change',this.changeRules);this.record.addEventListener('change',this.refresh);}
     disconnectedCallback(){this.configuration.removeEventListener('change',this.changeRules);this.record.removeEventListener('change',this.refresh);super.disconnectedCallback();}
     private currentSpec():FieldSpec{return {...this.spec,condition:this.record.getField('condition'),initialValue:this.record.getField(this.spec.name)};}
-    render(){const source=builderSource(this.currentSpec());return html`<h3>Build a field of your own</h3><p>Name a field, give it a starting value, and choose one dependency and value check. “Enabled” means the Condition field is Enabled. “Minimum” checks three characters; “Digits” accepts only digits in non-empty values.</p><p>Changing a rule rebuilds the preview from your starting value. Export captures the preview’s current value and condition.</p>
+    render(){const source=builderSource(this.currentSpec());return html`<h3>Build a field of your own</h3><p>Name a field, give it a starting value, and choose one dependency and value check. Conditional rules use the Condition field. “Digits only” accepts digits in non-empty values; requiredness determines whether an empty value is allowed.</p><p>Changing a rule rebuilds the preview from your starting value. Export captures the preview’s current value and condition.</p>
     <div class="workspace"><section aria-label="Field definition controls">${['name','initialValue','visibility','requiredness','validation'].map(field=>html`<fdl-field .record=${this.configuration} field=${field} .showValidationErrors=${true}></fdl-field>`)}</section><section class="preview"><h3>Try your field</h3>${keyed(this.record,html`<fdl-field .record=${this.record} field="condition"></fdl-field><fdl-field .record=${this.record} field=${this.spec.name} .showValidationErrors=${true}></fdl-field>`)}${recordSummary(this.record,[this.spec.name])}</section></div>
     <div class="actions"><button ?disabled=${!this.configuration.isValid()} @click=${async()=>{const {default:assets}=await import('virtual:fdl-starter');downloadStarter(source,assets);}}>Download your runnable example</button><button @click=${()=>{this.configuration.setFields({...defaultFieldSpec});this.changeRules();}}>Reset builder</button></div>
     <h3>${source.modelFile}</h3><pre><code>${highlightJavaScript(source.definition)}</code></pre><h3>${source.uiFile}</h3><pre><code>${highlightJavaScript(source.ui)}</code></pre>`;}

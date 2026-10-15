@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { resolve, relative } from 'node:path';
@@ -10,5 +11,5 @@ export async function starterAssets() {
         outdir, write:false, bundle:true, splitting:true, format:'esm', target:'es2020',
         external:['lit', 'lit/*'], tsconfig:resolve(directory, '../../tsconfig.json'),
     });
-    return Object.fromEntries(result.outputFiles.map(file => [relative(outdir, file.path), file.text]));
+    return {LICENSE:await readFile(resolve(directory, '../../LICENSE'),'utf8'), ...Object.fromEntries(result.outputFiles.map(file => [relative(outdir, file.path), file.text]))};
 }
