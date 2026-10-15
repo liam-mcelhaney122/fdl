@@ -51,7 +51,7 @@ new FieldType().with.label('T-shirt size')
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
-    live('emptyWhen', 'Defines additional values that should count as empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
+    live('emptyWhen', 'Define when a value is considered empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
     live('exampleValue', 'Supplies fixed or index-derived values for generated example records.', 'exampleValue', `.exampleValue(index => \`Sample contact \${index + 1}\`)`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
