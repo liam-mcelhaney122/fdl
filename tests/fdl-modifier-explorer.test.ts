@@ -1,3 +1,4 @@
+import { relatedModifierNames } from '../examples/fdl-input/related-modifiers';
 import { categoryDescriptions } from '../examples/fdl-input/category-icon';
 import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
 import FieldType from '../field-type.js';
@@ -384,4 +385,36 @@ it('parses formatted money input in the surviving documentation example', async 
     input.dispatchEvent(new Event('input'));
     await catalog.updateComplete;
     expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('1500');
+});
+
+it('defines valid, reciprocal related links for every modifier', () => {
+    const names = new Set(explorerRecipes.map(recipe => recipe.name));
+    for (const recipe of explorerRecipes) {
+        const related = relatedModifierNames(recipe.name);
+        expect(related.length).toBeGreaterThan(0);
+        expect(related).not.toContain(recipe.name);
+        expect(related).toEqual([...new Set(related)].sort((a,b)=>a.localeCompare(b,'en')));
+        for (const name of related) {
+            expect(names.has(name)).toBe(true);
+            expect(relatedModifierNames(name)).toContain(recipe.name);
+        }
+    }
+});
+it.each(explorerRecipes.map(recipe => recipe.name))('lists related modifiers on %s', async name => {
+    const page = await openPage(`#${name}`);
+    const section = page.shadowRoot!.querySelector('.related-modifiers')!;
+    const links = Array.from(section.querySelectorAll('a'));
+    expect(section.querySelector('h3')!.textContent).toBe('Related modifiers');
+    expect(links.map(link=>link.getAttribute('href'))).toEqual(relatedModifierNames(name).map(related=>`#${related}`));
+    expect(section.querySelectorAll('li span').length).toBe(links.length);
+});
+it('links cell styling alternatives in both directions', async () => {
+    expect(relatedModifierNames('cellClass')).toContain('conditionalCellClass');
+    const page = await openPage('#cellClass');
+    const link = page.shadowRoot!.querySelector<HTMLAnchorElement>('.related-modifiers a[href="#conditionalCellClass"]')!;
+    expect(link.textContent).toBe('.conditionalCellClass()');
+    link.click();await settle(page);
+    expect(page.shadowRoot!.activeElement).toBe(page.shadowRoot!.querySelector('h1'));
+    expect(page.shadowRoot!.querySelector('h1')!.textContent).toContain('conditionalCellClass');
+    expect(page.shadowRoot!.querySelector('.related-modifiers a[href="#cellClass"]')).not.toBeNull();
 });

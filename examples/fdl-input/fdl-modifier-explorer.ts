@@ -1,4 +1,5 @@
 import './fdl-starter-download';
+import { relatedModifierNames } from './related-modifiers';
 import { modifierSignatures } from './modifier-signatures';
 import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
@@ -278,6 +279,10 @@ export class FdlModifierExplorer extends LitElement {
                 </section>` : ''}
                 <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
+                <section class="related-modifiers" aria-labelledby="related-modifiers-title"><h3 id="related-modifiers-title">Related modifiers</h3><ul>${relatedModifierNames(recipe.name).map(name => {
+                    const related = recipes.find(entry => entry.name === name)!;
+                    return html`<li><a href=${`#${name}`} @click=${(event: Event) => { event.preventDefault(); this.select(recipes.indexOf(related)); }}><code>.${name}()</code></a><span>${related.title}</span></li>`;
+                })}</ul></section>
                 <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>.${previous.entry.name}${previous.entry.signature}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${filtered.length}`}${filtering ? html`<small>Filtered modifiers</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>.${next.entry.name}${next.entry.signature}</small>` : ''}</button></footer>
                 `}
             </main>
@@ -285,6 +290,11 @@ export class FdlModifierExplorer extends LitElement {
         ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
     }
     static styles = css`
+        .related-modifiers { margin-top:32px; padding-top:24px; border-top:1px solid #e2e8f0; }
+        .related-modifiers ul { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+        .related-modifiers li { line-height:1.5; }
+        .related-modifiers a { display:inline-block; color:var(--accent); padding:4px 0; }
+        .related-modifiers span { display:block; color:var(--muted); font-size:1rem; }
         #modifier-tooltip { position:fixed; z-index:100; width:420px; max-width:calc(100vw - 16px); padding:14px 16px; border:1px solid #334155; border-radius:6px; background:#0f172a; color:#f8fafc; box-shadow:0 6px 20px #0f172a33; font-size:.9375rem; line-height:1.5; }
         #modifier-tooltip pre { margin:0; font: .875rem/1.6 monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
         #modifier-tooltip p { margin:8px 0 0; }
