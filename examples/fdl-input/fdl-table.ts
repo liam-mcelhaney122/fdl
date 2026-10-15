@@ -295,10 +295,10 @@ export class FdlTable extends LitElement {
     }
 
     private columnLimits(column: FdlColumn): ColumnWidthLimits {
-        const properties = this.recordset?.getFieldType(column.field).properties;
+        const fieldType = this.recordset?.getFieldType(column.field);
         return {
-            min: properties?.minColumnWidth ?? 30,
-            max: properties?.maxColumnWidth,
+            min: fieldType?.minColumnWidth('table') ?? 30,
+            max: fieldType?.maxColumnWidth('table'),
         };
     }
 
@@ -351,7 +351,7 @@ export class FdlTable extends LitElement {
     private resizeWidths() {
         return this.columnWidths ?? this.measureColumnWidths() ?? this.columns.map(column => {
             const limits = this.columnLimits(column);
-            const target = this.recordset?.getFieldType(column.field).properties.targetColumnWidth;
+            const target = this.recordset?.getFieldType(column.field).targetColumnWidth('table');
             return Math.max(limits.min, Math.min(limits.max ?? Infinity, target ?? 160));
         });
     }
@@ -480,9 +480,19 @@ export class FdlTable extends LitElement {
         await this.recordset.requestUpdate();
     }
 
+    private columnAlignment(column: FdlColumn) {
+        const fieldType = this.recordset?.getFieldType(column.field);
+        const record = this.recordset?.currentPage[0];
+        if (!record && typeof fieldType?.properties.textAlign === 'function') return 'left';
+        return fieldType?.textAlign(record?.getField(column.field), record, 'table-header') ?? 'left';
+    }
+
     private heading(column: FdlColumn) {
         const record = this.recordset?.currentPage[0];
-        const configuredLabel = this.recordset?.getFieldType(column.field).label(record);
+        const fieldType = this.recordset?.getFieldType(column.field);
+        const configuredLabel = record
+            ? fieldType?.label(record.getField(column.field), record, 'table-header')
+            : fieldType?.properties.labelFunctions.filter((setting: unknown) => typeof setting === 'string').slice(-1)[0];
         return (
             column.label ||
             configuredLabel ||
@@ -496,7 +506,7 @@ export class FdlTable extends LitElement {
         return this.columns
             .flatMap(column => {
                 const value = record.getField(column.field);
-                return record.fieldTypeForField(column.field).rowClasses(value, record);
+                return record.fieldTypeForField(column.field).rowClasses(value, record, 'table');
             })
             .join(' ');
     }
@@ -520,7 +530,7 @@ export class FdlTable extends LitElement {
         const filterOpen = this.activeFilterField === column.field;
         const resizeRange = this.resizeRange(this.resizeWidths(), index);
 
-        return html`<th aria-sort=${ariaSort} style=${`text-align:${this.recordset?.getFieldType(column.field).textAlign() ?? 'left'}`}>
+        return html`<th aria-sort=${ariaSort} style=${`text-align:${this.columnAlignment(column)}`}>
             <div class="heading-actions">
                 ${this.isSortable(column)
                     ? html`<button
@@ -619,8 +629,8 @@ export class FdlTable extends LitElement {
         const value = record.getField(column.field);
         const fieldType = record.fieldTypeForField(column.field);
         return html`<td
-            class=${fieldType.cellClasses(value, record).join(' ')}
-            style=${`text-align:${fieldType.textAlign()}`}
+            class=${fieldType.cellClasses(value, record, 'table').join(' ')}
+            style=${`text-align:${fieldType.textAlign(value, record, 'table')}`}
         >
             ${record.print(column.field)}
         </td>`;
@@ -676,8 +686,8 @@ export class FdlTable extends LitElement {
                 </table>
             </div>
             ${this.showWidthDiagnostics ? html`<section class="width-diagnostics" aria-label="Column width measurements"><h3>Live column widths</h3><ul>${columns.map((column,index) => {
-                const properties = this.recordset?.getFieldType(column.field).properties;
-                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${properties?.targetColumnWidth ? ` · preferred ${properties.targetColumnWidth}px` : ''}${properties?.maxColumnWidth ? ` · max ${properties.maxColumnWidth}px` : ''}</li>`;
+                const fieldType = this.recordset?.getFieldType(column.field);
+                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${fieldType?.targetColumnWidth('table') ? ` · preferred ${fieldType.targetColumnWidth('table')}px` : ''}${fieldType?.maxColumnWidth('table') ? ` · max ${fieldType.maxColumnWidth('table')}px` : ''}</li>`;
             })}</ul><p role="status">${this.resizeMessage || 'Drag a divider or use its arrow keys. The table keeps its total width.'}</p></section>` : nothing}
             <slot></slot>
         `;

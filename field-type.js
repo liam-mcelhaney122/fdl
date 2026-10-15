@@ -1,5 +1,6 @@
 /* eslint-disable import/extensions */
 import FieldTypeBuilder, { defaultProperties } from './field-type-builder';
+import { resolveSetting } from './field-setting';
 import { inputTypes } from './types/input-types.types';
 
 function functionHasNoArguments(f) {
@@ -53,9 +54,9 @@ export default class FieldType {
         return this.properties.autofocus;
     }
 
-    cellClasses(value, record) {
+    cellClasses(value, record, context = 'model') {
         return this.properties.cellClassFunctions
-            .flatMap(getClasses => getClasses(value, record));
+            .flatMap(getClasses => getClasses(value, record, context));
     }
 
     /**
@@ -64,9 +65,9 @@ export default class FieldType {
      * @param {Record} record
      * @returns {Array}
      */
-    rowClasses(value, record) {
+    rowClasses(value, record, context = 'model') {
         return this.properties.rowClassFunctions
-            .map(getClasses => getClasses(value, record))
+            .map(getClasses => getClasses(value, record, context))
             .reduce((classesThusFar, classes) => classesThusFar.concat(classes), []);
     }
 
@@ -81,7 +82,7 @@ export default class FieldType {
      * @param {*} context
      * @returns {*}
      */
-    format(value, record, context) {
+    format(value, record, context = 'model') {
         let output = this.resultsText[JSON.stringify(value)] ?? value;
         this.properties.formatters.forEach(format => {
             output = format(output, record, context);
@@ -96,13 +97,13 @@ export default class FieldType {
      * @returns {*}
      */
     print(value, record) {
-        return this.properties.template(this.format(value, record, 'print'), record);
+        return this.properties.template(this.format(value, record, 'print'), record, 'print');
     }
 
-    parse(value) {
+    parse(value, record, context = 'model') {
         let output = value;
         this.properties.parsers.forEach(parse => {
-            output = parse(output);
+            output = parse(output, record, context);
         });
         return output;
     }
@@ -160,23 +161,19 @@ export default class FieldType {
         }, []);
     }
 
-    defaultValue(value) {
+    defaultValue(value, record, context = 'model') {
+        const configured = value !== null && value !== undefined
+            ? value : resolveSetting(this.properties.defaultValue, value, record, context);
         if (this.hasMultipleValues()) {
-            return this.properties.defaultValue || 'all';
+            return configured ?? 'all';
         }
         if (this.schema() === 'range') {
-            return this.properties.defaultValue || ['range', 0, 0];
+            return configured ?? ['range', 0, 0];
         }
         if (value !== null && value !== undefined) {
             return value;
         }
-        if (
-            this.properties.defaultValue ||
-            this.properties.defaultValue === 0 ||
-            this.properties.defaultValue === false
-        ) {
-            return this.properties.defaultValue;
-        }
+        if (configured !== null && configured !== undefined) return configured;
         return '';
     }
 
@@ -188,21 +185,19 @@ export default class FieldType {
         return this.properties.schema;
     }
 
-    type() {
-        if (!inputTypes.includes(this.properties.type))
-            return new Error(`Invalid input type: ${this.properties.type}`);
-        return this.properties.type;
+    type(value, record, context = 'model') {
+        const type = resolveSetting(this.properties.type, value, record, context);
+        if (!inputTypes.includes(type)) return new Error(`Invalid input type: ${type}`);
+        return type;
     }
 
     tag() {
         return this.properties.tag;
     }
 
-    label(record) {
-        return this.properties.labelFunctions.reduce(
-            (labelSoFar, fn) => fn(record, labelSoFar),
-            ''
-        );
+    label(value, record, context = 'model') {
+        const settings = this.properties.labelFunctions;
+        return resolveSetting(settings[settings.length - 1] ?? '', value, record, context);
     }
 
     iconMessage() {
@@ -333,8 +328,8 @@ export default class FieldType {
         return this.properties.max;
     }
 
-    isDisabled(record) {
-        return this.properties.disableFunctions.some(fn => fn(record));
+    isDisabled(value, record, context = 'model') {
+        return this.properties.disableFunctions.some(setting => resolveSetting(setting, value, record, context));
     }
 
     hasRange() {
@@ -349,12 +344,12 @@ export default class FieldType {
         return this.properties.filter(searchText, value);
     }
 
-    minLength() {
-        return this.properties.minLength;
+    minLength(value, record, context = 'model') {
+        return resolveSetting(this.properties.minLength, value, record, context);
     }
 
-    maxLength() {
-        return this.properties.maxLength;
+    maxLength(value, record, context = 'model') {
+        return resolveSetting(this.properties.maxLength, value, record, context);
     }
 
     allowInputChar(char) {
@@ -365,24 +360,28 @@ export default class FieldType {
         return this.properties.selectionDisabledFunctions;
     }
 
-    required(record) {
-        return this.properties.requiredFunctions.some(fn => fn(record));
+    required(value, record, context = 'model') {
+        return this.properties.requiredFunctions.some(setting => resolveSetting(setting, value, record, context));
     }
 
     onValueChange(record) {
         return this.properties.onValueChange.forEach(fn => fn(record));
     }
 
-    visible(record) {
-        return this.properties.visibleFunctions.every(fn => fn(record));
+    visible(value, record, context = 'model') {
+        return this.properties.visibleFunctions.every(setting => resolveSetting(setting, value, record, context));
     }
 
     empty(record, field) {
-        return this.properties.emptyFunctions.some(fn => fn(record?.getField(field)));
+        return this.isEmpty(record?.getField(field), record);
     }
 
-    readonly(record) {
-        return this.properties.readonlyFunctions.some(fn => fn(record));
+    isEmpty(value, record, context = 'model') {
+        return this.properties.emptyFunctions.some(setting => resolveSetting(setting, value, record, context));
+    }
+
+    readonly(value, record, context = 'model') {
+        return this.properties.readonlyFunctions.some(setting => resolveSetting(setting, value, record, context));
     }
 
     readonlyexception(record) {
@@ -402,8 +401,8 @@ export default class FieldType {
         return this.properties.numberOfRows;
     }
 
-    placeholder() {
-        return this.properties.placeholder;
+    placeholder(value, record, context = 'model') {
+        return resolveSetting(this.properties.placeholder, value, record, context);
     }
 
     pattern() {
@@ -422,12 +421,24 @@ export default class FieldType {
         return this.properties.formatOnChange;
     }
 
-    textAlign() {
-        return this.properties.textAlign;
+    textAlign(value, record, context = 'model') {
+        return resolveSetting(this.properties.textAlign, value, record, context);
     }
 
-    sortable() {
-        return this.properties.sortable;
+    sortable(context = 'table') {
+        return resolveSetting(this.properties.sortable, undefined, undefined, context);
+    }
+
+    minColumnWidth(context = 'table') {
+        return resolveSetting(this.properties.minColumnWidth, undefined, undefined, context);
+    }
+
+    maxColumnWidth(context = 'table') {
+        return resolveSetting(this.properties.maxColumnWidth, undefined, undefined, context);
+    }
+
+    targetColumnWidth(context = 'table') {
+        return resolveSetting(this.properties.targetColumnWidth, undefined, undefined, context);
     }
 
     field() {

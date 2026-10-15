@@ -484,28 +484,20 @@ export default class Recordset extends EventTarget {
     }
 
     appendRecord() {
-        let defaultValues = Object.keys(this._.fieldTypes).reduce((acc, curr) => {
-            acc[curr] = this._.fieldTypes[curr].defaultValue
-                ? this._.fieldTypes[curr].defaultValue()
-                : '';
-            return acc;
-        }, {});
-
         const firstRecord = this._.records[0];
-        const proto = Object.getPrototypeOf(firstRecord.values);
+        const hasClassValues = firstRecord &&
+            Object.getPrototypeOf(firstRecord.values) !== Object.prototype;
+        const values = hasClassValues ? clone(firstRecord.values) : {};
+        Object.keys(this._.fieldTypes).forEach(field => { values[field] = undefined; });
 
-        // support class-based backing objects by making a clone and copying over default values
-        if (proto !== Object) {
-            const clonedValues = clone(firstRecord.values);
-            Object.keys(defaultValues).forEach(k => {
-                clonedValues[k] = defaultValues[k];
-            });
-
-            defaultValues = clonedValues;
-        }
-
-        const rec = this.createRecord(defaultValues);
-        this.insertRecord(rec, this._.sortedFilteredRecords.length);
+        const record = this.createRecord(values);
+        // Resolve against the same newly created record before applying any defaults.
+        const defaults = Object.fromEntries(Object.entries(this._.fieldTypes).map(
+            ([field, type]) => [field, type.defaultValue(undefined, record, 'model')]
+        ));
+        Object.assign(record.values, defaults);
+        record.initialValues = clone(record.values);
+        this.insertRecord(record, this._.sortedFilteredRecords.length);
     }
 
     isLastRecord(record) {
@@ -694,7 +686,7 @@ export default class Recordset extends EventTarget {
 
     setColumnValue(field, value) {
         this._.records
-            .filter(record => !record.fieldTypeForField(field).isDisabled(record))
+            .filter(record => !record.fieldTypeForField(field).isDisabled(record.getField(field), record, 'model'))
             .forEach(record => record.setField(field, value));
 
         this.dispatchEvent(new CustomEvent(RecordsetEvent.Changed)); // deprecated

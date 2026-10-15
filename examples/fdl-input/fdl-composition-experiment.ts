@@ -66,9 +66,9 @@ export class FdlCompositionExperiment extends LitElement {
                 const record = compositionRecord(this.rules, method, sample.value);
                 const type = record.fieldTypeForField('address');
                 const selected = this.record.getField('fulfillment') === method && addressCase(this.record.getField('address')) === sample.id;
-                const hiddenInvalid = !type.visible(record) && !record.isValid();
+                const hiddenInvalid = !type.visible(record.getField('address'), record) && !record.isValid();
                 return html`<td><button class="case" data-method=${method} data-address-case=${sample.id} aria-pressed=${selected} @click=${() => this.selectCase(method, sample.value)}>
-                    <strong>${record.isValid() ? 'Valid record' : 'Invalid record'}</strong><span>${type.visible(record) ? 'Visible' : 'Hidden'} · ${type.required(record) ? 'Required' : 'Optional'}</span>${hiddenInvalid ? html`<em>Hidden, but still invalid</em>` : ''}<span class="case-action">${selected ? 'Selected kind of case' : 'Inspect this case →'}</span>
+                    <strong>${record.isValid() ? 'Valid record' : 'Invalid record'}</strong><span>${type.visible(record.getField('address'), record) ? 'Visible' : 'Hidden'} · ${type.required(record.getField('address'), record) ? 'Required' : 'Optional'}</span>${hiddenInvalid ? html`<em>Hidden, but still invalid</em>` : ''}<span class="case-action">${selected ? 'Selected kind of case' : 'Inspect this case →'}</span>
                 </button></td>`;
             })}</tr>`)}</tbody></table></div>`;
     }
@@ -76,7 +76,7 @@ export class FdlCompositionExperiment extends LitElement {
         if(!this.savedCases.length) return '';
         return html`<section class="collected-cases"><h3>Your kept cases</h3><p>Saved outcomes keep the rules from that moment. The last column applies the rules currently selected above.</p><div class="outcomes"><table><thead><tr><th>Case</th><th>With saved rules</th><th>With current rules</th><th>Actions</th></tr></thead><tbody>${this.savedCases.map((sample,index)=>{
             const saved=compositionRecord(sample.rules,sample.method,sample.address),current=compositionRecord(this.rules,sample.method,sample.address);
-            const describe=(record: ReturnType<typeof compositionRecord>)=>`${record.fieldTypeForField('address').visible(record)?'Visible':'Hidden'} · ${record.fieldTypeForField('address').required(record)?'Required':'Optional'} · ${record.isValid()?'Valid':'Invalid'}`;
+            const describe=(record: ReturnType<typeof compositionRecord>)=>`${record.fieldTypeForField('address').visible(record.getField('address'), record)?'Visible':'Hidden'} · ${record.fieldTypeForField('address').required(record.getField('address'), record)?'Required':'Optional'} · ${record.isValid()?'Valid':'Invalid'}`;
             return html`<tr><th scope="row">${sample.method}<small>${JSON.stringify(sample.address)}</small></th><td>${describe(saved)}</td><td>${describe(current)}<small>${compositionRuleChanges(sample.rules,this.rules).join('; ') || 'Rules unchanged'}</small></td><td><button @click=${()=>{this.configuration.setFields({...sample.rules});this.selectCase(sample.method,sample.address);}}>Restore case ${index+1}</button><button aria-label=${`Remove case ${index+1}`} @click=${()=>{this.savedCases=this.savedCases.filter((_,i)=>i!==index);this.requestUpdate();}}>Remove</button></td></tr>`;
         })}</tbody></table></div><button @click=${()=>{this.savedCases=[];this.caseNotice='';this.requestUpdate();}}>Clear kept cases</button></section>`;
     }
@@ -84,8 +84,8 @@ export class FdlCompositionExperiment extends LitElement {
         const type = this.record.fieldTypeForField('address');
         const method = this.record.getField('fulfillment');
         const value = this.record.getField('address');
-        const visible = type.visible(this.record);
-        const required = type.required(this.record);
+        const visible = type.visible(this.record.getField('address'), this.record);
+        const required = type.required(this.record.getField('address'), this.record);
         const explanation = compositionExplanation(this.rules, method, value);
         const errors: string[] = this.record.readableFieldErrors('address');
         return html`<div class="state" role="status"><h3>Why this result?</h3><ol>

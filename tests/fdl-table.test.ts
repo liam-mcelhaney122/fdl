@@ -39,8 +39,8 @@ describe('<fdl-table>', () => {
 
         const targets = () => [...table.shadowRoot!.querySelectorAll(modifier === 'cellClass' ? 'tbody td' : 'tbody tr')];
         expect(targets().map(target => target.className)).toEqual(['amount numeric warning over-limit', 'amount numeric']);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0]);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1]);
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0], 'table');
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1], 'table');
 
         recordset.currentPage[0].setField('limit', 200);
         await settle(table);
@@ -313,8 +313,8 @@ describe('<fdl-table>', () => {
             left.localeCompare(right) as -1 | 0 | 1;
         const recordset = new Recordset(
             {
-                firstName: new FieldType().with.compareFunction(compare),
-                lastName: new FieldType().with.compareFunction(compare),
+                firstName: new FieldType<string>().with.compareFunction(compare),
+                lastName: new FieldType<string>().with.compareFunction(compare),
             },
             [
                 { firstName: 'Ada', lastName: 'Zulu' },
@@ -485,7 +485,7 @@ describe('<fdl-table>', () => {
     it('combines column filters with an application-owned Recordset filter', async () => {
         const recordset = new Recordset(
             {
-                name: new FieldType().with.filter((text, value) =>
+                name: new FieldType<string>().with.filter((text, value) =>
                     value.toLowerCase().startsWith(text.toLowerCase())
                 ),
                 team: new FieldType().with.filter(),
@@ -558,5 +558,41 @@ it.each([true, false])('aligns table headings and cells for sortable=%s', async 
     expect([...table.shadowRoot!.querySelectorAll('th')].map(header => header.style.textAlign)).toEqual(['left', 'center', 'right']);
     expect([...table.shadowRoot!.querySelectorAll('tbody td')].map(cell => (cell as HTMLElement).style.textAlign)).toEqual(['left', 'center', 'right']);
     expect(table.shadowRoot!.querySelectorAll('.sort-button')).toHaveLength(sortable ? 3 : 0);
+    table.remove();
+});
+
+it('resolves column settings without a row and field settings with header and cell contexts', async () => {
+    const width = jest.fn((_value: undefined, _record: undefined, context: string) => context === 'table' ? 120 : 0);
+    const sortable = jest.fn((_value: undefined, _record: undefined, context: string) => context === 'table');
+    const label = jest.fn((value: number, _record: Record<any>, context: string) => `${context}:${value}`);
+    const amount = new FieldType<number>().with.label(label).and.minColumnWidth(width)
+        .and.maxColumnWidth(200).and.targetColumnWidth(150).and.sortable(sortable)
+        .and.textAlign((_value, _record, context) => context === 'table' ? 'right' : 'center');
+    const recordset = new Recordset({ amount }, [{ amount: 150 }]);
+    const table = document.createElement('fdl-table') as TestTable;
+    table.recordset = recordset;
+    table.innerHTML = '<fdl-column field="amount"></fdl-column>';
+    document.body.append(table);
+    await settle(table);
+    expect(width).toHaveBeenCalledWith(undefined, undefined, 'table');
+    expect(sortable).toHaveBeenCalledWith(undefined, undefined, 'table');
+    expect(label).toHaveBeenCalledWith(150, recordset.currentPage[0], 'table-header');
+    expect(table.shadowRoot!.querySelector('col')!.style.minWidth).toBe('120px');
+    expect((table.shadowRoot!.querySelector('th') as HTMLElement).style.textAlign).toBe('center');
+    expect((table.shadowRoot!.querySelector('td') as HTMLElement).style.textAlign).toBe('right');
+    table.remove();
+});
+
+it('renders an empty table without invoking per-record header settings', async () => {
+    const callback = jest.fn((_value: number, _record: Record<any>) => { throw new Error('no record'); });
+    const amount = new FieldType<number>().with.label(callback).and.textAlign(callback);
+    const recordset = new Recordset<{ amount: number }>({ amount }, []);
+    const table = document.createElement('fdl-table') as TestTable;
+    table.recordset = recordset;
+    table.innerHTML = '<fdl-column field="amount"></fdl-column>';
+    document.body.append(table);
+    await settle(table);
+    expect(table.shadowRoot!.textContent).toContain('No rows to display.');
+    expect(callback).not.toHaveBeenCalled();
     table.remove();
 });

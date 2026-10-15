@@ -179,7 +179,7 @@ class FormElement extends ListeningElement {
                 </summary>
                 <div class="multiple-menu">
                     <fieldset ?disabled=${select.disabled}>
-                        <legend class="visually-hidden">${this.fieldType?.label(this.record)}</legend>
+                        <legend class="visually-hidden">${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}</legend>
                         <p class="multiple-hint">Select any combination.</p>
                         <div class="multiple-options">${[...select.options].map(option => html`
                             <label><input type="checkbox" .checked=${option.selected} ?disabled=${option.disabled}
@@ -222,7 +222,7 @@ class FormElement extends ListeningElement {
          * assign all standard properties we can from the modifiers
          */
         if (this.element instanceof HTMLInputElement) {
-            this.element.type = this.fieldType?.type();
+            this.element.type = this.fieldType?.type(this.record?.getField(this.field), this.record, 'form');
         }
         // Native selects use option identities, not formatted labels. Keep all
         // selected identities intact between native input and change events.
@@ -239,19 +239,19 @@ class FormElement extends ListeningElement {
             this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
         }
         this.element.id = this.controlId;
-        this.element.required = this.fieldType?.required(this.record);
-        this.element.visible = this.fieldType?.visible(this.record);
-        this.element.readonly = this.fieldType?.readonly(this.record);
-        this.element.label = this.fieldType?.label(this.record);
+        this.element.required = this.fieldType?.required(this.record?.getField(this.field), this.record, 'model');
+        this.element.visible = this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model');
+        this.element.readonly = this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model');
+        this.element.label = this.fieldType?.label(this.record?.getField(this.field), this.record, 'form');
         this.element.inline = this.fieldType?.inline(this.record);
         this.element.segmented = this.fieldType?.segmented(this.record);
         this.element.empty = this.fieldType?.empty(this.record, this.field);
-        this.element.disabled = this.fieldType?.isDisabled(this.record);
+        this.element.disabled = this.fieldType?.isDisabled(this.record?.getField(this.field), this.record, 'model');
         this.element.name = this.field;
         this.element.rows = this.fieldType?.rowCount();
-        this.element.maxLength = this.fieldType?.maxLength();
-        this.element.minLength = this.fieldType?.minLength();
-        this.element.placeholder = this.fieldType?.placeholder();
+        this.element.maxLength = this.fieldType?.maxLength(this.record?.getField(this.field), this.record, 'model');
+        this.element.minLength = this.fieldType?.minLength(this.record?.getField(this.field), this.record, 'model');
+        this.element.placeholder = this.fieldType?.placeholder(this.record?.getField(this.field), this.record, 'form');
         if (this.element instanceof HTMLSelectElement) {
             this.element.toggleAttribute('multiple', this.fieldType?.hasMultipleValues() ?? false);
         } else {
@@ -282,7 +282,7 @@ class FormElement extends ListeningElement {
         this.element.hasSearch = this.fieldType?.hasSearch();
         this.element.hasFilter = this.fieldType?.hasFilter();
         this.element.readonlyexception = this.fieldType?.readonlyexception(this.record);
-        this.element.readOnly = this.fieldType?.readonly(this.record); // case change only on omega-frequency - should update there and remove this
+        this.element.readOnly = this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model'); // case change only on omega-frequency - should update there and remove this
         this.element.readOnlyException = this.fieldType?.readonlyexception(this.record); // case change only on omega-frequency - should update there and remove this
         this.element.parseDynamicRange = this.fieldType?.getParseDynamicRange();
         this.element.dateDisabledFunction =
@@ -339,7 +339,7 @@ class FormElement extends ListeningElement {
 
     private visibleValidationErrors() {
         if (!this.showValidationErrors || !this.record || !this.fieldType) return [];
-        if (!this.fieldType.visible(this.record)) return [];
+        if (!this.fieldType.visible(this.record?.getField(this.field), this.record, 'model')) return [];
         return this.record.readableFieldErrors(this.field);
     }
 
@@ -366,19 +366,19 @@ class FormElement extends ListeningElement {
 
     renderRequired() {
         if (!this.fieldType) return nothing;
-        if (!this.fieldType?.required(this.record)) return nothing;
-        if (this.fieldType?.readonly(this.record)) return nothing;
+        if (!this.fieldType?.required(this.record?.getField(this.field), this.record, 'model')) return nothing;
+        if (this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model')) return nothing;
         return html`<span class="required">&nbsp;*</span>`;
     }
 
     renderLabel() {
         if (!this.record) return nothing;
-        if (!this.fieldType?.label(this.record)) return nothing;
+        if (!this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')) return nothing;
         if (this.fieldType?.hideLabel()) return nothing;
-        if (!this.fieldType?.visible(this.record)) return nothing;
+        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model')) return nothing;
         return html`<label id=${this.labelId} for=${this.controlId}
             @click=${() => this.shadowRoot?.querySelector<HTMLElement>('.multiple-values summary')?.focus()}
-            >${this.fieldType?.label(this.record)}${this.renderRequired()}<slot name="label"></slot
+            >${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}${this.renderRequired()}<slot name="label"></slot
         ></label>`;
     }
 
@@ -392,7 +392,7 @@ class FormElement extends ListeningElement {
     renderElement() {
         if (!this.record) return nothing;
         if (!this.element) return nothing;
-        if (!this.fieldType?.visible(this.record)) return nothing;
+        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model')) return nothing;
         if (this.element.readonly && !this.fieldType?.usesCustomPrint()) {
             const hasVisibleErrors = this.visibleValidationErrors().length > 0;
             return html`<div class="control">

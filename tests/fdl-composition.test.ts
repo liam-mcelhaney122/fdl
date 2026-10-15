@@ -15,8 +15,8 @@ it.each(combinations)('keeps rules independent for %j', rules => {
         const type = record.fieldTypeForField('address');
         const required = rules.requiredness === 'always' || (rules.requiredness === 'shipping' && method === 'ship');
         const invalid = (required && sample.id === 'empty') || (rules.validation === 'on' && sample.id === 'unnumbered');
-        expect(type.visible(record)).toBe(rules.visibility === 'all' || method === 'ship');
-        expect(type.required(record)).toBe(required);
+        expect(type.visible(undefined, record)).toBe(rules.visibility === 'all' || method === 'ship');
+        expect(type.required(undefined, record)).toBe(required);
         expect(record.isValid()).toBe(!invalid);
         expect(record.getField('address')).toBe(sample.value);
     }

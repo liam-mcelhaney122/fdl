@@ -31,9 +31,9 @@ export class FdlLearningPath extends LitElement {
             .and.formatter((value: unknown, _record?: unknown, context?: string) => value == null ? '' : context === 'input-focus' ? String(value) : currency.format(Number(value)));
         if (this.step >= 2) {
             charge = charge.with.validator({name: 'must be a finite, non-negative number', validate: value => value == null || (typeof value === 'number' && Number.isFinite(value) && value >= 0)});
-            charge = this.step >= 3 ? charge.with.required(record => record.getField('method') === 'ship') : charge.with.required();
+            charge = this.step >= 3 ? charge.with.required((_value, record) => record.getField('method') === 'ship') : charge.with.required();
         }
-        if (this.step >= 3) charge = charge.with.visibleWhen(record => record.getField('method') === 'ship');
+        if (this.step >= 3) charge = charge.with.visibleWhen((_value, record) => record.getField('method') === 'ship');
         return {
             method: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
             charge,
@@ -82,8 +82,8 @@ export class FdlLearningPath extends LitElement {
   .and.validator({ name: 'must be a finite, non-negative number',
     validate: value => value == null ||
       (typeof value === 'number' && Number.isFinite(value) && value >= 0) })
-  .and.${this.step >= 3 ? "required(record => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
-  .and.visibleWhen(record => record.getField('method') === 'ship')` : ''};${this.step >= 4 ? `
+  .and.${this.step >= 3 ? "required((_value, record) => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
+  .and.visibleWhen((_value, record) => record.getField('method') === 'ship')` : ''};${this.step >= 4 ? `
 
 const deliveries = new Recordset({ method, charge }, data);` : ''}`;
     }

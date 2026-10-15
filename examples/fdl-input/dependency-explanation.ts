@@ -5,7 +5,7 @@ type RuleState = 'visible' | 'required' | 'disabled' | 'readonly';
 /** Read the same public field-state API used by the adapter, rather than reimplementing its predicate. */
 export function explainDependency(record: Record<any>, field: string, dependency: string, expression: string, state: RuleState) {
     const type = record.fieldTypeForField(field);
-    const result = state === 'disabled' ? type.isDisabled(record) : type[state](record);
+    const result = state === 'disabled' ? type.isDisabled(record.getField(field), record) : type[state](record.getField(field), record);
     const labels = { visible: ['Visible', 'Hidden'], required: ['Required', 'Optional'], disabled: ['Disabled', 'Enabled'], readonly: ['Read-only', 'Editable'] };
     return html`<div class="dependency-trace" role="status">
         <strong>Why did this field change?</strong>

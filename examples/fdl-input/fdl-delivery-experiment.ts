@@ -10,8 +10,8 @@ export class FdlDeliveryExperiment extends LitElement {
             { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
         ]),
         address: new FieldType<string>().with.label('Shipping address')
-            .and.visibleWhen(record => record.getField('fulfillment') === 'ship')
-            .and.required(record => record.getField('fulfillment') === 'ship'),
+            .and.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')
+            .and.required((_value, record) => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
@@ -23,9 +23,9 @@ export class FdlDeliveryExperiment extends LitElement {
             <p>Switch to pickup. What happens to the address you already entered?</p>
             <div class="experiment">
                 <div class="editor"><fdl-field .record=${this.delivery} field="fulfillment"></fdl-field><fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field></div>
-                <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
             </div>
-            <p>${address.visible(this.delivery) ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Pickup hides the address and makes it optional. The stored address is preserved; switch back to see it again.'}</p>
+            <p>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Pickup hides the address and makes it optional. The stored address is preserved; switch back to see it again.'}</p>
             <p><a href="#visibleWhen">Explore visibility</a> · <a href="#required">Explore requiredness</a></p>
         </section>`;
     }

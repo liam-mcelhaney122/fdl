@@ -5,6 +5,7 @@
 /* eslint-disable max-classes-per-file */
 import { TemplateResult } from 'lit';
 import { Record, FieldType as _FieldType } from '.';
+import { FieldSetting, ColumnSetting, resolveSetting } from './field-setting';
 import { inputType } from './types/input-types.types';
 
 function caseInsensitiveTextMatch(searchText: string, value: any) {
@@ -13,11 +14,11 @@ function caseInsensitiveTextMatch(searchText: string, value: any) {
 
 const defaultTrueFunction = () => true;
 
-function printFunction(fn?: Function) {
+function printFunction(fn?: Function | boolean) {
     if (typeof fn === 'undefined') {
         return '<none>';
     }
-    return fn.name || fn.toString();
+    return typeof fn === 'function' ? fn.name || fn.toString() : String(fn);
 }
 
 function defaultCompareFunction<T = unknown>(a: T, b: T) {
@@ -99,11 +100,11 @@ export interface Properties<T = unknown> {
     autocomplete?: AutoComplete;
     autofocus: boolean;
     cellClassFunctions: Array<Function>;
-    compareFunction: typeof defaultCompareFunction;
-    defaultValue?: any;
+    compareFunction: (a: any, b: any) => number;
+    defaultValue?: FieldSetting<any, any>;
     descriptions: Array<string>;
-    disableFunctions: Array<BooleanPredicate>;
-    emptyFunctions: Array<BooleanPredicate>;
+    disableFunctions: Array<FieldSetting<any, boolean>>;
+    emptyFunctions: Array<FieldSetting<any, boolean>>;
     field?: string;
     filter: (searchText: string, value: any) => boolean;
     filtering?: boolean;
@@ -116,17 +117,17 @@ export interface Properties<T = unknown> {
     iconMessage: string | null;
     inline: boolean;
     inlineFunctions: Array<BooleanPredicate>;
-    labelFunctions: Array<string | Function>;
+    labelFunctions: Array<FieldSetting<any, string>>;
     list?: string;
     max?: number;
-    maxColumnWidth?: number;
+    maxColumnWidth?: ColumnSetting<number>;
     /**
      * https://www.w3schools.com/tags/att_input_maxlength.asp
      */
-    maxLength: number;
+    maxLength: FieldSetting<any, number>;
     maxValueCount: number;
-    minColumnWidth: number;
-    minLength?: number;
+    minColumnWidth: ColumnSetting<number>;
+    minLength?: FieldSetting<any, number>;
     minValueCount: number;
     numberOfRows: number;
     onValueChange: Array<Function>;
@@ -134,14 +135,14 @@ export interface Properties<T = unknown> {
     parseDynamicRange: boolean;
     parsers: Array<Function>;
     pattern?: RegExp;
-    placeholder: string;
+    placeholder: FieldSetting<any, string>;
     range: boolean;
     readonly: boolean;
     readonlyexception: boolean;
     readonlyexceptionFunctions: Array<BooleanPredicate>;
-    readonlyFunctions: Array<BooleanPredicate>;
+    readonlyFunctions: Array<FieldSetting<any, boolean>>;
     required: boolean;
-    requiredFunctions: Array<BooleanPredicate>;
+    requiredFunctions: Array<FieldSetting<any, boolean>>;
     rowClassFunctions: Array<Function>;
     schema: string;
     search: boolean;
@@ -150,18 +151,18 @@ export interface Properties<T = unknown> {
     segmentedFunctions: Array<BooleanPredicate>;
     selectionDisabledFunctions: Object;
     x?: boolean;
-    sortable?: boolean;
+    sortable?: ColumnSetting<boolean>;
     specificDate?: boolean;
     step?: number;
     tag: string;
-    targetColumnWidth?: number;
+    targetColumnWidth?: ColumnSetting<number>;
     template: Function;
-    textAlign: 'left' | 'center' | 'right';
-    type: string;
+    textAlign: FieldSetting<any, 'left' | 'center' | 'right'>;
+    type: FieldSetting<any, string>;
     usesCustomPrint: boolean;
     validators: Array<Validator<T>>;
     visible: boolean;
-    visibleFunctions: Array<BooleanPredicate>;
+    visibleFunctions: Array<FieldSetting<any, boolean>>;
 }
 
 export const defaultProperties: Properties = {
@@ -314,7 +315,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    formatter(fn: (value: T) => any) {
+    formatter(fn: (value: T, record: Record<any>, context: string) => any) {
         const copy = this.copy();
         copy.properties.formatters = [...copy.properties.formatters, fn];
         copy.properties.descriptions = [
@@ -338,7 +339,8 @@ export default class FieldTypeBuilder<T> {
     template(
         fn: (
             field: T,
-            record: Record<any>
+            record: Record<any>,
+            context: string
         ) => string | number | boolean | TemplateResult | Array<TemplateResult>
     ) {
         const copy = this.copy();
@@ -360,7 +362,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    parser(fn: (value: any) => any) {
+    parser(fn: (value: any, record: Record<any>, context: string) => T) {
         const copy = this.copy();
         copy.properties.parsers = [fn, ...copy.properties.parsers];
         copy.properties.descriptions = [
@@ -371,7 +373,7 @@ export default class FieldTypeBuilder<T> {
     }
 
     /** Add cell classes directly or compute them from the field value and record. */
-    cellClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[])) {
+    cellClass(classes: FieldSetting<T, string | string[]>) {
         const copy = this.copy();
         const fixed = Array.isArray(classes) ? [...classes] : classes;
         const getClasses = typeof classes === 'function' ? classes : () => fixed;
@@ -379,14 +381,14 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    textAlign(direction: 'left' | 'center' | 'right') {
+    textAlign(direction: FieldSetting<T, 'left' | 'center' | 'right'>) {
         const copy = this.copy();
         copy.properties.textAlign = direction;
         return copy;
     }
 
     /** Add row classes directly or compute them from the field value and record. */
-    rowClass(classes: string | string[] | ((value: T, record: Record<any>) => string | string[])) {
+    rowClass(classes: FieldSetting<T, string | string[]>) {
         const copy = this.copy();
         const fixed = Array.isArray(classes) ? [...classes] : classes;
         const getClasses = typeof classes === 'function' ? classes : () => fixed;
@@ -394,7 +396,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    compareFunction(fn: (a: any, b: any) => 1 | -1 | 0) {
+    compareFunction(fn: (a: T, b: T) => number) {
         const copy = this.copy();
         copy.properties.compareFunction = fn;
         copy.properties.descriptions = [
@@ -432,7 +434,7 @@ export default class FieldTypeBuilder<T> {
      *
      * @param width
      */
-    minColumnWidth(width: number) {
+    minColumnWidth(width: ColumnSetting<number>) {
         const copy = this.copy();
         copy.properties.minColumnWidth = width;
         copy.properties.x = true;
@@ -447,7 +449,7 @@ export default class FieldTypeBuilder<T> {
      *
      * @param width
      */
-    maxColumnWidth(width: number) {
+    maxColumnWidth(width: ColumnSetting<number>) {
         const copy = this.copy();
         copy.properties.maxColumnWidth = width;
         copy.properties.descriptions = [
@@ -461,7 +463,7 @@ export default class FieldTypeBuilder<T> {
      *
      * @param width
      */
-    targetColumnWidth(width: number) {
+    targetColumnWidth(width: ColumnSetting<number>) {
         const copy = this.copy();
         copy.properties.targetColumnWidth = width;
         copy.properties.descriptions = [
@@ -475,14 +477,14 @@ export default class FieldTypeBuilder<T> {
      *
      * @param sortable
      */
-    sortable(sortable: boolean) {
+    sortable(sortable: ColumnSetting<boolean>) {
         const copy = this.copy();
         copy.properties.sortable = sortable;
         copy.properties.descriptions = [...copy.properties.descriptions, `sortable: ${sortable}`];
         return copy;
     }
 
-    reducer(nameOrFunction: string | Function) {
+    reducer(nameOrFunction: 'sum' | ((values: T[]) => unknown)) {
         const copy = this.copy();
         if (nameOrFunction === 'sum') {
             copy.properties.aggregate = (values: Array<any>) => values.reduce((a, b) => a + b, 0);
@@ -492,7 +494,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    defaultValue(value: T | string | null) {
+    defaultValue(value: FieldSetting<T | null | undefined, T | null>) {
         const copy = this.copy();
         copy.properties.defaultValue = value;
         copy.properties.descriptions = [...copy.properties.descriptions, `default value: ${value}`];
@@ -510,7 +512,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    type(type: inputType) {
+    type(type: FieldSetting<T, inputType>) {
         const copy = this.copy();
         copy.properties.type = type;
         copy.properties.descriptions = [...copy.properties.descriptions, `type: ${type}`];
@@ -533,19 +535,10 @@ export default class FieldTypeBuilder<T> {
      * provides a label to our omega-field component.
      * @param label
      */
-    label(label: string | ((record: Record) => string)) {
+    label(label: FieldSetting<T, string>) {
         const copy = this.copy();
-        if (label instanceof Function) {
-            copy.properties.labelFunctions = [...copy.properties.labelFunctions, label];
-            copy.properties.descriptions = [
-                ...copy.properties.descriptions,
-                `label (function): "${label}"`,
-            ];
-        } else {
-            copy.properties.labelFunctions = [...copy.properties.labelFunctions, () => label];
-            copy.properties.descriptions = [...copy.properties.descriptions, `label: "${label}"`];
-        }
-
+        copy.properties.labelFunctions = [...copy.properties.labelFunctions, label];
+        copy.properties.descriptions = [...copy.properties.descriptions, `label: ${label}`];
         return copy;
     }
 
@@ -632,13 +625,13 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    /** Disable the field always, or when a record predicate returns true. */
-    disabled(predicate: (record: Record<any>) => boolean = defaultTrueFunction) {
+    /** Disable the field always, or when the field setting resolves to true. */
+    disabled(predicate: FieldSetting<T, boolean> = true) {
         const copy = this.copy();
         copy.properties.disableFunctions = [...copy.properties.disableFunctions, predicate];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            predicate === defaultTrueFunction ? 'disabled' : `disabled when ${printFunction(predicate)}`,
+            predicate === true ? 'disabled' : `disabled when ${printFunction(predicate)}`,
         ];
         return copy;
     }
@@ -659,7 +652,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    visibleWhen(predicate: (record: Record<any>) => boolean) {
+    visibleWhen(predicate: FieldSetting<T, boolean>) {
         const copy = this.copy();
         copy.properties.visibleFunctions = [...copy.properties.visibleFunctions, predicate];
         copy.properties.descriptions = [
@@ -669,7 +662,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    emptyWhen(predicate: (value: any) => boolean) {
+    emptyWhen(predicate: FieldSetting<T, boolean>) {
         const copy = this.copy();
         copy.properties.emptyFunctions = [...copy.properties.emptyFunctions, predicate];
         copy.properties.descriptions = [
@@ -683,11 +676,11 @@ export default class FieldTypeBuilder<T> {
      * Sets a field to readonly
      *
      */
-    readOnly() {
+    readOnly(predicate: FieldSetting<T, boolean> = true) {
         const copy = this.copy();
         copy.properties.readonlyFunctions = [
             ...copy.properties.readonlyFunctions,
-            defaultTrueFunction,
+            predicate,
         ];
         copy.properties.descriptions = [...copy.properties.descriptions, `read only`];
         return copy;
@@ -735,7 +728,7 @@ export default class FieldTypeBuilder<T> {
      * Sets a field to readonly based on a conditional expression
      * @param {{(record:Record) : boolean}} predicate
      */
-    readOnlyWhen(predicate: (record: Record<any>) => boolean) {
+    readOnlyWhen(predicate: FieldSetting<T, boolean>) {
         const copy = this.copy();
         copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, predicate];
         copy.properties.descriptions = [
@@ -764,8 +757,8 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    /** Require a non-empty value always, or when a record predicate returns true. */
-    required(predicate: (record: Record<any>) => boolean = defaultTrueFunction) {
+    /** Require a non-empty value always, or when the field setting resolves to true. */
+    required(predicate: FieldSetting<T, boolean> = true) {
         const copy = this.copy();
         copy.properties.requiredFunctions = [...copy.properties.requiredFunctions, predicate];
         copy.properties.validators = [
@@ -773,12 +766,13 @@ export default class FieldTypeBuilder<T> {
             {
                 name: 'is required',
                 validate: (modelValue: any, viewValue: any, record: Record<any>, options: OptionsApi<T>, field: any) =>
-                    !predicate(record) || !copy.properties.emptyFunctions.some((fn: Function) => fn(record.getField(field))),
+                    !resolveSetting(predicate, modelValue, record, 'model') ||
+                    !(record?.fieldTypeForField(field) ?? copy).properties.emptyFunctions.some((fn: FieldSetting<T, boolean>) => resolveSetting(fn, modelValue, record, 'model')),
             },
         ];
         copy.properties.descriptions = [
             ...copy.properties.descriptions,
-            predicate === defaultTrueFunction ? 'required' : `required when ${printFunction(predicate)}`,
+            predicate === true ? 'required' : `required when ${printFunction(predicate)}`,
         ];
         return copy;
     }
@@ -803,7 +797,7 @@ export default class FieldTypeBuilder<T> {
     }
 
     /** Defines how a table filter term matches this field's value. */
-    filter(predicate?: (searchText: string, value: any) => boolean) {
+    filter(predicate?: (searchText: string, value: T) => boolean) {
         const copy = this.copy();
         copy.properties.filter = predicate ?? caseInsensitiveTextMatch;
         copy.properties.filtering = true;
@@ -853,7 +847,7 @@ export default class FieldTypeBuilder<T> {
      * Sets the placeholder on a field
      * @param {string} placeholder - Placeholder value
      */
-    placeholder(placeholder: string) {
+    placeholder(placeholder: FieldSetting<T, string>) {
         const copy = this.copy();
         copy.properties.placeholder = placeholder;
         copy.properties.descriptions = [
@@ -867,14 +861,14 @@ export default class FieldTypeBuilder<T> {
      * Sets the minimum length on a field
      * @param {number} length - Minimum length
      */
-    minLength(length: number) {
+    minLength(length: FieldSetting<T, number>) {
         const copy = this.copy();
         copy.properties.minLength = length;
         const minLengthValidator = {
             name: `minimum length is ${length}`,
-            validate: (value: any) => {
+            validate: (value: any, _viewValue: any, record: Record<any>) => {
                 if (!value) return true;
-                return value.length >= length;
+                return value.length >= resolveSetting(length, value, record, 'model');
             },
         };
         copy.properties.validators = [...copy.properties.validators, minLengthValidator];
@@ -886,15 +880,15 @@ export default class FieldTypeBuilder<T> {
      *
      * @param {number} length
      */
-    maxLength(length: number) {
+    maxLength(length: FieldSetting<T, number>) {
         const copy = this.copy();
         copy.properties.maxLength = length;
         const maxLengthValidator = {
             name: `maximum length is ${length}`,
-            validate: (value: any) => {
+            validate: (value: any, _viewValue: any, record: Record<any>) => {
                 if (!value) return true;
                 const valueString = value.toString();
-                return valueString.length <= length;
+                return valueString.length <= resolveSetting(length, value, record, 'model');
             },
         };
         copy.properties.validators = [...copy.properties.validators, maxLengthValidator];

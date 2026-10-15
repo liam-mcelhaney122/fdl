@@ -27,6 +27,131 @@ const money = number.with
 so on) are interchangeable builder entry points. They do not mutate the
 original field type.
 
+## Fixed and calculated settings
+
+A field setting accepts its result directly or a synchronous callback with the
+same three arguments:
+
+```ts
+import type { FieldSetting, ColumnSetting } from 'digital-fdl';
+
+// T is the stored field type; R is the record's backing-data type.
+type Setting<T, Result, R = any> =
+  | Result
+  | ((value: T, record: Record<R>, context: string) => Result);
+```
+
+The exported `FieldSetting<T, Result, R>` type expresses this contract. Callback
+parameters may be omitted when unused. `value` is the current stored value,
+`record` is its owning FDL record, and `context` identifies the consumer. Settings
+are resolved when read, so changes to another field are reflected on the next
+read. Callbacks should be pure; they must not mutate the record or render UI.
+
+| Field setting | Result |
+| --- | --- |
+| `label`, `placeholder` | `string` |
+| `cellClass`, `rowClass` | `string` or `string[]` |
+| `textAlign` | `'left'`, `'center'`, or `'right'` |
+| `type` | A supported input type |
+| `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `emptyWhen` | `boolean` |
+| `minLength`, `maxLength` | `number` |
+| `defaultValue` | The model type `T` or `null` |
+
+```ts
+const amount = new FieldType<number>()
+  .with.label((_value, _record, context) =>
+    context === 'table-header' ? 'Amount' : 'Invoice amount')
+  .and.placeholder('Enter an amount')
+  .and.required((_value, record) => record.getField('submitted'))
+  .and.cellClass((value, record) =>
+    value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric');
+```
+
+The form adapter passes `"form"` for labels, placeholders, and input types. The
+table passes `"table"` for cell and row classes and cell alignment, and
+`"table-header"` for heading labels and alignment. For compatibility with
+existing heading behavior, a non-empty table uses its first visible record for
+these header settings. On an empty table, it uses an explicit column label or
+the last fixed field label (then the field name), and fixed alignment or left
+alignment; per-record callbacks are not invoked.
+
+Model rules, including requiredness, emptiness, visibility, disabled/read-only
+state, and length constraints, use `"model"` in the form adapter. Model validation
+also uses `"model"` and evaluates the candidate being validated, which may differ
+from the stored value. This keeps validation and the control's model state in
+agreement. Direct getter calls default to `"model"`; callers can supply their own
+string context for display settings.
+
+Direct setting getters now take `(value, record, context?)`, for example
+`fieldType.label(record.getField('amount'), record, 'form')` and
+`fieldType.required(record.getField('amount'), record)`. Supply the owning record
+when invoking a per-record callback directly. The existing `empty(record, field)`
+convenience method delegates to `isEmpty(value, record, context?)`.
+
+`required()`, `disabled()`, and `readOnly()` mean `true`. Repeated state settings
+keep their composition rules: required, disabled, read-only, and empty rules use
+any-true semantics; visibility uses all-true semantics. A later `false` does not
+cancel an earlier unconditional `true`. Cell and row classes accumulate in
+order. Labels and other scalar settings use the last declaration. Length
+validators accumulate, so every declared length constraint remains enforced.
+Specialization never changes the source field definition.
+
+A default callback receives `undefined` (or `null`) for a missing value and
+returns the default; its input type is therefore `T | null | undefined`. Existing
+non-null values are preserved without invoking the callback. Clearing a record
+evaluates all defaults against the same pre-clear record, then replaces its
+values. Appending creates a record with undefined fields before resolving its
+defaults. Default callbacks should not depend on another default having already
+run. Partial clones resolve defaults for omitted fields against the source
+record before constructing the clone.
+
+### Column settings
+
+`sortable`, `minColumnWidth`, `maxColumnWidth`, and `targetColumnWidth` accept a
+fixed result or `ColumnSetting<Result>`. A column has no single owning record:
+its callback receives `(undefined, undefined, context)`. The table supplies
+`"table"`; direct column getters accept a context string.
+
+```ts
+const amount = new FieldType<number>()
+  .with.minColumnWidth((_value, _record, context) =>
+    context === 'table' ? 100 : 60)
+  .and.sortable(true);
+```
+
+### Operations and structural configuration
+
+Operations keep the inputs needed to do their work. Formatters receive their
+current pipeline value, record, and context; parsers receive incoming input,
+record, and context; templates receive formatted output, record, and `"print"`.
+Comparators receive two values and return a negative number, zero, or a positive
+number. Filters receive search text and a field value. Reducers receive an
+array of field values (or use the built-in `'sum'`). Validators retain
+`(modelValue, viewValue, record, options, field)` and may return a promise.
+
+Options providers retain their configuration/async loading and caching
+contract. Search configuration, input masks, multiple-value bounds, and range
+mode are structural or operational configuration rather than per-field result
+settings. Deprecated renderer modifiers retain their existing contracts; this
+change does not expand those APIs.
+
+### Migrating callbacks
+
+Record-first callbacks now receive the value first:
+
+```ts
+// Before
+.label(record => record.getField('title'))
+.required(record => record.getField('submitted'))
+
+// After
+.label((_value, record) => record.getField('title'))
+.required((_value, record) => record.getField('submitted'))
+```
+
+Label callbacks no longer receive a previous-label argument. Compute the full
+label from `(value, record, context)`; the last label declaration wins.
+
 ## Value transforms and validation
 
 `formatter(fn)` transforms values for display. Formatters run in the order they
@@ -67,7 +192,7 @@ Synchronous validation is available through `FieldType.validate()` and
 
 `minLength(n)`, `maxLength(n)`, `required(predicate?)`, and
 `emptyWhen(predicate)` add common validation behavior. Predicates receive the
-current `Record` unless the modifier states otherwise.
+candidate field value, owning `Record`, and `"model"` context.
 
 ## Form behavior
 
@@ -250,11 +375,11 @@ The supported cell and row class signatures are:
 ```ts
 cellClass(className: string)
 cellClass(classNames: string[])
-cellClass(classes: (value: T, record: Record<any>) => string | string[])
+cellClass(classes: (value: T, record: Record<any>, context: string) => string | string[])
 
 rowClass(className: string)
 rowClass(classNames: string[])
-rowClass(classes: (value: T, record: Record<any>) => string | string[])
+rowClass(classes: (value: T, record: Record<any>, context: string) => string | string[])
 ```
 
 The value type `T` comes from the field type. The callback can read other
@@ -283,13 +408,13 @@ those calls to `cellClass(value => predicate(value) ? className : [])`.
 ## Consolidated required and disabled rules
 
 `required()` always requires a non-empty value; `required(predicate)` requires
-one only when the record predicate returns true. `disabled()` always disables
+one only when the field setting resolves to true. `disabled()` always disables
 a field; `disabled(predicate)` disables it only while the predicate is true.
 Multiple declarations accumulate: any true predicate enables that state.
 Calling either modifier without a predicate adds an unconditional rule.
 
 `requiredWhen(predicate)` and `disabledWhen(predicate)` were removed on
 2026-10-15. Rename those calls to `required(predicate)` and
-`disabled(predicate)` respectively; their predicate arguments and behavior
-remain the same. Conditional requiredness continues to affect model validation
+`disabled(predicate)` respectively, and migrate record-first callbacks to
+`(_value, record) => ...` as described above. Conditional requiredness continues to affect model validation
 as well as the control's required state. Disabled fields retain their values.

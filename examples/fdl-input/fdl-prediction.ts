@@ -27,7 +27,7 @@ export class FdlPrediction extends LitElement {
     private reveal = () => {
         const sample=addressCases.find(sample=>sample.id===this.guesses.getField('sample'))!;
         const record=compositionRecord(this.rules,this.guesses.getField('method'),sample.value), type=record.fieldTypeForField('address');
-        this.result={visible:type.visible(record),required:type.required(record),valid:record.isValid()}; this.requestUpdate();
+        this.result={visible:type.visible(undefined, record),required:type.required(undefined, record),valid:record.isValid()}; this.requestUpdate();
     };
     render() {
         const sample=addressCases.find(sample=>sample.id===this.guesses.getField('sample'))!;

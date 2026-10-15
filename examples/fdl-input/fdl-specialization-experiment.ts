@@ -42,10 +42,10 @@ export class FdlSpecializationExperiment extends LitElement {
             <div class="variants">${(['base', 'required', 'sibling'] as const).map(key => html`<section aria-label=${`${key} definition`}><h3>${key === 'base' ? 'baseName' : key === 'required' ? 'requiredName' : 'shortName'}</h3>
                 <code>${key === 'base' ? "new FieldType().with.label('Name')" : key === 'required' ? this.enabled ? 'baseName.with.required()' : 'baseName' : 'baseName.with.minLength(2)'}</code>
                 ${keyed(this.record.fieldTypeForField(key), html`<fdl-field .record=${this.record} field=${key} .showValidationErrors=${true}></fdl-field>`)}
-                <p class="variant-state">${this.record.fieldTypeForField(key).required(this.record) ? 'Required' : 'Optional'} · ${this.record.isValid(key) ? 'Valid' : 'Invalid'}</p></section>`)}</div>
+                <p class="variant-state">${this.record.fieldTypeForField(key).required(this.record.getField(key), this.record) ? 'Required' : 'Optional'} · ${this.record.isValid(key) ? 'Valid' : 'Invalid'}</p></section>`)}</div>
             <h3>The same definitions in a table</h3>
             <fdl-table .recordset=${this.table}><fdl-column field="base" label="baseName"></fdl-column><fdl-column field="required" label="requiredName"></fdl-column><fdl-column field="sibling" label="shortName"></fdl-column></fdl-table>
-            <p role="status">The base is ${this.base.required(this.record) ? 'required' : 'optional'}; shortName still has a ${this.sibling.minLength()}-character minimum. Specializing requiredName changes neither definition.</p>
+            <p role="status">The base is ${this.base.required(undefined, this.record) ? 'required' : 'optional'}; shortName still has a ${this.sibling.minLength()}-character minimum. Specializing requiredName changes neither definition.</p>
         </section>`;
     }
     static styles = css`

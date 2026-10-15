@@ -218,9 +218,9 @@ it('shows both required forms and validates conditional notes in the runnable UI
 
 it('exports unconditional and conditional disabled rules together', () => {
     const {model} = runExample('disabled');
-    expect(model.fieldTypeForField('lockedId').isDisabled(model)).toBe(true);
-    expect(model.fieldTypeForField('budget').isDisabled(model)).toBe(false);
+    expect(model.fieldTypeForField('lockedId').isDisabled(undefined, model)).toBe(true);
+    expect(model.fieldTypeForField('budget').isDisabled(undefined, model)).toBe(false);
     model.setField('approvalStatus','approved');
-    expect(model.fieldTypeForField('budget').isDisabled(model)).toBe(true);
+    expect(model.fieldTypeForField('budget').isDisabled(undefined, model)).toBe(true);
     expect(model.getField('budget')).toBe(5000);
 });

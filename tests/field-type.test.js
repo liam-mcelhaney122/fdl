@@ -308,7 +308,7 @@ describe('FieldType', () => {
         const callback = jest.fn((value, owner) => value > owner.getField('limit') ? ['warning', 'review'] : []);
         const field = new FieldType().with.cellClass('amount').and.cellClass(callback);
         expect(field.cellClasses(record.getField('amount'), record)).toEqual(['amount', 'warning', 'review']);
-        expect(callback).toHaveBeenLastCalledWith(150, record);
+        expect(callback).toHaveBeenLastCalledWith(150, record, 'model');
         record.setField('limit', 200);
         expect(field.cellClasses(record.getField('amount'), record)).toEqual(['amount']);
     });
@@ -741,12 +741,12 @@ describe('FieldType', () => {
             const type = new FieldType().with.label(`${record.getField('count')} payments(s)`);
             expect(type.label()).toEqual('10 payments(s)');
         });
-        it('composes labels', () => {
+        it('uses the last label declaration with the current field value', () => {
             const type = new FieldType().with
                 .label('Hello')
-                .and.label((record, labelSoFar) => `${labelSoFar} World`)
-                .and.label((record, labelSoFar) => labelSoFar.toUpperCase());
-            expect(type.label()).toEqual('HELLO WORLD');
+                .and.label(value => `${value} World`)
+                .and.label(value => `${value} WORLD`);
+            expect(type.label('HELLO')).toEqual('HELLO WORLD');
         });
     });
 
@@ -984,12 +984,12 @@ describe('consolidated state modifiers', () => {
 
     it('keeps required state and validation in sync as record dependencies change', () => {
         const required = new FieldType().with.emptyWhen(value => value === 'N/A')
-            .and.required(record => record.getField('needsReference'));
+            .and.required((_value, record) => record.getField('needsReference'));
         const record = new Record({needsReference: new FieldType(), reference: required}, {needsReference:false, reference:'N/A'});
-        expect(required.required(record)).toBe(false);
+        expect(required.required(undefined, record)).toBe(false);
         expect(record.isValid('reference')).toBe(true);
         record.setField('needsReference', true);
-        expect(required.required(record)).toBe(true);
+        expect(required.required(undefined, record)).toBe(true);
         expect(record.isValid('reference')).toBe(false);
         record.setField('reference', 'REF-42');
         expect(record.isValid('reference')).toBe(true);
@@ -1000,22 +1000,22 @@ describe('consolidated state modifiers', () => {
 
     it('composes predicates and unconditional rules without changing their baselines', () => {
         const base = new FieldType();
-        const conditional = base.with.required(record => record.getField('first'))
-            .and.required(record => record.getField('second'))
-            .and.disabled(record => record.getField('first'))
-            .and.disabled(record => record.getField('second'));
+        const conditional = base.with.required((_value, record) => record.getField('first'))
+            .and.required((_value, record) => record.getField('second'))
+            .and.disabled((_value, record) => record.getField('first'))
+            .and.disabled((_value, record) => record.getField('second'));
         const always = conditional.with.required().and.disabled();
         const record = new Record({first:new FieldType(),second:new FieldType(),value:conditional}, {first:false,second:false,value:''});
-        expect(conditional.required(record)).toBe(false);
-        expect(conditional.isDisabled(record)).toBe(false);
-        expect(always.required(record)).toBe(true);
-        expect(always.isDisabled(record)).toBe(true);
+        expect(conditional.required(undefined, record)).toBe(false);
+        expect(conditional.isDisabled(undefined, record)).toBe(false);
+        expect(always.required(undefined, record)).toBe(true);
+        expect(always.isDisabled(undefined, record)).toBe(true);
         record.setField('second', true);
-        expect(conditional.required(record)).toBe(true);
-        expect(conditional.isDisabled(record)).toBe(true);
+        expect(conditional.required(undefined, record)).toBe(true);
+        expect(conditional.isDisabled(undefined, record)).toBe(true);
         expect(record.isValid('value')).toBe(false);
-        expect(base.required(record)).toBe(false);
-        expect(base.isDisabled(record)).toBe(false);
+        expect(base.required(undefined, record)).toBe(false);
+        expect(base.isDisabled(undefined, record)).toBe(false);
         record.setField('second', false);
         expect(record.isValid('value')).toBe(true);
     });

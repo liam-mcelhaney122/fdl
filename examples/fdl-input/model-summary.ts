@@ -11,7 +11,7 @@ export const describeValue = (value: unknown): string => {
 export function recordSummary(record: Record<any>, fields = Object.keys(record.values)) {
     return html`<dl class="state-summary">${fields.map(field => {
         const type = record.fieldTypeForField(field);
-        return html`<dt>${type.label(record) || field}</dt><dd>${describeValue(record.getField(field))}<small>${type.visible(record) ? 'Visible' : 'Hidden'} · ${type.required(record) ? 'Required' : 'Optional'} · ${type.isDisabled(record) ? 'Disabled' : type.readonly(record) ? 'Read-only' : 'Editable'} · ${record.isValid(field) ? 'Valid' : 'Invalid'}</small></dd>`;
+        return html`<dt>${type.label(record.getField(field), record) || field}</dt><dd>${describeValue(record.getField(field))}<small>${type.visible(record.getField(field), record) ? 'Visible' : 'Hidden'} · ${type.required(record.getField(field), record) ? 'Required' : 'Optional'} · ${type.isDisabled(record.getField(field), record) ? 'Disabled' : type.readonly(record.getField(field), record) ? 'Read-only' : 'Editable'} · ${record.isValid(field) ? 'Valid' : 'Invalid'}</small></dd>`;
     })}</dl>`;
 }
 export function tableSummary(table: Recordset<any>) {

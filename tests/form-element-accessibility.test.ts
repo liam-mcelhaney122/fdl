@@ -107,3 +107,36 @@ describe('FormElement accessibility', () => {
         expect(element.shadowRoot?.querySelector('.validation-error')).toBeNull();
     });
 });
+
+it('resolves field settings from the current value and record as dependencies change', async () => {
+    const label = jest.fn((value: string, record: Record<any>, context: string) => `${context}:${record.getField('prefix')}:${value}`);
+    const required = jest.fn((_value: string, record: Record<any>, context: string) => context === 'model' && record.getField('locked'));
+    const text = new FieldType<string>().with.label(label)
+        .and.placeholder((value, record, context) => `${context}:${record.getField('prefix')}:${value}`)
+        .and.type((_value, record) => record.getField('locked') ? 'password' : 'text')
+        .and.required(required)
+        .and.disabled((_value, record) => record.getField('locked'))
+        .and.minLength((_value, record) => record.getField('minimum'))
+        .and.maxLength((_value, record) => record.getField('maximum'));
+    const record = new Record({ text, prefix: new FieldType(), locked: new FieldType(), minimum: new FieldType(), maximum: new FieldType() },
+        { text: 'Ada', prefix: 'Name', locked: false, minimum: 2, maximum: 10 });
+    const element = await renderField(record, 'text');
+    const input = element.shadowRoot!.querySelector('input')!;
+    expect(input.placeholder).toBe('form:Name:Ada');
+    expect(element.shadowRoot!.querySelector('label')!.textContent).toContain('form:Name:Ada');
+    expect(input.minLength).toBe(2);
+    expect(input.maxLength).toBe(10);
+    expect(input.required).toBe(false);
+    expect(input.disabled).toBe(false);
+    record.setFields({ prefix: 'Person', locked: true, minimum: 4, maximum: 8 });
+    await element.updateComplete;
+    expect(input.placeholder).toBe('form:Person:Ada');
+    expect(input.type).toBe('password');
+    expect(input.minLength).toBe(4);
+    expect(input.maxLength).toBe(8);
+    expect(input.required).toBe(true);
+    expect(input.disabled).toBe(true);
+    expect(record.isValid('text')).toBe(false);
+    expect(label).toHaveBeenCalledWith('Ada', record, 'form');
+    expect(required).toHaveBeenCalledWith('Ada', record, 'model');
+});

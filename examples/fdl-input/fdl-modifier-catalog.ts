@@ -53,13 +53,13 @@ new FieldType()
   .with.label('T-shirt size')
   .and.compareFunction(compareShirtSizes)`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
-    live('disabled', 'Disables editing always, or while a record predicate is true.', 'disabled', `.disabled(record => record.getField('approvalStatus') === 'approved')`),
+    live('disabled', 'Disables editing always, or while its field setting resolves to true.', 'disabled', `.disabled((_value, record) => record.getField('approvalStatus') === 'approved')`),
     live('emptyWhen', 'Define when a value is considered empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
     live('hashFunction', 'Defines stable identity for complex option values.', 'hashFunction', `.hashFunction(employee => employee.id)`),
     live('inputMask', 'Defines which individual typed characters a field accepts.', 'inputMask', `.inputMask(/[0-9.]/)`),
-    live('label', 'Provides a static label or derives one from the current record.', 'label', `.label(record => \`Amount for \${record.getField('expenseType')}\`)`),
+    live('label', 'Provides a static label or derives one from the current record.', 'label', `.label((_value, record) => \`Amount for \${record.getField('expenseType')}\`)`),
     live('maxColumnWidth', 'Sets the maximum width requested for a table column.', 'maxColumnWidth', `.maxColumnWidth(180)`),
     live('maxLength', 'Caps input length and adds equivalent record validation.', 'maxLength', `.maxLength(12)`),
     live('minColumnWidth', 'Sets the minimum width requested for a table column.', 'minColumnWidth', `.minColumnWidth(110)`),
@@ -77,9 +77,9 @@ new FieldType()
     live('placeholder', 'Shows temporary hint text while an input is empty.', 'placeholder', `.placeholder('For example, Apollo migration')`),
     placeholder('range', 'Marks a field as representing a start/end range rather than one value.', 'FieldType stores the flag, but FormElement neither chooses nor implements a range control. The intended value and event contract are not clear in this native example.'),
     live('readOnly', 'Always renders the field as a printed, non-editable value.', 'readOnly', `.readOnly()`),
-    live('readOnlyWhen', 'Switches a field to printed, non-editable output while a predicate is true.', 'readOnlyWhen', `.readOnlyWhen(record => record.getField('phase') === 'submitted')`),
+    live('readOnlyWhen', 'Switches a field to printed, non-editable output while a predicate is true.', 'readOnlyWhen', `.readOnlyWhen((_value, record) => record.getField('phase') === 'submitted')`),
     live('reducer', 'Aggregates a column’s values, with sum available as a built-in reducer.', 'reducer', `.reducer('sum')`),
-    live('required', 'Requires a non-empty value always, or while a record predicate is true, with matching record validation.', 'required', `.required()`),
+    live('required', 'Requires a non-empty value always, or while its field setting resolves to true, with matching record validation.', 'required', `.required()`),
     live('rowClass', 'Computes CSS classes for the table row containing a value.', 'rowClass', `.rowClass('invoice-row').and.rowClass(value => value === 'Disputed' ? ['disputed-row', 'needs-review'] : [])`),
     live('rowCount', 'Deprecated: textarea sizing belongs in fdl-field rather than the field model.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
@@ -89,7 +89,7 @@ new FieldType()
     live('textAlign', 'Stores the preferred left, center, or right alignment for rendered values.', 'textAlign', `.textAlign('right')`),
     live('type', 'Sets the native input type, such as email, number, or date.', 'type', `.type('date')`),
     live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must be a valid email address', validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)) })`),
-    live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen(record => record.getField('fulfillment') === 'ship')`),
+    live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')`),
 ].sort((left, right) => left.name.localeCompare(right.name));
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -119,12 +119,12 @@ export class FdlModifierCatalog extends LitElement {
             extraProperty: new FieldType().with.label('Extra property example'),
             lockedId: new FieldType().with.label('System ID').and.disabled(),
             approvalStatus: new FieldType().with.label('Approval status').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
-            budget: new FieldType().with.label('Budget').and.type('number').and.disabled(record => record.getField('approvalStatus') === 'approved'),
+            budget: new FieldType().with.label('Budget').and.type('number').and.disabled((_value, record) => record.getField('approvalStatus') === 'approved'),
             emptyCode: new FieldType().with.label('Reference').and.emptyWhen(value => value === 'N/A').and.required(),
             optionalEmptyCode: new FieldType().with.label('Optional reference').and.emptyWhen(value => value === 'N/A'),
             hiddenSearch: new FieldType().with.label('Search directory').and.placeholder('Search directory'),
             expenseType: new FieldType().with.label('Expense type').and.tag('select').and.options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
-            dynamicAmount: new FieldType<any>().with.label((record: any) => `Amount for ${record.getField('expenseType')}`).and.type('number'),
+            dynamicAmount: new FieldType<any>().with.label((_value, record: any) => `Amount for ${record.getField('expenseType')}`).and.type('number'),
             money: new FieldType<number>().with
                 .label('Money')
                 .and.formatter(value => currency.format(Number(value)))
@@ -148,10 +148,10 @@ export class FdlModifierCatalog extends LitElement {
             projectName: new FieldType().with.label('Project name').and.placeholder('For example, Apollo migration'),
             fixedOwner: new FieldType().with.label('Owner').and.readOnly(),
             phase: new FieldType().with.label('Phase').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
-            conditionalOwner: new FieldType().with.label('Request owner').and.readOnlyWhen(record => record.getField('phase') === 'submitted'),
+            conditionalOwner: new FieldType().with.label('Request owner').and.readOnlyWhen((_value, record) => record.getField('phase') === 'submitted'),
             requiredName: new FieldType().with.label('Legal name').and.required(),
             followUp: new FieldType().with.label('Follow-up needed?').and.tag('select').and.options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
-            followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required(record => record.getField('followUp') === 'yes'),
+            followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required((_value, record) => record.getField('followUp') === 'yes'),
             comments: new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(4),
             email: new FieldType().with.label('Email address').and.type('email')
                 .and.validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
@@ -162,7 +162,7 @@ export class FdlModifierCatalog extends LitElement {
                 .and.validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
                 .and.validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
             fulfillment: new FieldType().with.label('Fulfillment').and.tag('select').and.options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
-            address: new FieldType().with.label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship'),
+            address: new FieldType().with.label('Shipping address').and.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
         },
         {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
@@ -209,10 +209,10 @@ export class FdlModifierCatalog extends LitElement {
     }, shirtOrders.map(order => ({...order})));
     private sortableRecordset = new Recordset(
         {
-            firstName: new FieldType().with
+            firstName: new FieldType<string>().with
                 .label('First name')
                 .and.compareFunction((left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1),
-            lastName: new FieldType().with
+            lastName: new FieldType<string>().with
                 .label('Last name')
                 .and.compareFunction((left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1),
             shirtSize: new FieldType().with.label('T-shirt size').and.sortable(false),
