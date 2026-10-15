@@ -62,7 +62,7 @@ new FieldType()
     live('maxLength', 'Caps input length and adds equivalent record validation.', 'maxLength', `.maxLength(12)`),
     live('minColumnWidth', 'Sets the minimum width requested for a table column.', 'minColumnWidth', `.minColumnWidth(110)`),
     live('minLength', 'Sets a minimum input length and adds equivalent record validation.', 'minLength', `.minLength(4)`),
-    live('multipleValues', 'Marks a native select as allowing more than one choice.', 'multipleValues', `.tag('select')
+    live('multipleValues', 'Allows more than one option to be selected.', 'multipleValues', `.tag('select')
   .and.multipleValues()
   .and.options([
     { text: 'Design', value: 'design' },
@@ -515,6 +515,7 @@ export class FdlModifierCatalog extends LitElement {
         @container(min-width:760px) { .focused:not(.full-width) { grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); } }
         .focused-demo > .try:first-child { display: none; }
         .focused-demo { min-width: 0; overflow-x: auto; }
+        .focused[data-modifier="multipleValues"] .focused-demo { overflow:visible; }
         .focused-demo fdl-field { --label: .875rem; --field-control-font-size: 1rem; --field-label-width: 100%; --field-control-width: 100%; font-size: 1.125rem; }
         .focused .try, .focused .computed { color: #475569; font-size: 1.125rem; line-height: 1.8; }
         .focused button { min-height:48px; background:#2563eb; font-size:1rem; font-weight:600; line-height:1.5; }

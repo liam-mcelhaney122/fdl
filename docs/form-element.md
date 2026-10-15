@@ -130,3 +130,9 @@ Include an empty option when the field starts empty, and use `.required()` or
 
 See the working example in [`examples/fdl-input`](../examples/fdl-input/) for
 the unified `fdl-field`, conditional validation, and a live `Record` preview.
+
+When a select field has `multipleValues()`, the adapter presents a checkbox
+dropdown. Its summary shows the selected option or the number selected. Users
+can check any combination, clear the selection, and close with Done, Escape,
+or a click outside. Changes synchronize with the record as an array. Required,
+validation, and disabled state are exposed on the dropdown trigger.

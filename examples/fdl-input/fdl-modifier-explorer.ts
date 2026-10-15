@@ -261,7 +261,7 @@ export class FdlModifierExplorer extends LitElement {
                 </div>
                 <h2 class="modifier-signature"><code>${modifierSignatures[recipe.name]}</code></h2>
                 <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
-                <section class="playground" aria-label="Interactive example">
+                <section class="playground" data-modifier=${recipe.name} aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
                     <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
@@ -382,6 +382,7 @@ export class FdlModifierExplorer extends LitElement {
         .modifier-signature code { font:inherit; }
         .description { max-width:70ch; margin:0 0 28px; font-size:1.125rem; line-height:1.7; color:var(--muted); }
         .playground { border:1px solid var(--example-border); border-radius:var(--example-radius); background:#ffffff; overflow:hidden; }
+        .playground[data-modifier="multipleValues"] { overflow:visible; }
         .section-bar { min-height:64px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:12px 20px; border-bottom:1px solid #e2e8f0; font-size:.875rem; font-weight:600; }
         .section-bar i { display:inline-block; width:7px; height:7px; margin-right:8px; border-radius:50%; background:#2563eb; }
         .reset { min-height:44px; padding:8px; border:0; background:none; color:var(--accent); font-size:1rem; text-decoration:underline; text-underline-offset:3px; }

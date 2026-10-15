@@ -76,8 +76,8 @@ describe('<fdl-field>', () => {
         element.remove();
     });
 
-    it('round-trips every selected value between a multi-select and its record', async () => {
-        const record = new Record({ colors: new FieldType().with.tag('select').and.multipleValues().and.options([
+    it('round-trips checkbox dropdown selections, model edits, and clearing', async () => {
+        const record = new Record({ colors: new FieldType().with.label('Colors').and.tag('select').and.multipleValues().and.options([
             { text: 'Blue', value: 'blue' }, { text: 'Green', value: 'green' },
         ]) }, { colors: ['blue', 'green'] });
         const element = document.createElement('fdl-field') as TestElement & { record: Record; field: string };
@@ -85,22 +85,66 @@ describe('<fdl-field>', () => {
         element.field = 'colors';
         document.body.append(element);
         await settle(element);
-        const select = element.shadowRoot!.querySelector('select')!;
-        expect([...select.selectedOptions].map(option => option.value)).toEqual(['blue', 'green']);
-        select.options[0].selected = false;
-        select.dispatchEvent(new Event('input'));
-        select.dispatchEvent(new Event('change'));
+        const root = element.shadowRoot!;
+        const menu = root.querySelector('details')!;
+        const summary = root.querySelector('summary')!;
+        const checkboxes = () => [...root.querySelectorAll<HTMLInputElement>('input[type=checkbox]')];
+        expect(root.querySelector('select')!.hidden).toBe(true);
+        expect(summary.textContent).toContain('2 selected');
+        expect(checkboxes().map(input => input.checked)).toEqual([true, true]);
+        menu.open = true;
+        checkboxes()[0].click();
         await settle(element);
         expect(record.values.colors).toEqual(['green']);
-        expect([...select.selectedOptions].map(option => option.value)).toEqual(['green']);
+        expect(summary.textContent).toContain('Green');
+        expect(menu.open).toBe(true);
         record.setField('colors', ['blue', 'green']);
         await settle(element);
-        expect([...select.selectedOptions].map(option => option.value)).toEqual(['blue', 'green']);
-        select.options[0].selected = false;
-        select.options[1].selected = false;
-        select.dispatchEvent(new Event('change'));
+        expect(checkboxes().map(input => input.checked)).toEqual([true, true]);
+        root.querySelector<HTMLButtonElement>('.multiple-actions button')!.click();
         await settle(element);
         expect(record.values.colors).toEqual([]);
+        expect(summary.textContent).toContain('Select…');
+        root.querySelector<HTMLButtonElement>('.multiple-actions button:last-child')!.click();
+        expect(menu.open).toBe(false);
+        expect(root.activeElement).toBe(summary);
+        menu.open = true;
+        checkboxes()[0].dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+        expect(menu.open).toBe(false);
+        expect(root.activeElement).toBe(summary);
+        menu.open = true;
+        document.body.click();
+        expect(menu.open).toBe(false);
+        element.remove();
+    });
+
+    it('exposes required, invalid, and disabled states on the multiple-selection trigger', async () => {
+        const record = new Record({colors: new FieldType().with.label('Colors').and.tag('select').and.multipleValues().and.options([
+            {text:'Blue',value:'blue'},
+        ]).and.required().and.validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).and.disabledWhen(record => record.getField('locked')),
+        locked: new FieldType()}, {colors:[] as string[],locked:false});
+        const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string; showValidationErrors: boolean};
+        element.record = record;
+        element.field = 'colors';
+        element.showValidationErrors = true;
+        document.body.append(element);
+        await settle(element);
+        const root = element.shadowRoot!;
+        const summary = root.querySelector('summary')!;
+        expect(summary.getAttribute('aria-required')).toBe('true');
+        expect(summary.getAttribute('aria-invalid')).toBe('true');
+        expect(root.getElementById(summary.getAttribute('aria-describedby')!)!.textContent).toContain('select at least one color');
+        record.setField('colors', ['blue']);
+        await settle(element);
+        expect(summary.hasAttribute('aria-invalid')).toBe(false);
+        record.setField('locked', true);
+        await settle(element);
+        expect(summary.getAttribute('aria-disabled')).toBe('true');
+        expect(summary.tabIndex).toBe(-1);
+        const click = new MouseEvent('click', {cancelable:true});
+        summary.dispatchEvent(click);
+        expect(click.defaultPrevented).toBe(true);
+        expect(root.querySelector('fieldset')!.disabled).toBe(true);
         element.remove();
     });
 

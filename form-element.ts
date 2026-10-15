@@ -118,6 +118,76 @@ class FormElement extends ListeningElement {
         });
     }
 
+    private closeMultipleMenu = (event: Event) => {
+        const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('.multiple-values');
+        if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+    };
+
+    connectedCallback() {
+        super.connectedCallback();
+        document.addEventListener('click', this.closeMultipleMenu);
+    }
+
+    disconnectedCallback() {
+        document.removeEventListener('click', this.closeMultipleMenu);
+        super.disconnectedCallback();
+    }
+
+    private finishMultipleSelection(event: Event) {
+        const menu = (event.currentTarget as HTMLElement).closest('details')!;
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+    }
+
+    private renderMultipleSelect(select: HTMLSelectElement) {
+        const selected = [...select.selectedOptions];
+        const invalid = this.visibleValidationErrors().length > 0;
+        select.hidden = true;
+        return html`<div class="control">
+            ${select}
+            <details class="multiple-values" ?data-disabled=${select.disabled}
+                @keydown=${(event: KeyboardEvent) => {
+                    if (event.key === 'Escape') {
+                        this.finishMultipleSelection(event);
+                        event.stopPropagation();
+                    }
+                }}>
+                <summary id=${`${this.controlId}-trigger`}
+                    aria-labelledby=${`${this.labelId} ${this.controlId}-selection`}
+                    aria-disabled=${select.disabled ? 'true' : nothing}
+                    aria-required=${select.required ? 'true' : nothing}
+                    aria-invalid=${invalid ? 'true' : nothing}
+                    aria-describedby=${invalid ? this.errorId : nothing}
+                    tabindex=${select.disabled ? '-1' : '0'}
+                    @click=${(event: Event) => { if (select.disabled) event.preventDefault(); }}>
+                    <span id=${`${this.controlId}-selection`}>${selected.length === 0 ? 'Select…' : selected.length === 1 ? selected[0].textContent : `${selected.length} selected`}</span>
+                    <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"></path></svg>
+                </summary>
+                <div class="multiple-menu">
+                    <fieldset ?disabled=${select.disabled}>
+                        <legend class="visually-hidden">${this.fieldType?.label(this.record)}</legend>
+                        <p class="multiple-hint">Select any combination.</p>
+                        <div class="multiple-options">${[...select.options].map(option => html`
+                            <label><input type="checkbox" .checked=${option.selected} ?disabled=${option.disabled}
+                                @change=${(event: Event) => {
+                                    option.selected = (event.target as HTMLInputElement).checked;
+                                    select.dispatchEvent(new Event('input'));
+                                }}><span>${option.textContent}</span></label>`)}
+                        </div>
+                    </fieldset>
+                    <div class="multiple-actions">
+                        <button type="button" ?disabled=${select.disabled} @click=${() => {
+                            [...select.options].forEach(option => { option.selected = false; });
+                            select.dispatchEvent(new Event('input'));
+                        }}>Clear selection</button>
+                        <button type="button" @click=${this.finishMultipleSelection}>Done</button>
+                    </div>
+                </div>
+            </details>
+            ${this.renderValidationErrors()}
+        </div>`;
+    }
+
     addListenersToRecord() {
         // @ts-ignore
         this.listenTo(this.record, 'change', async () => this.destructureFieldType());
@@ -286,6 +356,7 @@ class FormElement extends ListeningElement {
         if (this.fieldType?.hideLabel()) return nothing;
         if (!this.fieldType?.visible(this.record)) return nothing;
         return html`<label id=${this.labelId} for=${this.controlId}
+            @click=${() => this.shadowRoot?.querySelector<HTMLElement>('.multiple-values summary')?.focus()}
             >${this.fieldType?.label(this.record)}${this.renderRequired()}<slot name="label"></slot
         ></label>`;
     }
@@ -315,6 +386,8 @@ class FormElement extends ListeningElement {
                 ${this.renderValidationErrors()}
             </div>`;
         }
+        if (this.element instanceof HTMLSelectElement && this.element.multiple) return this.renderMultipleSelect(this.element);
+        this.element.hidden = false;
         return html`<div class="control">${this.element}${this.renderValidationErrors()}</div>`;
     }
 
@@ -346,6 +419,22 @@ class FormElement extends ListeningElement {
                 font-weight: var(--field-control-font-weight);
                 flex: var(--field-control-width, 250px) 3 1;
             }
+            .multiple-values { position:relative; }
+            .multiple-values summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:white; font:inherit; cursor:pointer; list-style:none; }
+            .multiple-values summary::-webkit-details-marker { display:none; }
+            .multiple-values summary svg { width:16px; height:16px; flex-shrink:0; fill:none; stroke:#64748b; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+            .multiple-values summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+            .multiple-values summary[aria-invalid='true'] { border-color:#a42b20; }
+            .multiple-values[data-disabled] summary { background:#e2e8f0; border-style:dashed; color:#475569; cursor:not-allowed; }
+            .multiple-menu { position:absolute; z-index:10; inset:calc(100% + 6px) 0 auto; min-width:240px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; background:white; box-shadow:0 12px 28px #0f172a24; }
+            .multiple-menu fieldset { border:0; padding:0; margin:0; }
+            .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+            .multiple-hint { margin:6px 0 10px; font-size:.875rem; color:#475569; line-height:1.5; }
+            .multiple-options { display:grid; gap:2px; max-height:240px; overflow:auto; }
+            .multiple-options label { display:flex; align-items:center; gap:10px; min-height:36px; margin:0; font-size:1rem; cursor:pointer; }
+            .multiple-options input[type='checkbox'] { width:20px; height:20px; min-height:0; padding:0; margin:0; accent-color:#2563eb; flex-shrink:0; }
+            .multiple-actions { display:flex; justify-content:space-between; gap:12px; margin-top:12px; border-top:1px solid #e2e8f0; padding-top:8px; }
+            .multiple-actions button { min-height:36px; border:0; background:none; color:#2563eb; font:inherit; text-decoration:underline; cursor:pointer; }
             .required {
                 color: var(--error);
             }
