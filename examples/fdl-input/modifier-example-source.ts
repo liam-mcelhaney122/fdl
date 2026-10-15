@@ -1,3 +1,4 @@
+import { validatorExamples } from './validator-examples';
 import { inputTypeInitialValue, inputTypeNeedsNumber } from './input-type-example';
 import type { inputType } from '../../types/input-types.types';
 import { assigneeDirectory, optionsDelay } from './assignee-options';
@@ -61,10 +62,18 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         requiredWhen: {name:'record',fields:{followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes')")},values:{followUp:'no',followUpNotes:''}},
         rowCount: {name:'record',fields:{comments:type(`label('Comments').and.tag('textarea').and.rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{inputValue:type(`label('Example: ${settings.inputType ?? 'text'}').and.type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.and.parser(Number)' : ''}`)},values:{inputValue:inputTypeInitialValue(settings.inputType ?? 'text')}},
-        validator: {name:'record',fields:{projectCode:type(`label('Project code').and.validator({
-    name: 'must look like PRJ-1234',
-    validate: value => /^PRJ-\\d{4}$/.test(String(value)),
-  })`)},values:{projectCode:''}},
+        validator: {name:'record',fields:{
+            email:type(`label('Email address').and.type('email').and.validator({
+      name: 'must be a valid email address',
+      validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)),
+    })`),
+            orderQuantity:type(`label('Order quantity').and.type('number').and.parser(Number)
+    .and.validator({name: 'must be a whole number', validate: value => Number.isInteger(value)})
+    .and.validator({name: 'must be between 1 and 12', validate: value => value >= 1 && value <= 12})`),
+            username:type(`label('Username')
+    .and.validator({name: 'must start with a letter', validate: value => /^[A-Za-z]/.test(String(value))})
+    .and.validator({name: 'must contain only letters, numbers, or underscores', validate: value => /^[A-Za-z0-9_]+$/.test(String(value))})`),
+        },values:{email:'ada@',orderQuantity:2.5,username:'7bad-name'}},
         hashFunction: {name:'probes',prefix:"const hashType = new FieldType()\n  .with.hashFunction(employee => employee.id);",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
         inputMask: {name:'probes',fields:{input:type("label('Digits and periods').and.inputMask(/[0-9.]/)")},values:{input:'7.5'}},
         reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldType()\n  .with.reducer('sum');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').and.type('number').and.parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
@@ -105,7 +114,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     throw new Error(`Missing complete example for ${name}`);
 }
 
-const validationFields: {[key: string]: string} = {required:'name',maxLength:'shortCode',minLength:'longCode',requiredWhen:'followUpNotes',validator:'projectCode'};
+const validationFields: {[key: string]: string} = {required:'name',maxLength:'shortCode',minLength:'longCode',requiredWhen:'followUpNotes'};
 export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const model = modelFor(name, settings);
     const kind = model.kind ?? 'Record';
@@ -130,6 +139,13 @@ ${markup}`;
         setup = 'let checked = false;\n';
         markup = markup.replace(`field="${validation}"`, `field="${validation}"\n  .showValidationErrors=\${checked}`);
         markup += `\n\n<button @click=\${() => { checked = true; update(); }}>\n  ${name === 'required' ? 'Check record' : 'Check value'}\n</button>\n<p role="status">\n  \${checked ? (${model.name}.isValid('${validation}')\n    ? 'Valid.' : ${model.name}.readableFieldErrors('${validation}').join('. '))\n    : 'Validation message has not been shown.'}\n</p>`;
+    }
+    if (name === 'validator') {
+        setup = 'const checked = new Set();\n';
+        markup = validatorExamples.map(example => {
+            const field = example.field;
+            return `<section>\n  <h3>${example.title}</h3>\n  <p>${example.hint}</p>\n  <fdl-field .record=\${record} field="${field}"\n    .showValidationErrors=\${checked.has('${field}')}></fdl-field>\n  <button @click=\${() => { checked.add('${field}'); update(); }}>${example.button}</button>\n  <p role="status">\n    \${checked.has('${field}') ? (record.isValid('${field}')\n      ? 'Valid.' : record.readableFieldErrors('${field}').join('. ')) : 'Not checked yet.'}\n  </p>\n</section>`;
+        }).join('\n\n');
     }
     if (name === 'emptyWhen') markup = ['emptyCode', 'optionalEmptyCode'].map(field =>
         `<fdl-field .record=\${record} field="${field}"></fdl-field>\n<p role="status" data-field="${field}">\n  \${record.fieldTypeForField('${field}').empty(record, '${field}')\n    ? 'This field is considered empty'\n    : 'This field is not considered empty'}<br>\n  \${!record.isValid('${field}')\n    ? 'Invalid: Reference is required.'\n    : '${field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}'}\n</p>`

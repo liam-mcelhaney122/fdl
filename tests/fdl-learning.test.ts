@@ -142,14 +142,22 @@ it('exposes an out-of-list selection and clears it only on request', async () =>
     expect(state.assignee).toBe('');
 });
 
-it('compares validator boundary cases using the same FDL rule', async () => {
+it('offers email, quantity, and username validator examples', async () => {
     const page = await openExplorer('#validator');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
-    const rows = [...catalog.shadowRoot!.querySelectorAll('.case-comparison tbody tr')];
-    expect(rows).toHaveLength(5);
-    expect(rows[2].textContent).toContain('PRJ-1234Valid');
-    expect(rows[3].textContent).toContain('must look like PRJ-1234');
+    const sections = [...catalog.shadowRoot!.querySelectorAll('.validator-example')];
+    expect(sections.map(section => section.querySelector('h3')!.textContent)).toEqual(['Email address', 'Order quantity', 'Username']);
+    for (const section of sections) {
+        section.querySelector<HTMLButtonElement>('button')!.click();
+    }
+    await catalog.updateComplete;
+    const fields = [...catalog.shadowRoot!.querySelectorAll('fdl-field')] as any[];
+    await Promise.all(fields.map(field => field.updateComplete));
+    expect(fields[0].shadowRoot.textContent).toContain('must be a valid email address');
+    expect(fields[1].shadowRoot.textContent).toContain('must be a whole number');
+    expect(fields[2].shadowRoot.textContent).toContain('must start with a letter');
+    expect(fields[2].shadowRoot.textContent).toContain('must contain only letters, numbers, or underscores');
 });
 it('compares prefix and substring matching and updates the executable rule', async () => {
     const page = await openExplorer('#filter');

@@ -8,7 +8,7 @@ export const exampleFields: { [name: string]: [record: string, fields: string[]]
     options: ['record', ['department', 'assignee', 'asyncAssignee']], parser: ['record', ['money']],
     placeholder: ['record', ['projectName']], readOnly: ['record', ['fixedOwner']],
     readOnlyWhen: ['record', ['phase', 'conditionalOwner']], requiredWhen: ['record', ['followUp', 'followUpNotes']],
-    rowCount: ['record', ['comments']], type: ['record', ['inputValue']], validator: ['record', ['projectCode']],
+    rowCount: ['record', ['comments']], type: ['record', ['inputValue']], validator: ['record', ['email', 'orderQuantity', 'username']],
     hashFunction: ['probes', ['firstId', 'secondId']], inputMask: ['probes', ['input']],
     reducer: ['probes', ['firstAmount', 'secondAmount', 'thirdAmount']],
 };

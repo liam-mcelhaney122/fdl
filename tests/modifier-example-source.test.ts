@@ -173,3 +173,27 @@ it.each(inputTypes)('exports a working definition and Lit binding for input type
         expect(model.getField('inputValue')).toBe(63);
     }
 });
+
+
+it('demonstrates simple email validation and accumulated quantity and username rules', () => {
+    const {model, container} = runExample('validator');
+    const cases: {[field: string]: [unknown, boolean][]} = {
+        email: [['ada@',false], ['ada@example',false], ['a@@example.com',false], ['ada lovelace@example.com',false], ['ada@example.com',true], ['ada+notes@example.co.uk',true]],
+        orderQuantity: [[2.5,false], [0,false], [13,false], [1,true], [12,true]],
+        username: [['7bad-name',false], ['ada-name',false], ['7ada',false], ['ada_7',true]],
+    };
+    for (const [field, values] of Object.entries(cases)) {
+        for (const [value, valid] of values) {
+            model.setField(field, value);
+            expect(model.isValid(field)).toBe(valid);
+        }
+    }
+    model.setField('username','7bad-name');
+    expect(model.readableFieldErrors('username')).toHaveLength(2);
+    for (const button of container.querySelectorAll('button')) button.click();
+    expect(container.querySelectorAll('fdl-field')).toHaveLength(3);
+    expect([...container.querySelectorAll('[role=status]')].map(status => status.textContent)).toEqual([
+        expect.stringContaining('Valid.'), expect.stringContaining('Valid.'), expect.stringContaining('must start with a letter'),
+    ]);
+    for (const field of container.querySelectorAll('fdl-field')) expect((field as any).showValidationErrors).toBe(true);
+});

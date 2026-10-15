@@ -1,3 +1,4 @@
+import { validatorExamples } from './validator-examples';
 import { inputTypeChoices, inputTypeField, inputTypeInitialValue, inputTypeNote } from './input-type-example';
 import type { inputType } from '../../types/input-types.types';
 import { assigneeDirectory, optionsDelay } from './assignee-options';
@@ -10,7 +11,7 @@ import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
 import { inputText, valuePipeline } from './value-pipeline';
-import { validatorCases, sortCases, prefixFilter, substringFilter } from './comparison-examples';
+import { sortCases, prefixFilter, substringFilter } from './comparison-examples';
 import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
@@ -90,7 +91,7 @@ new FieldType()
     live('template', 'Transforms a formatted value into its final printed or table representation.', 'template', `.template(value => \`Invoice #\${value}\`)`),
     live('textAlign', 'Stores the preferred left, center, or right alignment for rendered values.', 'textAlign', `.textAlign('right')`),
     live('type', 'Sets the native input type, such as email, number, or date.', 'type', `.type('date')`),
-    live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must look like PRJ-1234', validate: value => /^PRJ-\\d{4}$/.test(value) })`),
+    live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must be a valid email address', validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)) })`),
     live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen(record => record.getField('fulfillment') === 'ship')`),
 ].sort((left, right) => left.name.localeCompare(right.name));
 
@@ -155,7 +156,14 @@ export class FdlModifierCatalog extends LitElement {
             followUp: new FieldType().with.label('Follow-up needed?').and.tag('select').and.options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
             followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes'),
             comments: new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(4),
-            projectCode: new FieldType().with.label('Project code').and.validator({ name: 'must look like PRJ-1234', validate: value => /^PRJ-\d{4}$/.test(String(value)) }),
+            email: new FieldType().with.label('Email address').and.type('email')
+                .and.validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
+            orderQuantity: new FieldType().with.label('Order quantity').and.type('number').and.parser(Number)
+                .and.validator({name:'must be a whole number', validate:value => Number.isInteger(value)})
+                .and.validator({name:'must be between 1 and 12', validate:value => Number(value) >= 1 && Number(value) <= 12}),
+            username: new FieldType().with.label('Username')
+                .and.validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
+                .and.validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
             fulfillment: new FieldType().with.label('Fulfillment').and.tag('select').and.options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
             address: new FieldType().with.label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship'),
         },
@@ -165,7 +173,7 @@ export class FdlModifierCatalog extends LitElement {
             money: 1000,
             shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'margaret', asyncAssignee: 'margaret',
             projectName: '', fixedOwner: 'Ada Lovelace', phase: 'draft', conditionalOwner: 'Ada Lovelace', requiredName: '',
-            followUp: 'no', followUpNotes: '', comments: '', projectCode: '',
+            followUp: 'no', followUpNotes: '', comments: '', email: 'ada@', orderQuantity: 2.5, username: '7bad-name',
             fulfillment: 'ship', address: '',
         }
     );
@@ -413,10 +421,10 @@ export class FdlModifierCatalog extends LitElement {
         return html`<p class="result valid" role="status">Valid.</p>`;
     }
 
-    private renderValidation(field: string) {
+    private renderValidation(field: string, buttonText = 'Check value') {
         const showValidationErrors = this.validatedFields.has(field);
         return html`${this.renderField(field, this.record, showValidationErrors)}
-            <button type="button" @click=${() => this.validateField(field)}>Check value</button>
+            <button type="button" @click=${() => this.validateField(field)}>${buttonText}</button>
             ${this.validationResult(field)}`;
     }
 
@@ -488,7 +496,10 @@ export class FdlModifierCatalog extends LitElement {
             case 'type': return html`${this.renderField('inputType', this.probes)}
                 <p class="try">${inputTypeNote(this.probes.getField('inputType') as inputType)}</p>
                 ${this.renderField('inputValue', this.inputTypeRecord)}`;
-            case 'validator': return html`${this.renderValidation('projectCode')}${validatorCases(this.record.fieldTypeForField('projectCode'))}`;
+            case 'validator': return html`${validatorExamples.map(example => html`<section class="validator-example">
+                <h3>${example.title}</h3><p>${example.hint}</p>
+                ${this.renderValidation(example.field, example.button)}
+            </section>`)}`;
             case 'visibleWhen': return html`<p class="try">Choose Pickup to remove Shipping address.</p>${this.renderField('fulfillment')}${this.renderField('address')}`;
         }
         return html``;
@@ -501,7 +512,7 @@ export class FdlModifierCatalog extends LitElement {
             multipleValues: ['skills'], options: ['department', 'assignee', 'asyncAssignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
             required: ['requiredName'], requiredWhen: ['followUp', 'followUpNotes'], rowCount: ['comments'],
-            validator: ['projectCode'], visibleWhen: ['fulfillment', 'address'],
+            validator: ['email', 'orderQuantity', 'username'], visibleWhen: ['fulfillment', 'address'],
         };
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
         if (name === 'type') return this.inputTypeRecord.values;
@@ -539,6 +550,7 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     static styles = css`
+        .validator-example + .validator-example { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #dfe3ee; }
         :host { display: block; container-type:inline-size; color: #172033; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         * { box-sizing: border-box; }
         :host([modifier]) { color: #0f172a; font-family: Arial, Helvetica, sans-serif; }
