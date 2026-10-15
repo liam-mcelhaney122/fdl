@@ -19,3 +19,14 @@ export function checkCancellation(rules:CancellationRules) {
 export function cancellationDefinition(rules:CancellationRules) {
     return `const reason = new FieldType().with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.requiredWhen(record => record.getField('status') === 'cancelled')" : ''};`;
 }
+
+export function checkCancellationTransition(rules:CancellationRules) {
+    const reason='Changed plans';
+    const record=new Record(cancellationFields(rules),{status:'cancelled',reason});
+    record.setField('status','active');
+    const activeReason=record.getField('reason');
+    const hidden=!record.fieldTypeForField('reason').visible(record);
+    record.setField('status','cancelled');
+    const returnedReason=record.getField('reason');
+    return {activeReason,returnedReason,passes:hidden && activeReason===reason && returnedReason===reason && record.fieldTypeForField('reason').visible(record) && record.isValid()};
+}
