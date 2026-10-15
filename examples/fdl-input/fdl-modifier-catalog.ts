@@ -45,7 +45,8 @@ export const modifierEntries: CatalogEntry[] = [
     live('cellClass', 'Adds a CSS class to every table cell for this field.', 'cellClass', `.cellClass('amount-cell')`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
-new FieldType().with.label('T-shirt size')
+new FieldType()
+  .with.label('T-shirt size')
   .and.compareFunction(compareShirtSizes)`),
     live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > this.probes.getField('classThreshold'), 'high-value')`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),

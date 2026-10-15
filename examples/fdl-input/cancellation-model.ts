@@ -17,7 +17,7 @@ export function checkCancellation(rules:CancellationRules) {
     });
 }
 export function cancellationDefinition(rules:CancellationRules) {
-    return `const reason = new FieldType().with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.requiredWhen(record => record.getField('status') === 'cancelled')" : ''};`;
+    return `const reason = new FieldType()\n  .with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.requiredWhen(record => record.getField('status') === 'cancelled')" : ''};`;
 }
 
 export function checkCancellationTransition(rules:CancellationRules) {

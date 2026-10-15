@@ -6,7 +6,7 @@ import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-
 
 export type ExampleSettings = { required?: boolean; minimum?: number; filterMode?: 'prefix' | 'contains'; threshold?: number };
 type Model = { name: string; fields: {[key: string]: string}; values: object; kind?: 'Recordset'; prefix?: string };
-const type = (chain: string) => `new FieldType().with.${chain}`;
+const type = (chain: string) => `new FieldType()\n    .with.${chain}`;
 const currency = `const currency = new Intl.NumberFormat('en-US', {
   style: 'currency', currency: 'USD',
 });`;
@@ -65,9 +65,9 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     name: 'must look like PRJ-1234',
     validate: value => /^PRJ-\\d{4}$/.test(String(value)),
   })`)},values:{projectCode:''}},
-        hashFunction: {name:'probes',prefix:"const hashType = new FieldType().with.hashFunction(employee => employee.id);",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
+        hashFunction: {name:'probes',prefix:"const hashType = new FieldType()\n  .with.hashFunction(employee => employee.id);",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
         inputMask: {name:'probes',fields:{input:type("label('Digits and periods').and.inputMask(/[0-9.]/)")},values:{input:'7.5'}},
-        reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldType().with.reducer('sum');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').and.type('number').and.parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
+        reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldType()\n  .with.reducer('sum');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').and.type('number').and.parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
     };
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {

@@ -18,8 +18,8 @@ export type SitePage = typeof sitePages[number]['id'];
 const definition = `import { FieldType, Record } from 'digital-fdl';
 
 const fields = {
-  name: new FieldType().with
-    .label('Name')
+  name: new FieldType()
+    .with.label('Name')
     .and.required(),
 };
 
@@ -69,8 +69,10 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
             <p class="description">Define field behavior, attach it to record values, and let a component translate that state into an interface.</p>
             <h2>1. Define a field type</h2>
             <p>A <code>FieldType</code> holds rules and metadata. Each modifier returns a new definition, so a shared base can be specialized for different uses.</p>
-            <pre class="code markup"><code>${highlightJavaScript(`const name = new FieldType().with.label('Name');
-const requiredName = name.with.required();
+            <pre class="code markup"><code>${highlightJavaScript(`const name = new FieldType()
+  .with.label('Name');
+const requiredName = name
+  .with.required();
 // name is unchanged; requiredName adds the required rule.`)}</code></pre>
             <fdl-specialization-experiment></fdl-specialization-experiment>
             <h2>2. Create a record</h2>

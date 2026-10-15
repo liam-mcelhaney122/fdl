@@ -35,7 +35,7 @@ export function compositionRecord(rules: CompositionRules, fulfillment: string, 
     return new Record(compositionFields(rules), {fulfillment, address});
 }
 export function compositionDefinition(rules: CompositionRules) {
-    return `const address = new FieldType().with.label('Shipping address')${rules.visibility === 'shipping' ? `
+    return `const address = new FieldType()\n  .with.label('Shipping address')${rules.visibility === 'shipping' ? `
   .and.visibleWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.requiredness === 'always' ? '\n  .and.required()' : rules.requiredness === 'shipping' ? `
   .and.requiredWhen(record => record.getField('fulfillment') === 'ship')` : ''}${rules.validation === 'on' ? `
   .and.validator({
