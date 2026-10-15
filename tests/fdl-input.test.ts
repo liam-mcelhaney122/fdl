@@ -301,3 +301,39 @@ describe('native input masks', () => {
         element.remove();
     });
 });
+
+it('preserves currency editing text and caret while parsing, then formats on blur', async () => {
+    const currency = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'});
+    const record = new Record({money: new FieldType<number>().with
+        .formatter(value => currency.format(value))
+        .and.parser(value => Number(String(value).replace(/[$,]/g, '')))}, {money:1000});
+    const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
+    element.record = record;
+    element.field = 'money';
+    document.body.append(element);
+    await settle(element);
+    const input = element.shadowRoot!.querySelector('input')!;
+    input.focus();
+    for (const [text, value] of [['',0], ['1',1], ['12',12], ['12.',12], ['12.3',12.3], ['12.30',12.3]] as const) {
+        input.value = text;
+        input.setSelectionRange(text.length, text.length);
+        input.dispatchEvent(new Event('input'));
+        await settle(element);
+        expect(input.value).toBe(text);
+        expect(input.selectionStart).toBe(text.length);
+        expect(record.getField('money')).toBe(value);
+    }
+    input.value = '192.30';
+    input.setSelectionRange(2,2);
+    input.dispatchEvent(new Event('input'));
+    await settle(element);
+    expect(input.value).toBe('192.30');
+    expect(input.selectionStart).toBe(2);
+    expect(record.getField('money')).toBe(192.3);
+    input.blur();
+    expect(input.value).toBe('$192.30');
+    record.setField('money', 45.6);
+    await settle(element);
+    expect(input.value).toBe('$45.60');
+    element.remove();
+});

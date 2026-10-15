@@ -56,6 +56,7 @@ class FormElement extends ListeningElement {
     }
 
     private composing = false;
+    private parsingNativeInput = false;
 
     private get nativeTextControl(): HTMLInputElement | HTMLTextAreaElement | undefined {
         return this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement
@@ -85,6 +86,9 @@ class FormElement extends ListeningElement {
 
     addListenersToElement() {
         if (this.nativeTextControl) {
+            this.listenTo(this.element, 'blur', () => {
+                this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
+            });
             this.listenTo(this.element, 'beforeinput', (event: Event) => {
                 if (!(event instanceof InputEvent)) return;
                 if (!this.composing && !event.isComposing && event.data &&
@@ -110,8 +114,14 @@ class FormElement extends ListeningElement {
                 } else {
                     value = event.target.value;
                 }
-                // @ts-ignore
-                this.record?.parseAndSetField(this.field, value);
+                // An input echo must not replace an unfinished decimal, cleared text, or the caret.
+                this.parsingNativeInput = e === 'input' && Boolean(this.nativeTextControl);
+                try {
+                    // @ts-ignore
+                    this.record?.parseAndSetField(this.field, value);
+                } finally {
+                    this.parsingNativeInput = false;
+                }
                 this.fieldType?.onValueChange(this.record);
                 this.element.dispatchEvent(new CustomEvent('update', { detail: { value, event } }));
             });
@@ -212,7 +222,7 @@ class FormElement extends ListeningElement {
         if (this.element instanceof HTMLSelectElement) {
             this.element.multiple = this.fieldType?.hasMultipleValues() ?? false;
             this.syncSelectValue();
-        } else {
+        } else if (!this.parsingNativeInput) {
             // @ts-ignore
             this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
         }

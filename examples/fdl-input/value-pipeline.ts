@@ -13,13 +13,13 @@ export function valuePipeline(record: Record<any>, field: string, lastInput?: st
         ['Input text', describeValue(entered)],
         ['Parser result', describeValue(record.parse(field, entered))],
         ['Stored model value', describeValue(record.getField(field))],
-        ['Focused input representation', describeValue(String(record.getFormattedField(field, 'input-focus')))],
+        ['Formatted input representation', describeValue(String(record.getFormattedField(field, 'input-focus')))],
         ['Printed representation', describeValue(record.getFormattedField(field, 'print'))],
     ];
     return html`<section class="value-pipeline" aria-label="From input to printed output">
         <h3>From input to printed output</h3>
         <ol>${stages.map(([label, value]) => html`<li><strong>${label}</strong><br><code>${value}</code></li>`)}</ol>
-        <p>Parsing changes the model value. Formatting creates a representation; it leaves the stored value intact. The focused representation is what the adapter requests when editing.</p>
+        <p>Parsing changes the model value. Formatting creates a representation; it leaves the stored value intact. The adapter preserves your editing text while you type and applies the formatted representation when you leave the field.</p>
         ${typeof record.getField(field) === 'number' && !Number.isFinite(record.getField(field)) ? html`<p role="status">This parser produced a non-finite number. Parsing alone does not validate malformed input; a production field needs an explicit policy for it.</p>` : ''}
     </section>`;
 }

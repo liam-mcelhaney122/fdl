@@ -136,3 +136,9 @@ dropdown. Its summary shows the selected option or the number selected. Users
 can check any combination, clear the selection, and close with Done, Escape,
 or a click outside. Changes synchronize with the record as an array. Required,
 validation, and disabled state are exposed on the dropdown trigger.
+
+For native text inputs and textareas, input events update the parsed record
+value without replacing the user's editing text or caret. This preserves
+unfinished values such as `12.` and allows clearing a numeric field. Leaving
+the field applies its formatted representation. Programmatic record changes
+still synchronize the displayed value.
