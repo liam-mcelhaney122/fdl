@@ -1,11 +1,11 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import betweenFilter from '../filters/between-filter.js';
 
 describe('betweenFilter(key, start, end)', () => {
-    const name = new FieldType();
-    const balance = new FieldType();
-    const zero = new FieldType();
+    const name = new FieldTypeBuilder();
+    const balance = new FieldTypeBuilder();
+    const zero = new FieldTypeBuilder();
 
     const record = new Record(
         {

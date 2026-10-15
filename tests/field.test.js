@@ -1,27 +1,27 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 
-const reverseAndUpperCase = new FieldType().with
+const reverseAndUpperCase = new FieldTypeBuilder()
     .formatter(s => s.split('').reverse().join(''))
-    .and.parser(s => s.split('').reverse().join(''))
-    .and.formatter(s => s.toUpperCase())
-    .and.parser(s => s.toLowerCase());
+    .parser(s => s.split('').reverse().join(''))
+    .formatter(s => s.toUpperCase())
+    .parser(s => s.toLowerCase());
 
-const greaterThanFive = new FieldType().with.validator({
+const greaterThanFive = new FieldTypeBuilder().validator({
     name: 'value must be greater than 5',
     validate(v) {
         return v > 5;
     },
 });
 
-const greaterThanOther = new FieldType().with.validator({
+const greaterThanOther = new FieldTypeBuilder().validator({
     name: 'value must be greater than 5',
     validate(value, viewValue, record) {
         return value > record.getField('other');
     },
 });
 
-const numbersOnly = new FieldType().with.inputMask(/[0-9]/);
+const numbersOnly = new FieldTypeBuilder().inputMask(/[0-9]/);
 
 describe('Field', () => {
     it('exposes the value of the field in the record after running it through formatters', () => {
@@ -66,7 +66,7 @@ describe('Field', () => {
     });
 
     it('exposes the value formatted for a focused or blurred input', () => {
-        const mask = new FieldType().with.formatter((value, record, context) => {
+        const mask = new FieldTypeBuilder().formatter((value, record, context) => {
             if (context === 'input-focus') {
                 return value;
             }
@@ -92,7 +92,7 @@ describe('Field', () => {
 
     it('can check whether a given input value would be valid', () => {
         const record = new Record(
-            { test: greaterThanFive.with.parser(s => s.replace(/[^0-9]/g, '')) },
+            { test: greaterThanFive.parser(s => s.replace(/[^0-9]/g, '')) },
             { test: 5 }
         );
         const field = record.field('test');
@@ -157,10 +157,10 @@ describe('Field', () => {
     });
 
     it('produces a child field of the same type for a field that has multiple values', () => {
-        const excitedCoworker = new FieldType().with.formatter(s => `${s}!`);
+        const excitedCoworker = new FieldTypeBuilder().formatter(s => `${s}!`);
 
         const record = new Record(
-            { employees: excitedCoworker.with.multipleValues() },
+            { employees: excitedCoworker.multipleValues() },
             { employees: ['Pam', 'Jim', 'Dwight'] }
         );
         expect(record.field('employees').field(0).rawValue).toEqual('Pam');

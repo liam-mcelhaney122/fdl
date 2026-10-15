@@ -1,4 +1,4 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Recordset from '../recordset.js';
 import Record from '../record.js';
 import { resizeColumnWidths } from '../examples/fdl-input/fdl-table';
@@ -26,8 +26,8 @@ describe('<fdl-table>', () => {
             value > record.getField('limit') ? ['warning', 'over-limit'] : []);
         const recordset = new Recordset(
             {
-                amount: new FieldType<number>().with[modifier]('amount').and[modifier](['numeric']).and[modifier](classForAmount),
-                limit: new FieldType<number>(),
+                amount: new FieldTypeBuilder<number>()[modifier]('amount')[modifier](['numeric'])[modifier](classForAmount),
+                limit: new FieldTypeBuilder<number>(),
             },
             [{ amount: 150, limit: 100 }, { amount: 150, limit: 200 }]
         );
@@ -81,11 +81,11 @@ describe('<fdl-table>', () => {
     it('exposes column width constraints and supports keyboard resizing', async () => {
         const recordset = new Recordset(
             {
-                left: new FieldType().with
+                left: new FieldTypeBuilder()
                     .label('Amount')
-                    .and.minColumnWidth(100)
-                    .and.maxColumnWidth(180),
-                right: new FieldType().with.minColumnWidth(80).and.maxColumnWidth(120),
+                    .minColumnWidth(100)
+                    .maxColumnWidth(180),
+                right: new FieldTypeBuilder().minColumnWidth(80).maxColumnWidth(120),
             },
             [{ left: 'Left', right: 'Right' }]
         );
@@ -161,8 +161,8 @@ describe('<fdl-table>', () => {
     it('continues tracking a drag after rendering replaces the resize handle', async () => {
         const recordset = new Recordset(
             {
-                left: new FieldType().with.minColumnWidth(100),
-                right: new FieldType().with.minColumnWidth(80),
+                left: new FieldTypeBuilder().minColumnWidth(100),
+                right: new FieldTypeBuilder().minColumnWidth(80),
             },
             [{ left: 'Left', right: 'Right' }]
         );
@@ -199,8 +199,8 @@ describe('<fdl-table>', () => {
     it('supports mouse dragging when pointer events are unavailable', async () => {
         const recordset = new Recordset(
             {
-                left: new FieldType().with.minColumnWidth(100),
-                right: new FieldType().with.minColumnWidth(80),
+                left: new FieldTypeBuilder().minColumnWidth(100),
+                right: new FieldTypeBuilder().minColumnWidth(80),
             },
             [{ left: 'Left', right: 'Right' }]
         );
@@ -236,8 +236,8 @@ describe('<fdl-table>', () => {
     it('measures rendered header cells when col elements have no layout boxes', async () => {
         const recordset = new Recordset(
             {
-                left: new FieldType().with.minColumnWidth(100),
-                right: new FieldType().with.minColumnWidth(80),
+                left: new FieldTypeBuilder().minColumnWidth(100),
+                right: new FieldTypeBuilder().minColumnWidth(80),
             },
             [{ left: 'Left', right: 'Right' }]
         );
@@ -276,8 +276,8 @@ describe('<fdl-table>', () => {
     it('renders recordset fields through declarative columns', async () => {
         const recordset = new Recordset(
             {
-                firstName: new FieldType().with.label('First name'),
-                lastName: new FieldType().with.label('Last name'),
+                firstName: new FieldTypeBuilder().label('First name'),
+                lastName: new FieldTypeBuilder().label('Last name'),
             },
             [
                 { firstName: 'Ada', lastName: 'Lovelace' },
@@ -313,8 +313,8 @@ describe('<fdl-table>', () => {
             left.localeCompare(right) as -1 | 0 | 1;
         const recordset = new Recordset(
             {
-                firstName: new FieldType<string>().with.compareFunction(compare),
-                lastName: new FieldType<string>().with.compareFunction(compare),
+                firstName: new FieldTypeBuilder<string>().compareFunction(compare),
+                lastName: new FieldTypeBuilder<string>().compareFunction(compare),
             },
             [
                 { firstName: 'Ada', lastName: 'Zulu' },
@@ -401,7 +401,7 @@ describe('<fdl-table>', () => {
 
     it('does not sort fields configured with sortable(false)', async () => {
         const recordset = new Recordset(
-            { name: new FieldType().with.sortable(false) },
+            { name: new FieldTypeBuilder().sortable(false) },
             [{ name: 'Zulu' }, { name: 'Alpha' }]
         );
         const table = document.createElement('fdl-table') as TestTable;
@@ -421,8 +421,8 @@ describe('<fdl-table>', () => {
     it('filters a column from an accessible header control', async () => {
         const recordset = new Recordset(
             {
-                name: new FieldType().with.label('Name').and.filter(),
-                team: new FieldType().with.label('Team'),
+                name: new FieldTypeBuilder().label('Name').filter(),
+                team: new FieldTypeBuilder().label('Team'),
             },
             [
                 { name: 'Ada', team: 'Research' },
@@ -485,10 +485,10 @@ describe('<fdl-table>', () => {
     it('combines column filters with an application-owned Recordset filter', async () => {
         const recordset = new Recordset(
             {
-                name: new FieldType<string>().with.filter((text, value) =>
+                name: new FieldTypeBuilder<string>().filter((text, value) =>
                     value.toLowerCase().startsWith(text.toLowerCase())
                 ),
-                team: new FieldType().with.filter(),
+                team: new FieldTypeBuilder().filter(),
             },
             [
                 { name: 'Ada', team: 'Research' },
@@ -546,7 +546,7 @@ describe('<fdl-table>', () => {
 
 it.each([true, false])('aligns table headings and cells for sortable=%s', async sortable => {
     const recordset = new Recordset(Object.fromEntries((['left', 'center', 'right'] as const).map(alignment => [
-        alignment, new FieldType().with.label(alignment).and.textAlign(alignment).and.sortable(sortable),
+        alignment, new FieldTypeBuilder().label(alignment).textAlign(alignment).sortable(sortable),
     ])), [{left:'Ada', center:'Ada', right:'Ada'}]);
     const table = document.createElement('fdl-table') as TestTable;
     table.recordset = recordset;
@@ -565,9 +565,9 @@ it('resolves column settings without a row and field settings with header and ce
     const width = jest.fn((context: string) => context === 'table' ? 120 : 0);
     const sortable = jest.fn((context: string) => context === 'table');
     const label = jest.fn((value: number, _record: Record<any>, context: string) => `${context}:${value}`);
-    const amount = new FieldType<number>().with.label(label).and.minColumnWidth(width)
-        .and.maxColumnWidth(200).and.targetColumnWidth(150).and.sortable(sortable)
-        .and.textAlign((_value, _record, context) => context === 'table' ? 'right' : 'center');
+    const amount = new FieldTypeBuilder<number>().label(label).minColumnWidth(width)
+        .maxColumnWidth(200).targetColumnWidth(150).sortable(sortable)
+        .textAlign((_value, _record, context) => context === 'table' ? 'right' : 'center');
     const recordset = new Recordset({ amount }, [{ amount: 150 }]);
     const table = document.createElement('fdl-table') as TestTable;
     table.recordset = recordset;
@@ -585,7 +585,7 @@ it('resolves column settings without a row and field settings with header and ce
 
 it('renders an empty table without invoking per-record header settings', async () => {
     const callback = jest.fn((_value: number, _record: Record<any>) => { throw new Error('no record'); });
-    const amount = new FieldType<number>().with.label(callback).and.textAlign(callback);
+    const amount = new FieldTypeBuilder<number>().label(callback).textAlign(callback);
     const recordset = new Recordset<{ amount: number }>({ amount }, []);
     const table = document.createElement('fdl-table') as TestTable;
     table.recordset = recordset;

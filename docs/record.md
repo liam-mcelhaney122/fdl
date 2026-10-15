@@ -1,14 +1,16 @@
 # Record
 
-A `Record` combines a map of field names and `FieldType` definitions with one
-object of values. It is the model passed to FDL form controls.
+A `Record` combines a map of field names and field definitions with one
+object of values. Definitions may be `FieldTypeBuilder` instances or finalized
+`FieldType` objects. The constructor calls `valueOf()` on each definition and
+stores the resulting runtime types. It is the model passed to FDL form controls.
 
 ```js
 import { Record, string } from 'digital-fdl';
 
 const account = new Record(
   {
-    name: string.with.label('Account name'),
+    name: string.label('Account name'),
     accountNumber: string,
   },
   {
@@ -17,6 +19,10 @@ const account = new Record(
   }
 );
 ```
+
+`addField(name, definition, value)` uses the same conversion. The input map is
+not changed. `fieldTypeForField(name)` returns the finalized `FieldType`, so
+runtime methods such as `required()` evaluate state rather than add modifiers.
 
 ## Working with fields
 

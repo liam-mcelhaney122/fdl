@@ -1,5 +1,5 @@
 /* eslint-disable import/extensions */
-import FieldTypeBuilder, { defaultProperties } from './field-type-builder';
+import { defaultProperties } from './field-type-builder';
 import { resolveSetting, resolveColumnSetting, resolveDefaultSetting } from './field-setting';
 import { inputTypes } from './types/input-types.types';
 
@@ -15,27 +15,19 @@ function functionHasNoArguments(f) {
 export default class FieldType {
     /**
      *
-     * @param { Properties } properties
+     * @param {import('./field-type-builder').Properties<T> | null} [properties]
      */
     constructor(properties = null) {
+        /** @type {import('./field-type-builder').Properties<T>} */
         this.properties = properties ?? defaultProperties;
         this._validators = [];
-        /** @type {FieldTypeBuilder<T>} */
-        this.with = new FieldTypeBuilder(this.properties, FieldType);
-        /** @type {FieldTypeBuilder<T>} */
-        this.and = this.with;
-        /** @type {FieldTypeBuilder<T>} */
-        this.thatIs = this.and;
-        /** @type {FieldTypeBuilder<T>} */
-        this.thatHas = this.thatIs;
-        /** @type {FieldTypeBuilder<T>} */
-        this.andIs = this.thatIs;
-        this.as = this.andIs;
-        this.thatWill = this.as;
-        this.thatUses = this.thatWill;
-        this.that = this.thatUses;
         this.resultsText = {};
         this.loaded = Promise.resolve(null);
+    }
+
+    /** A finalized field type is already its own value. */
+    valueOf() {
+        return this;
     }
 
     get hasParts() {

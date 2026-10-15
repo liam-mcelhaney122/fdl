@@ -1,6 +1,6 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import {LitElement,css,html} from 'lit';
 import {keyed} from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import {cancellationFields,cancellationDefinition,checkCancellation,checkCancellationTransition,type CancellationRules} from './cancellation-model';
 import {highlightJavaScript} from './highlight-javascript';
@@ -9,8 +9,8 @@ import './fdl-field';
 
 export class FdlTransferChallenge extends LitElement {
     private configuration=new Record({
-        visibility:new FieldType<string>().with.label('Show cancellation reason').and.tag('select').and.options([{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
-        requiredness:new FieldType<string>().with.label('Require cancellation reason').and.tag('select').and.options([{text:'Never',value:'never'},{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
+        visibility:new FieldTypeBuilder<string>().label('Show cancellation reason').tag('select').options([{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
+        requiredness:new FieldTypeBuilder<string>().label('Require cancellation reason').tag('select').options([{text:'Never',value:'never'},{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
     },{visibility:'always',requiredness:'never'});
     private get rules(){return this.configuration.values as CancellationRules;}
     private record=new Record(cancellationFields(this.rules),{status:'cancelled',reason:''});

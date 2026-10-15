@@ -4,7 +4,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable max-classes-per-file */
 import { TemplateResult } from 'lit';
-import { Record, FieldType as _FieldType } from '.';
+import type Record from './record.js';
+import _FieldType from './field-type.js';
 import { FieldSetting, ColumnSetting, DefaultSetting, resolveSetting } from './field-setting';
 import { inputType } from './types/input-types.types';
 
@@ -34,14 +35,14 @@ function defaultEmptyFunction(value: unknown) {
     return value == null || value === '';
 }
 
-type FetchFn<T, FetchArgs = unknown> = (args: FetchArgs) => Promise<T[]>;
+type FetchFn<T, FetchArgs = Record<any>> = (args: FetchArgs) => T[] | Promise<T[]>;
 type FunctionCollection = { [fnName: string]: Function };
 
-interface OptionsApi<T = unknown, F = unknown> {
-    data?: T | Promise<T> | T[];
+interface OptionsApi<T = unknown, F = Record<any>> {
+    data?: T[] | Promise<T[]>;
     fetch?: FetchFn<T, F>;
     text?: string | ((data: T) => string);
-    value?: (data: T) => any;
+    value?: string | ((data: T) => any);
     compareFunction?: Function;
     filter?: Function;
     fields?: Array<any>;
@@ -73,7 +74,7 @@ interface SearchConfig<T = unknown> {
 interface FormElement<T> {
     name: string;
     // eslint-disable-next-line no-use-before-define
-    properties: Properties<T>;
+    properties: Partial<Properties<T>>;
 }
 
 type AutoComplete =
@@ -94,7 +95,7 @@ type AutoComplete =
 
 export interface Properties<T = unknown> {
     accept: string;
-    additionalProperties: object;
+    additionalProperties: { [key: string]: any };
     aggregate: Function | string;
     allowInputChar?: (char: string) => boolean;
     autocomplete?: AutoComplete;
@@ -149,7 +150,7 @@ export interface Properties<T = unknown> {
     searchConfig?: SearchConfig<T>;
     segmented: boolean;
     segmentedFunctions: Array<BooleanPredicate>;
-    selectionDisabledFunctions: Object;
+    selectionDisabledFunctions: FunctionCollection;
     x?: boolean;
     sortable?: ColumnSetting<boolean>;
     specificDate?: boolean;
@@ -226,14 +227,26 @@ export const defaultProperties: Properties = {
     visibleFunctions: [() => true],
 };
 
-export default class FieldTypeBuilder<T> {
-    constructor(private properties: Properties, private FieldType: typeof _FieldType) {
-        this.properties = properties;
-        this.FieldType = FieldType;
+export default class FieldTypeBuilder<T = unknown> {
+    constructor(private properties: Properties<any> = defaultProperties) {}
+
+    /** Start a new immutable definition from an existing runtime field type. */
+    static from<T>(fieldType: _FieldType<T>): FieldTypeBuilder<T> {
+        return new FieldTypeBuilder<T>(fieldType.properties);
     }
 
-    private copy() {
-        return new this.FieldType<T>({ ...this.properties });
+    private copy(): FieldTypeBuilder<T> {
+        return new FieldTypeBuilder<T>({ ...this.properties });
+    }
+
+    /** Finalize a definition with independent runtime state and option caches. */
+    valueOf(): _FieldType<T> {
+        const properties = { ...this.properties };
+        if (properties.options) {
+            properties.options = { ...properties.options };
+            delete (properties.options as OptionsApi & { cache?: unknown }).cache;
+        }
+        return new _FieldType<T>(properties);
     }
 
     /** @deprecated Use a renderer-specific input configuration instead. */
@@ -568,8 +581,8 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    options<F = unknown>(
-        optionsConfig: OptionsApi<T, F> | ((args: unknown) => T) | Promise<T> | Array<T>
+    options<O = T, F = Record<any>>(
+        optionsConfig: OptionsApi<O, F> | ((record: Record<any>) => O[] | Promise<O[]>) | Promise<O[]> | Array<O>
     ) {
         const copy = this.copy();
         if (!optionsConfig) return copy;
@@ -579,7 +592,7 @@ export default class FieldTypeBuilder<T> {
         if (config instanceof Function) {
             config = {
                 // Preserve callback arity: record-dependent functions must invalidate their cache.
-                fetch: optionsConfig as unknown as FetchFn<T>,
+                fetch: optionsConfig as unknown as FetchFn<O, F>,
             };
         }
 
@@ -587,10 +600,11 @@ export default class FieldTypeBuilder<T> {
             config = { data: config };
         }
 
-        const cfg = config as OptionsApi<T>;
+        const cfg = config as OptionsApi<any, any>;
 
+        const data = cfg.data;
         copy.properties.options = {
-            fetch: cfg.data ? () => Promise.resolve(cfg.data) : cfg.fetch,
+            fetch: data ? () => Promise.resolve(data) : cfg.fetch,
             text: cfg.text || 'text',
             value: cfg.value || 'value',
             noCache: cfg.noCache || false,
@@ -765,7 +779,7 @@ export default class FieldTypeBuilder<T> {
             ...copy.properties.validators,
             {
                 name: 'is required',
-                validate: (modelValue: any, viewValue: any, record: Record<any>, options: OptionsApi<T>, field: any) =>
+                validate: (modelValue: any, viewValue: any, record: Record<any>, options: OptionsApi, field: any) =>
                     !resolveSetting(predicate, modelValue, record, 'model') ||
                     !(record?.fieldTypeForField(field) ?? copy).properties.emptyFunctions.some((fn: FieldSetting<T, boolean>) => resolveSetting(fn, modelValue, record, 'model')),
             },

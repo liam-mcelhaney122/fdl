@@ -60,10 +60,10 @@ Always use that component as the outer form control and pass the record and
 field. The `FieldType` tag names the native child created inside it:
 
 ```ts
-const contactMethod = new FieldType().with
+const contactMethod = new FieldTypeBuilder()
   .tag('select')
-  .and.label('Preferred contact method')
-  .and.options([
+  .label('Preferred contact method')
+  .options([
     { text: 'Choose a method', value: '' },
     { text: 'Email', value: 'email' },
     { text: 'Phone', value: 'phone' },

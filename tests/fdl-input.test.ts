@@ -1,4 +1,4 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import '../examples/fdl-input/fdl-field';
 
@@ -14,10 +14,10 @@ describe('<fdl-field>', () => {
     it('creates and initializes the native input from the record field type', async () => {
         const record = new Record(
             {
-                name: new FieldType().with
+                name: new FieldTypeBuilder()
                     .label('Full name')
-                    .and.placeholder('Ada Lovelace')
-                    .and.required(),
+                    .placeholder('Ada Lovelace')
+                    .required(),
             },
             { name: 'Ada' }
         );
@@ -47,10 +47,10 @@ describe('<fdl-field>', () => {
     it('adds the multiple attribute to a native select for multipleValues()', async () => {
         const record = new Record(
             {
-                colors: new FieldType().with
+                colors: new FieldTypeBuilder()
                     .tag('select')
-                    .and.multipleValues()
-                    .and.options([
+                    .multipleValues()
+                    .options([
                         { text: 'Blue', value: 'blue' },
                         { text: 'Green', value: 'green' },
                     ]),
@@ -77,7 +77,7 @@ describe('<fdl-field>', () => {
     });
 
     it('round-trips checkbox dropdown selections, model edits, and clearing', async () => {
-        const record = new Record({ colors: new FieldType().with.label('Colors').and.tag('select').and.multipleValues().and.options([
+        const record = new Record({ colors: new FieldTypeBuilder().label('Colors').tag('select').multipleValues().options([
             { text: 'Blue', value: 'blue' }, { text: 'Green', value: 'green' },
         ]) }, { colors: ['blue', 'green'] });
         const element = document.createElement('fdl-field') as TestElement & { record: Record; field: string };
@@ -119,10 +119,10 @@ describe('<fdl-field>', () => {
     });
 
     it('exposes required, invalid, and disabled states on the multiple-selection trigger', async () => {
-        const record = new Record({colors: new FieldType().with.label('Colors').and.tag('select').and.multipleValues().and.options([
+        const record = new Record({colors: new FieldTypeBuilder().label('Colors').tag('select').multipleValues().options([
             {text:'Blue',value:'blue'},
-        ]).and.required().and.validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).and.disabled((_value, record) => record.getField('locked')),
-        locked: new FieldType()}, {colors:[] as string[],locked:false});
+        ]).required().validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).disabled((_value, record) => record.getField('locked')),
+        locked: new FieldTypeBuilder()}, {colors:[] as string[],locked:false});
         const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string; showValidationErrors: boolean};
         element.record = record;
         element.field = 'colors';
@@ -150,7 +150,7 @@ describe('<fdl-field>', () => {
 
     it('creates a textarea without assigning an unsupported input type', async () => {
         const record = new Record(
-            { notes: new FieldType().with.tag('textarea').and.rowCount(3) },
+            { notes: new FieldTypeBuilder().tag('textarea').rowCount(3) },
             { notes: '' }
         );
         const element = document.createElement('fdl-field') as HTMLElement & {
@@ -172,9 +172,9 @@ describe('<fdl-field>', () => {
     it('creates a native select from the field metadata and loads its options', async () => {
         const record = new Record(
             {
-                status: new FieldType().with
+                status: new FieldTypeBuilder()
                     .tag('select')
-                    .and.options([
+                    .options([
                         { text: 'Draft', value: 'draft' },
                         { text: 'Approved', value: 'approved' },
                     ]),
@@ -206,7 +206,7 @@ describe('<fdl-field>', () => {
 
     it('does not render a field when visibleWhen() returns false', async () => {
         const record = new Record(
-            { address: new FieldType().with.label('Address').and.visibleWhen(() => false) },
+            { address: new FieldTypeBuilder().label('Address').visibleWhen(() => false) },
             { address: '' }
         );
         const element = document.createElement('fdl-field') as HTMLElement & {
@@ -229,7 +229,7 @@ describe('<fdl-field>', () => {
 
 describe('native input masks', () => {
     async function maskedField(tag = 'input') {
-        const record = new Record({value: new FieldType<string>().with.tag(tag).and.inputMask(/[0-9.]/)}, {value: '12.3'});
+        const record = new Record({value: new FieldTypeBuilder<string>().tag(tag).inputMask(/[0-9.]/)}, {value: '12.3'});
         const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
         element.record = record;
         element.field = 'value';
@@ -285,7 +285,7 @@ describe('native input masks', () => {
     });
 
     it('filters before parsing while leaving programmatic model values untouched', async () => {
-        const record = new Record({value: new FieldType<number>().with.inputMask(/[0-9]/).and.parser(Number)}, {value: 12});
+        const record = new Record({value: new FieldTypeBuilder<number>().inputMask(/[0-9]/).parser(Number)}, {value: 12});
         const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
         element.record = record;
         element.field = 'value';
@@ -304,9 +304,9 @@ describe('native input masks', () => {
 
 it('preserves currency editing text and caret while parsing, then formats on blur', async () => {
     const currency = new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'});
-    const record = new Record({money: new FieldType<number>().with
+    const record = new Record({money: new FieldTypeBuilder<number>()
         .formatter(value => currency.format(value))
-        .and.parser(value => Number(String(value).replace(/[$,]/g, '')))}, {money:1000});
+        .parser(value => Number(String(value).replace(/[$,]/g, '')))}, {money:1000});
     const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
     element.record = record;
     element.field = 'money';
@@ -340,7 +340,7 @@ it('preserves currency editing text and caret while parsing, then formats on blu
 
 
 it.each(['checkbox', 'radio'] as const)('synchronizes native %s checked state as a Boolean', async type => {
-    const record = new Record({value:new FieldType().with.type(type)}, {value:false});
+    const record = new Record({value:new FieldTypeBuilder().type(type)}, {value:false});
     const element = document.createElement('fdl-field') as TestElement & {record:Record;field:string};
     element.record = record;
     element.field = 'value';
@@ -362,7 +362,7 @@ it.each(['checkbox', 'radio'] as const)('synchronizes native %s checked state as
 });
 
 it('does not try to assign a nonempty model value to a native file picker', async () => {
-    const record = new Record({value:new FieldType().with.type('file')}, {value:'C:\\fakepath\\notes.txt'});
+    const record = new Record({value:new FieldTypeBuilder().type('file')}, {value:'C:\\fakepath\\notes.txt'});
     const element = document.createElement('fdl-field') as TestElement & {record:Record;field:string};
     element.record = record;
     element.field = 'value';

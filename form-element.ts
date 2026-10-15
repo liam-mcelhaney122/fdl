@@ -214,7 +214,7 @@ class FormElement extends ListeningElement {
          * used to conform to a components API where the property may not
          * be assignable via a field type modifier
          */
-        const properties = this.fieldType?.additionalProperties();
+        const properties = this.fieldType?.additionalProperties() ?? {};
         Object.keys(properties).forEach((key: string) => {
             this.element[key] = properties[key];
         });
@@ -222,7 +222,8 @@ class FormElement extends ListeningElement {
          * assign all standard properties we can from the modifiers
          */
         if (this.element instanceof HTMLInputElement) {
-            this.element.type = this.fieldType?.type(this.record?.getField(this.field), this.record, 'form');
+            const type = this.fieldType?.type(this.record?.getField(this.field), this.record, 'form');
+            if (typeof type === 'string') this.element.type = type;
         }
         // Native selects use option identities, not formatted labels. Keep all
         // selected identities intact between native input and change events.

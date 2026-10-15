@@ -1,3 +1,4 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import { modifierPage } from './modifier-page-groups';
 import { relatedModifierNames } from './related-modifiers';
 import { displayedModifierSignatures as modifierSignatures, fieldSettingResults, columnSettingResults } from './modifier-signatures';
@@ -11,7 +12,6 @@ import { exampleTheme } from './example-theme';
 import { recordSummary } from './model-summary';
 import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import './fdl-field';
 import './fdl-modifier-catalog';
@@ -89,11 +89,11 @@ export class FdlModifierExplorer extends LitElement {
 
     private resetVersions: {[name: string]: number} = {};
     private selectedCategories = new Set<string>();
-    private person = new Record({ name: new FieldType<string>().with.label('Legal name').and.required(), followUp: new FieldType<string>().with.label('Follow-up needed?').and.options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).and.tag('select'), followUpNotes:new FieldType<string>().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.required((_value, record) => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
-    private money = new Record({ amount: new FieldType<number>().with.label('Amount').and.type('number').and.parser(value => Number(value)).and.formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
+    private person = new Record({ name: new FieldTypeBuilder<string>().label('Legal name').required(), followUp: new FieldTypeBuilder<string>().label('Follow-up needed?').options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).tag('select'), followUpNotes:new FieldTypeBuilder<string>().label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
+    private money = new Record({ amount: new FieldTypeBuilder<number>().label('Amount').type('number').parser(value => Number(value)).formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
     private delivery = new Record({
-        fulfillment: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
-        address: new FieldType<string>().with.label('Shipping address').and.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
+        fulfillment: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
+        address: new FieldTypeBuilder<string>().label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     private closeCategoryMenu = (event: Event) => {
@@ -187,7 +187,7 @@ export class FdlModifierExplorer extends LitElement {
     }
     private reset(name = this.modifierName) {
         this.resetVersions[name] = (this.resetVersions[name] ?? 0) + 1;
-        if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); this.person.setField('followUp','no'); this.person.setField('followUpNotes',''); }
+        if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldTypeBuilder<string>().label('Legal name').required(), ''); this.person.setField('followUp','no'); this.person.setField('followUpNotes',''); }
         delete this.exampleSettings[name];
         if (name === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
         if (name === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
@@ -197,8 +197,8 @@ export class FdlModifierExplorer extends LitElement {
         if (name === 'required') return html`
             <label class="rule-control"><input type="checkbox" .checked=${this.requiredRule} @change=${(event: Event) => {
                 this.requiredRule = (event.target as HTMLInputElement).checked;
-                const base = new FieldType<string>().with.label('Legal name');
-                this.person.addField('name', this.requiredRule ? base.with.required() : base, this.person.getField('name'));
+                const base = new FieldTypeBuilder<string>().label('Legal name');
+                this.person.addField('name', this.requiredRule ? base.required() : base, this.person.getField('name'));
                 this.requestUpdate();
             }}> Require a value</label>
             ${this.field(this.person, 'name')}

@@ -1,9 +1,9 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import { html } from 'lit';
-import FieldType from '../../field-type.js';
 import Recordset from '../../recordset.js';
 
-export const prefixFilter = new FieldType<string>().with.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()));
-export const substringFilter = new FieldType<string>().with.filter((text, value) => value.toLowerCase().includes(text.toLowerCase()));
+export const prefixFilter = new FieldTypeBuilder<string>().filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()));
+export const substringFilter = new FieldTypeBuilder<string>().filter((text, value) => value.toLowerCase().includes(text.toLowerCase()));
 
 export function sortCases(table: Recordset<any>) {
     const sizes = [...new Set(table.allRecords.map(record => record.values.shirtSize))] as string[];

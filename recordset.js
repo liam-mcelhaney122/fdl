@@ -6,6 +6,7 @@ import { Observable } from './types/observable.types';
 
 import FdlRecord from './record.js';
 import FieldType from './field-type.js';
+import FieldTypeBuilder from './field-type-builder';
 import comparatorFromColumns from './utilities/comparator-from-columns.js';
 import { RecordsetEvent } from './recordset.events';
 
@@ -35,7 +36,7 @@ import { RecordsetEvent } from './recordset.events';
  */
 export default class Recordset extends EventTarget {
     /**
-     * @param {Object.<string, FieldType>} [fieldTypes]
+     * @param {Object.<string, import('./types/field-definition.types').FieldDefinition<any>>} [fieldTypes]
      * @param {{(...args:any[]) => Promise<T[]> | T[] | FetchResult<T> | Promise<FetchResult<T>>} |  Promise<T[]> | T[] | FetchResult<T> | Promise<FetchResult<T>>} [fetch]
      * @param {number} [debounceInterval]
      */
@@ -66,8 +67,10 @@ export default class Recordset extends EventTarget {
             extraRowCount: 0,
             /** @type {() => Promise<T> | T | FetchResult<T> | Promise<FetchResult<T>>} */
             fetch: typeof fetch === 'function' ? fetch : () => fetch,
-            /** @type {Object.<string, FieldType<T>>} */
-            fieldTypes,
+            /** @type {Object.<string, FieldType<any>>} */
+            fieldTypes: Object.fromEntries(
+                Object.entries(fieldTypes).map(([name, definition]) => [name, definition.valueOf()])
+            ),
             /** @type {(record: FdlRecord<T>) => boolean} */
             filter: () => true,
             isLoading: false,
@@ -516,7 +519,7 @@ export default class Recordset extends EventTarget {
 
         /** @type {Object.<string, FieldType>} */
         const clonedFieldTypes = Object.keys(fieldTypes).reduce((cloned, k) => {
-            const clonedFieldType = fieldTypes[k].with.copy();
+            const clonedFieldType = FieldTypeBuilder.from(fieldTypes[k]).valueOf();
             cloned[k] = clonedFieldType;
 
             return cloned;

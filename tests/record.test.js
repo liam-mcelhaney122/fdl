@@ -1,6 +1,6 @@
+import FieldTypeBuilder from '../field-type-builder';
 /* eslint-disable sonarjs/no-duplicate-string */
 
-import FieldType from '../field-type.js';
 import Record from '../record.js';
 
 function helloFormat(name) {
@@ -15,8 +15,8 @@ const alwaysInvalid = {
 };
 
 const types = {
-    personName: new FieldType().with.formatter(helloFormat),
-    battingAverage: new FieldType().with.validator(alwaysInvalid),
+    personName: new FieldTypeBuilder().formatter(helloFormat),
+    battingAverage: new FieldTypeBuilder().validator(alwaysInvalid),
 };
 
 const record = new Record(
@@ -57,7 +57,7 @@ describe('Record', () => {
     it('supports asynchronous field validation', async () => {
         const asyncRecord = new Record(
             {
-                username: new FieldType().with.validator({
+                username: new FieldTypeBuilder().validator({
                     name: 'username-is-available',
                     validate: async value => value !== 'taken',
                 }),
@@ -92,7 +92,7 @@ describe('Record', () => {
 
     describe('clone()', () => {
         const original = new Record(
-            { role: new FieldType(), password: new FieldType() },
+            { role: new FieldTypeBuilder(), password: new FieldTypeBuilder() },
             { role: 'admin', password: 'lover_b0i' }
         );
 
@@ -128,8 +128,8 @@ describe('Record', () => {
     describe('field definition references', () => {
         const fieldRecord = new Record(
             {
-                charCheck: new FieldType().with.inputMask(/[0-9$.,]/),
-                parseField: new FieldType().with.parser(s => parseInt(s, 10)),
+                charCheck: new FieldTypeBuilder().inputMask(/[0-9$.,]/),
+                parseField: new FieldTypeBuilder().parser(s => parseInt(s, 10)),
             },
             {
                 charCheck: '9',
@@ -150,9 +150,9 @@ describe('Record', () => {
         beforeEach(() => {
             changingRecord = new Record(
                 {
-                    a: new FieldType(),
-                    b: new FieldType(),
-                    c: new FieldType(),
+                    a: new FieldTypeBuilder(),
+                    b: new FieldTypeBuilder(),
+                    c: new FieldTypeBuilder(),
                 },
                 { a: 1, b: 2, c: 3 }
             );

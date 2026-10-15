@@ -17,7 +17,7 @@ export const modifierSignatures: {[name: string]: string} = {
     "minColumnWidth": "minColumnWidth(width: ColumnSetting<number>)",
     "minLength": "minLength(length: FieldSetting<T, number>)",
     "multipleValues": "multipleValues(min?: number, max?: number)",
-    "options": "options<F = unknown>(optionsConfig: OptionsApi<T, F> | ((args: unknown) => T) | Promise<T> | T[])",
+    "options": "options<O = T, F = Record<any>>(optionsConfig: OptionsApi<O, F> | ((record: Record<any>) => O[] | Promise<O[]>) | O[] | Promise<O[]>)",
     "parser": "parser(fn: (value: any, record: Record<any>, context: string) => T)",
     "placeholder": "placeholder(placeholder: FieldSetting<T, string>)",
     "range": "range()",

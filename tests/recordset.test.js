@@ -1,6 +1,6 @@
+import FieldTypeBuilder from '../field-type-builder';
 // Import the helper directly so Jest does not initialize Open WC's browser-runner Chai plugins.
 import { nextFrame } from '@open-wc/testing-helpers/src/helpers.js'; // eslint-disable-line import/no-extraneous-dependencies
-import FieldType from '../field-type.js';
 import Recordset from '../recordset.js';
 
 function manyObjects(n) {
@@ -406,7 +406,7 @@ describe('Recordset', () => {
 
     describe('adding and removing records', () => {
         it('appends a record', async () => {
-            const numberName = new FieldType().with.defaultValue('zero');
+            const numberName = new FieldTypeBuilder().defaultValue('zero');
             const rs = new Recordset({ name: numberName }, numberNames);
             rs.pageSize = 5;
             rs.pageNumber = 3;
@@ -417,7 +417,7 @@ describe('Recordset', () => {
         });
 
         it('clones a record', async () => {
-            const numberName = new FieldType().with.defaultValue('zero');
+            const numberName = new FieldTypeBuilder().defaultValue('zero');
             const rs = new Recordset({ name: numberName }, numberNames);
             rs.pageSize = 5;
             rs.pageNumber = 1;
@@ -435,7 +435,7 @@ describe('Recordset', () => {
         });
 
         it('temporarily increases the size of the page when a new record is added', async () => {
-            const numberName = new FieldType().with.defaultValue('zero');
+            const numberName = new FieldTypeBuilder().defaultValue('zero');
             const rs = new Recordset({ name: numberName }, numberNames);
             rs.pageSize = 5;
             rs.pageNumber = 1;
@@ -455,7 +455,7 @@ describe('Recordset', () => {
         });
 
         it('deletes a record', async () => {
-            const numberName = new FieldType();
+            const numberName = new FieldTypeBuilder();
             const rs = new Recordset({ name: numberName }, numberNames);
             rs.pageSize = 5;
             rs.pageNumber = 1;
@@ -475,7 +475,7 @@ describe('Recordset', () => {
 
     describe('working with a field across all records (i.e. a column)', () => {
         it('sets a column value', async () => {
-            const disabledVowels = new FieldType().thatIs.disabled(
+            const disabledVowels = new FieldTypeBuilder().disabled(
                 (_value, record) => 'aeiou'.includes(record.getField('letter')) // cSpell:disable-line
             );
             const rs = new Recordset({ letter: disabledVowels }, () => [
@@ -539,7 +539,7 @@ describe('Recordset', () => {
     describe('validation', () => {
         it('accepts a validator', async () => {
             const rs = new Recordset(
-                { name: new FieldType(), value: new FieldType() },
+                { name: new FieldTypeBuilder(), value: new FieldTypeBuilder() },
                 numberNames
             );
             await rs.requestUpdate();
@@ -551,7 +551,7 @@ describe('Recordset', () => {
             expect(rs.errors()).toEqual(['must have a record with a value of 13']);
         });
         it('counts the invalid records', async () => {
-            const disallowVowels = new FieldType().with.validator({
+            const disallowVowels = new FieldTypeBuilder().validator({
                 name: 'no-vowel',
                 validate: letter => !'aeiou'.includes(letter), // cSpell:disable-line
             });
@@ -571,7 +571,7 @@ describe('Recordset', () => {
 
         it('isValid()', async () => {
             let valid = false;
-            const hardCoded = new FieldType().with.validator({
+            const hardCoded = new FieldTypeBuilder().validator({
                 name: 'hard-coded',
                 validate: () => valid,
             });

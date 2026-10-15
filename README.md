@@ -36,21 +36,21 @@ rules alongside each field type; the view only decides where to render fields.
 ```js
 import { string, boolean, date, Record } from "digital-fdl";
 
-const name = string.with
+const name = string
   .minLength(2)
-  .and.maxLength(20)
-  .and.formatter(capitalize);
-const newCustomer = boolean.with
+  .maxLength(20)
+  .formatter(capitalize);
+const newCustomer = boolean
   .defaultValue(false)
-  .thatIs.disabled(isNewCustomer);
-const appointmentDate = date.with
+  .disabled(isNewCustomer);
+const appointmentDate = date
   .validator({ name: "weekday", validate: isWeekday })
-  .and.validator({ name: "not-holiday", validate: isNotHoliday })
-  .and.validator({
+  .validator({ name: "not-holiday", validate: isNotHoliday })
+  .validator({
     name: "new-customer-day",
     validate: isExistingCustomerOrNewCustomerDay,
   });
-const comments = string.thatIs.required(isNewCustomer);
+const comments = string.required(isNewCustomer);
 
 const appointment = new Record({
   name,
@@ -68,7 +68,7 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function isNewCustomer(record) {
+function isNewCustomer(_value, record) {
   return !existingCustomers.includes(record.getField("name"));
 }
 
@@ -87,7 +87,11 @@ function isExistingCustomerOrNewCustomerDay(value, _, record) {
 
 ## Docs
 
-In the example, `string`, `boolean`, and `date` are `FieldType` instances. A
+In the example, `string`, `boolean`, and `date` are immutable `FieldTypeBuilder`
+instances. Modifiers chain directly and return new builders. `Record` and
+`Recordset` call `valueOf()` on definitions to obtain runtime `FieldType` objects.
+Call `valueOf()` yourself when you need direct parsing, formatting, or validation.
+See [field types](./docs/field-type.md) for custom builders and migration details. A
 [Record](./docs/record.md) connects those definitions to values. A
 [Recordset](./docs/recordset.md) manages a collection of records, including
 fetching, sorting, filtering, and pagination.

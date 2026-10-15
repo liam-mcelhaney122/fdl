@@ -1,10 +1,10 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import containsAnyFilter from '../filters/contains-any-filter.js';
 
 describe('containsAnyFilter(key, substring)', () => {
-    const name = new FieldType();
-    const title = new FieldType();
+    const name = new FieldTypeBuilder();
+    const title = new FieldTypeBuilder();
 
     const record = new Record(
         { name, title },

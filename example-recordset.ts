@@ -1,8 +1,8 @@
 import Recordset from './recordset.js';
-import FieldType from './field-type';
+import type { FieldDefinition } from './types/field-definition.types';
 
 type ExampleFields<T extends object> = {
-    [K in keyof T]: FieldType<T[K]>;
+    [K in keyof T]: FieldDefinition<T[K]>;
 };
 
 export default class ExampleRecordset<

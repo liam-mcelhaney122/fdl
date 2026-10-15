@@ -11,13 +11,16 @@ import Field from './field.js';
  */
 export default class Record extends EventTarget {
     /**
-     * @param {Object.<string, FieldType>} fieldTypes
+     * @param {Object.<string, import('./types/field-definition.types').FieldDefinition<any>>} fieldTypes
      * @param {T} values
      */
     constructor(fieldTypes, values) {
         super();
         this.cachedFields = {};
-        this.fieldTypes = fieldTypes;
+        /** @type {Object.<string, FieldType<any>>} */
+        this.fieldTypes = Object.fromEntries(
+            Object.entries(fieldTypes).map(([name, definition]) => [name, definition.valueOf()])
+        );
         /**
          * The backing object used to hydrate the record.
          * @type {T}
@@ -232,8 +235,13 @@ export default class Record extends EventTarget {
         return this.fieldTypes[field] || new FieldType();
     }
 
+    /**
+     * @param {string} field
+     * @param {import('./types/field-definition.types').FieldDefinition<any>} fieldType
+     * @param {*} value
+     */
     addField(field, fieldType, value) {
-        this.fieldTypes = { ...this.fieldTypes, [field]: fieldType };
+        this.fieldTypes = { ...this.fieldTypes, [field]: fieldType.valueOf() };
         this.values = { ...this.values, [field]: value };
         this.announceChange(field);
     }

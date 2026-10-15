@@ -1,10 +1,10 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import orFilter from '../filters/or-filter.js';
 import containsFilter from '../filters/contains-filter.js';
 
-const name = new FieldType();
-const iceCream = new FieldType();
+const name = new FieldTypeBuilder();
+const iceCream = new FieldTypeBuilder();
 
 const RECORD = new Record({ name, iceCream }, { name: 'Alice', iceCream: 'chocolate' });
 

@@ -1,9 +1,9 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import './fdl-field-builder';
 import './fdl-prediction';
 import { learningContinuation } from './learning-continuation';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import { exampleTheme } from './example-theme';
 import { highlightJavaScript } from './highlight-javascript';
@@ -13,9 +13,9 @@ import './fdl-field';
 export class FdlCompositionExperiment extends LitElement {
     private continuation = learningContinuation(window.location.hash);
     private configuration = new Record({
-        visibility: new FieldType<string>().with.label('Show the address').and.tag('select').and.options([{text: 'For shipping only', value: 'shipping'}, {text: 'For both delivery methods', value: 'all'}]),
-        requiredness: new FieldType<string>().with.label('Require an address').and.tag('select').and.options([{text: 'For shipping only', value: 'shipping'}, {text: 'Always', value: 'always'}, {text: 'Never', value: 'never'}]),
-        validation: new FieldType<string>().with.label('Check the address format').and.tag('select').and.options([{text: 'Street number and name', value: 'on'}, {text: 'No format check', value: 'off'}]),
+        visibility: new FieldTypeBuilder<string>().label('Show the address').tag('select').options([{text: 'For shipping only', value: 'shipping'}, {text: 'For both delivery methods', value: 'all'}]),
+        requiredness: new FieldTypeBuilder<string>().label('Require an address').tag('select').options([{text: 'For shipping only', value: 'shipping'}, {text: 'Always', value: 'always'}, {text: 'Never', value: 'never'}]),
+        validation: new FieldTypeBuilder<string>().label('Check the address format').tag('select').options([{text: 'Street number and name', value: 'on'}, {text: 'No format check', value: 'off'}]),
     }, {...defaultCompositionRules});
     private get rules(): CompositionRules { return this.configuration.values as CompositionRules; }
     private record = compositionRecord(this.rules, this.continuation?.method ?? 'ship', '42 Orchard Street');

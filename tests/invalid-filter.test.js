@@ -1,8 +1,8 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import invalidFilter from '../filters/invalid-filter.js';
 
-const amount = new FieldType().with.validator({
+const amount = new FieldTypeBuilder().validator({
     name: 'greater than zero',
     validate(n) {
         return n > 0;

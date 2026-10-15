@@ -1,16 +1,16 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
 import './fdl-table';
 
 export class FdlSpecializationExperiment extends LitElement {
-    private base = new FieldType<string>().with.label('Name');
-    private sibling = this.base.with.minLength(2);
-    private required = this.base.with.required();
+    private base = new FieldTypeBuilder<string>().label('Name');
+    private sibling = this.base.minLength(2);
+    private required = this.base.required();
     private enabled = true;
     private get definitions() { return { base: this.base, required: this.required, sibling: this.sibling }; }
     private record = new Record(this.definitions, { base: '', required: '', sibling: '' });
@@ -30,7 +30,7 @@ export class FdlSpecializationExperiment extends LitElement {
     disconnectedCallback() { this.record.removeEventListener('change', this.sync); super.disconnectedCallback(); }
     private toggle = () => {
         this.enabled = !this.enabled;
-        this.required = this.enabled ? this.base.with.required() : this.base;
+        this.required = this.enabled ? this.base.required() : this.base;
         this.record.addField('required', this.required, this.record.getField('required'));
         this.table = new Recordset(this.definitions, [{ ...this.record.values }]);
         this.requestUpdate();
@@ -40,12 +40,12 @@ export class FdlSpecializationExperiment extends LitElement {
             <p>Edit any name; all three receive the same test value. Remove the required rule from its specialization and compare the base and sibling.</p>
             <button @click=${this.toggle}>${this.enabled ? 'Remove' : 'Add'} required rule on requiredName</button>
             <div class="variants">${(['base', 'required', 'sibling'] as const).map(key => html`<section aria-label=${`${key} definition`}><h3>${key === 'base' ? 'baseName' : key === 'required' ? 'requiredName' : 'shortName'}</h3>
-                <code>${key === 'base' ? "new FieldType().with.label('Name')" : key === 'required' ? this.enabled ? 'baseName.with.required()' : 'baseName' : 'baseName.with.minLength(2)'}</code>
+                <code>${key === 'base' ? "new FieldTypeBuilder().label('Name')" : key === 'required' ? this.enabled ? 'baseName.required()' : 'baseName' : 'baseName.minLength(2)'}</code>
                 ${keyed(this.record.fieldTypeForField(key), html`<fdl-field .record=${this.record} field=${key} .showValidationErrors=${true}></fdl-field>`)}
                 <p class="variant-state">${this.record.fieldTypeForField(key).required(this.record.getField(key), this.record) ? 'Required' : 'Optional'} · ${this.record.isValid(key) ? 'Valid' : 'Invalid'}</p></section>`)}</div>
             <h3>The same definitions in a table</h3>
             <fdl-table .recordset=${this.table}><fdl-column field="base" label="baseName"></fdl-column><fdl-column field="required" label="requiredName"></fdl-column><fdl-column field="sibling" label="shortName"></fdl-column></fdl-table>
-            <p role="status">The base is ${this.base.required(undefined, this.record) ? 'required' : 'optional'}; shortName still has a ${this.sibling.minLength()}-character minimum. Specializing requiredName changes neither definition.</p>
+            <p role="status">The base is ${this.base.valueOf().required(undefined, this.record) ? 'required' : 'optional'}; shortName still has a ${this.sibling.valueOf().minLength()}-character minimum. Specializing requiredName changes neither definition.</p>
         </section>`;
     }
     static styles = css`

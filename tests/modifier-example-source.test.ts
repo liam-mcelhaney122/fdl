@@ -2,6 +2,7 @@ import { inputTypes, type inputType } from '../types/input-types.types';
 import { html, render } from 'lit';
 import * as ts from 'typescript';
 import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import Recordset from '../recordset.js';
 import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
@@ -10,7 +11,7 @@ import { exampleSource, type ExampleSettings } from '../examples/fdl-input/modif
 function runExample(name: string, settings: ExampleSettings = {}) {
     const source = exampleSource(name, settings);
     const modules: {[path: string]: any} = {
-        'digital-fdl': {FieldType, Record, Recordset},
+        'digital-fdl': {FieldTypeBuilder, Record, Recordset},
         lit: {html, render},
         './fdl-field': {}, './fdl-table': {},
     };

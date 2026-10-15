@@ -1,6 +1,6 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import {LitElement,css,html} from 'lit';
 import {keyed} from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import {buildFieldRecord,builderSource,defaultFieldSpec,type FieldSpec} from './field-builder-model';
 import {recordSummary} from './model-summary';
@@ -8,11 +8,11 @@ import {highlightJavaScript} from './highlight-javascript';
 import {exampleTheme} from './example-theme';
 import './fdl-field';
 const choiceText:{[value:string]:string}={always:'Always',enabled:'When Condition is Enabled',never:'Never',none:'No value check',minimum:'At least 3 characters',digits:'Digits only'};
-const choice=(label:string,values:string[])=>new FieldType<string>().with.label(label).and.tag('select').and.options(values.map(value=>({text:choiceText[value],value})));
+const choice=(label:string,values:string[])=>new FieldTypeBuilder<string>().label(label).tag('select').options(values.map(value=>({text:choiceText[value],value})));
 export class FdlFieldBuilder extends LitElement{
     private configuration=new Record({
-        name:new FieldType<string>().with.label('Field name').and.required().and.validator({name:'must be a distinct field name using letters, numbers, or underscores',validate:value=>/^[A-Za-z_]\w*$/.test(value)&&!['condition','__proto__','constructor','prototype'].includes(value)}),
-        initialValue:new FieldType<string>().with.label('Starting value'),
+        name:new FieldTypeBuilder<string>().label('Field name').required().validator({name:'must be a distinct field name using letters, numbers, or underscores',validate:value=>/^[A-Za-z_]\w*$/.test(value)&&!['condition','__proto__','constructor','prototype'].includes(value)}),
+        initialValue:new FieldTypeBuilder<string>().label('Starting value'),
         visibility:choice('Show field',['always','enabled']),requiredness:choice('Require field',['never','enabled','always']),validation:choice('Value check',['none','minimum','digits']),
     },{...defaultFieldSpec});
     private spec={...defaultFieldSpec};

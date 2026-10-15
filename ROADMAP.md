@@ -20,7 +20,7 @@ print/export-oriented output consistently.
 
 That definition should also be extensible: applications can establish a shared
 domain type, such as `money`, and derive context-specific types such as
-`money.with.cellClass('balance')` without mutating the baseline. This
+`money.cellClass('balance')` without mutating the baseline. This
 baseline-to-specialization pattern is a core part of FDL's value, not merely a
 builder convenience.
 

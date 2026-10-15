@@ -1,3 +1,4 @@
+import FieldTypeBuilder from './field-type-builder';
 import FieldType from './field-type.js';
 import { boolean, number, string, date } from './primitives.js';
 import Field from './field.js';
@@ -9,3 +10,6 @@ export { Field, FieldType, Record, Recordset, boolean, number, string, date };
 export * from './recordset.events';
 
 export type { FieldSetting, ColumnSetting, DefaultSetting } from './field-setting';
+
+export { FieldTypeBuilder };
+export type { FieldDefinition } from './types/field-definition.types';

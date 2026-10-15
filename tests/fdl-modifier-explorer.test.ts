@@ -1,9 +1,9 @@
+import FieldTypeBuilder from '../field-type-builder';
 import { inputTypes } from '../types/input-types.types';
 import { modifierPage, modifierPageGroups } from '../examples/fdl-input/modifier-page-groups';
 import { relatedModifierNames } from '../examples/fdl-input/related-modifiers';
 import { categoryDescriptions } from '../examples/fdl-input/category-icon';
 import { displayedModifierSignatures as modifierSignatures } from '../examples/fdl-input/modifier-signatures';
-import FieldType from '../field-type.js';
 import { exampleSource } from '../examples/fdl-input/modifier-example-source';
 import '../examples/fdl-input/fdl-modifier-explorer';
 import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
@@ -114,7 +114,7 @@ describe('complete explorer', () => {
     });
 
     it('covers all public builder modifiers outside the compatibility-only surface', () => {
-        const builder = new FieldType().with as unknown as { [name: string]: unknown };
+        const builder = new FieldTypeBuilder() as unknown as { [name: string]: unknown };
         const omitted = new Set([
             'accept', 'additionalProperties', 'autofocus', 'autocomplete', 'field', 'formElement',
             'filtering', 'formatOnChange', 'hideLabel', 'iconMessage', 'list', 'max', 'onValueChange',
@@ -122,7 +122,7 @@ describe('complete explorer', () => {
             'readOnlyExceptionWhen', 'schema', 'segmented', 'selectionDisabledFunctions', 'step', 'tag', 'usesCustomPrint',
         ]);
         const expected = Object.getOwnPropertyNames(Object.getPrototypeOf(builder))
-            .filter(name => !['constructor', 'copy'].includes(name) && !omitted.has(name))
+            .filter(name => !['constructor', 'copy', 'valueOf'].includes(name) && !omitted.has(name))
             .filter(name => typeof builder[name] === 'function').sort();
         expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(expected);
     });

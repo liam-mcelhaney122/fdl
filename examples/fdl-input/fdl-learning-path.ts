@@ -1,9 +1,9 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import './fdl-transfer-challenge';
 import { compositionLink } from './learning-continuation';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import { recordSummary } from './model-summary';
@@ -26,16 +26,16 @@ export class FdlLearningPath extends LitElement {
     session?: LearningState;
     private step = 0;
     private definitions() {
-        let charge = new FieldType<any>().with.label('Delivery charge').and.textAlign('right');
-        if (this.step >= 1) charge = charge.with.parser(value => String(value).trim() === '' ? undefined : Number(String(value).replace(/[$,]/g, '')))
-            .and.formatter((value: unknown, _record?: unknown, context?: string) => value == null ? '' : context === 'input-focus' ? String(value) : currency.format(Number(value)));
+        let charge = new FieldTypeBuilder<any>().label('Delivery charge').textAlign('right');
+        if (this.step >= 1) charge = charge.parser(value => String(value).trim() === '' ? undefined : Number(String(value).replace(/[$,]/g, '')))
+            .formatter((value: unknown, _record?: unknown, context?: string) => value == null ? '' : context === 'input-focus' ? String(value) : currency.format(Number(value)));
         if (this.step >= 2) {
-            charge = charge.with.validator({name: 'must be a finite, non-negative number', validate: value => value == null || (typeof value === 'number' && Number.isFinite(value) && value >= 0)});
-            charge = this.step >= 3 ? charge.with.required((_value, record) => record.getField('method') === 'ship') : charge.with.required();
+            charge = charge.validator({name: 'must be a finite, non-negative number', validate: value => value == null || (typeof value === 'number' && Number.isFinite(value) && value >= 0)});
+            charge = this.step >= 3 ? charge.required((_value, record) => record.getField('method') === 'ship') : charge.required();
         }
-        if (this.step >= 3) charge = charge.with.visibleWhen((_value, record) => record.getField('method') === 'ship');
+        if (this.step >= 3) charge = charge.visibleWhen((_value, record) => record.getField('method') === 'ship');
         return {
-            method: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
+            method: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
             charge,
         };
     }
@@ -61,7 +61,7 @@ export class FdlLearningPath extends LitElement {
         this.step = step;
         const fields = this.definitions();
         const value = this.record.getField('charge');
-        const nextValue = step === 0 ? String(value ?? '') : oldStep === 0 ? fields.charge.parse(value) : value;
+        const nextValue = step === 0 ? String(value ?? '') : oldStep === 0 ? fields.charge.valueOf().parse(value) : value;
         this.record.addField('charge', fields.charge, nextValue);
         this.table = new Recordset(fields, []);
         this.updateTable();
@@ -73,17 +73,17 @@ export class FdlLearningPath extends LitElement {
         this.requestUpdate();
     };
     private code() {
-        return `const charge = new FieldType().with.label('Delivery charge')
-  .and.textAlign('right')${this.step >= 1 ? `
-  .and.parser(value => String(value).trim() === ''
+        return `const charge = new FieldTypeBuilder().label('Delivery charge')
+  .textAlign('right')${this.step >= 1 ? `
+  .parser(value => String(value).trim() === ''
     ? undefined : Number(String(value).replace(/[$,]/g, '')))
-  .and.formatter((value, record, context) => value == null
+  .formatter((value, record, context) => value == null
     ? '' : context === 'input-focus' ? String(value) : currency.format(value))` : ''}${this.step >= 2 ? `
-  .and.validator({ name: 'must be a finite, non-negative number',
+  .validator({ name: 'must be a finite, non-negative number',
     validate: value => value == null ||
       (typeof value === 'number' && Number.isFinite(value) && value >= 0) })
-  .and.${this.step >= 3 ? "required((_value, record) => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
-  .and.visibleWhen((_value, record) => record.getField('method') === 'ship')` : ''};${this.step >= 4 ? `
+  .${this.step >= 3 ? "required((_value, record) => record.getField('method') === 'ship')" : 'required()'}` : ''}${this.step >= 3 ? `
+  .visibleWhen((_value, record) => record.getField('method') === 'ship')` : ''};${this.step >= 4 ? `
 
 const deliveries = new Recordset({ method, charge }, data);` : ''}`;
     }

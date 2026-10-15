@@ -1,11 +1,11 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import equalsFilter from '../filters/equals-filter.js';
 
 describe('equalsFilter(key, substring)', () => {
-    const name = new FieldType();
-    const title = new FieldType();
-    const isGroovy = new FieldType();
+    const name = new FieldTypeBuilder();
+    const title = new FieldTypeBuilder();
+    const isGroovy = new FieldTypeBuilder();
 
     const record = new Record(
         { name, title, isGroovy },

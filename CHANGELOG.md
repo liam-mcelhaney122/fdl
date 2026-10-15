@@ -16,6 +16,12 @@ All notable changes to FDL will be documented in this file. The format follows
 
 ### Changed
 
+- **Breaking:** modifiers now chain directly on immutable `FieldTypeBuilder`
+  definitions. Primitives are builders; `valueOf()` creates a runtime `FieldType`.
+  Records and recordsets finalize builders automatically. Remove sentence-style
+  aliases and use `FieldTypeBuilder` for new definitions; see the
+  [migration guide](./docs/field-type.md#migrating-direct-chains).
+
 - The repository landing page now leads with the product problem FDL solves and
   includes a reproducible first-run path.
 

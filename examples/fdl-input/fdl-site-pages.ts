@@ -18,12 +18,12 @@ export const sitePages = [
 ] as const;
 export type SitePage = typeof sitePages[number]['id'];
 
-const definition = `import { FieldType, Record } from 'digital-fdl';
+const definition = `import { FieldTypeBuilder, Record } from 'digital-fdl';
 
 const fields = {
-  name: new FieldType()
-    .with.label('Name')
-    .and.required(),
+  name: new FieldTypeBuilder()
+    .label('Name')
+    .required(),
 };
 
 const person = new Record(fields, { name: '' });
@@ -54,7 +54,7 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
             <p>A component reads those definitions to render an accessible control. The application chooses the layout and workflow, and CSS controls the appearance.</p>
             <h2>Three parts of the model</h2>
             <dl class="concepts">
-                <dt>FieldType</dt><dd>Defines a field’s behavior. Modifiers such as <a href="#required">required()</a> and <a href="#formatter">formatter()</a> return specialized definitions without changing the original.</dd>
+                <dt>Field definitions</dt><dd>A FieldTypeBuilder describes a field’s behavior. Modifiers such as <a href="#required">required()</a> and <a href="#formatter">formatter()</a> return new builders without changing the original. Records finalize builders into runtime FieldTypes.</dd>
                 <dt>Record</dt><dd>Connects field definitions to values. Use it to read or update a field, parse input, request a formatted value, or validate the record.</dd>
                 <dt>Recordset</dt><dd>Manages a collection of records, including fetching, sorting, filtering, and pagination. A table can consume the same field definitions as a form.</dd>
             </dl>
@@ -72,15 +72,15 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
             <h1 tabindex="-1">How it Works</h1>
             <p class="description">Define field behavior, attach it to record values, and let a component translate that state into an interface.</p>
             <h2>1. Define a field type</h2>
-            <p>A <code>FieldType</code> holds rules and metadata. Each modifier returns a new definition, so a shared base can be specialized for different uses.</p>
-            <pre class="code markup"><code>${highlightJavaScript(`const name = new FieldType()
-  .with.label('Name');
+            <p>A <code>FieldTypeBuilder</code> holds rules and metadata. Chain modifiers directly; each returns a new builder, so a shared base can be specialized for different uses. Call <code>valueOf()</code> when you need a runtime <code>FieldType</code> directly.</p>
+            <pre class="code markup"><code>${highlightJavaScript(`const name = new FieldTypeBuilder()
+  .label('Name');
 const requiredName = name
-  .with.required();
+  .required();
 // name is unchanged; requiredName adds the required rule.`)}</code></pre>
             <fdl-specialization-experiment></fdl-specialization-experiment>
             <h2>2. Create a record</h2>
-            <p>A record connects those definitions to actual values. Parsing converts input into model values. Formatting produces display values. Validation checks the model against the declared rules.</p>
+            <p>A record calls <code>valueOf()</code> on each definition and connects the resulting <code>FieldType</code> objects to actual values. Parsing converts input into model values. Formatting produces display values. Validation checks the model against the declared rules.</p>
             <pre class="code markup"><code>${highlightJavaScript(`const person = new Record(
   { name: requiredName },
   { name: '' }

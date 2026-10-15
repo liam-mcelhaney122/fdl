@@ -1,20 +1,20 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import { LitElement, css, html } from 'lit';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import { addressCases, compositionExplanation, compositionRecord, defaultCompositionRules, type CompositionRules } from './composition-model';
 import { exampleTheme } from './example-theme';
 import './fdl-field';
 
-const choice = (label: string, options: {text:string;value:string}[]) => new FieldType<string>().with.label(label).and.tag('select').and.options(options);
+const choice = (label: string, options: {text:string;value:string}[]) => new FieldTypeBuilder<string>().label(label).tag('select').options(options);
 export class FdlPrediction extends LitElement {
     static properties = {rules:{attribute:false}};
     rules: CompositionRules = {...defaultCompositionRules};
     private guesses = new Record({
         method:choice('Case delivery',[{text:'Shipping',value:'ship'},{text:'Pickup',value:'pickup'}]),
         sample:choice('Case address',addressCases.map(sample=>({text:sample.title,value:sample.id}))),
-        visible:choice('Predict visibility',[{text:'Choose…',value:''},{text:'Visible',value:'true'},{text:'Hidden',value:'false'}]).with.required(),
-        required:choice('Predict requiredness',[{text:'Choose…',value:''},{text:'Required',value:'true'},{text:'Optional',value:'false'}]).with.required(),
-        valid:choice('Predict validity',[{text:'Choose…',value:''},{text:'Valid',value:'true'},{text:'Invalid',value:'false'}]).with.required(),
+        visible:choice('Predict visibility',[{text:'Choose…',value:''},{text:'Visible',value:'true'},{text:'Hidden',value:'false'}]).required(),
+        required:choice('Predict requiredness',[{text:'Choose…',value:''},{text:'Required',value:'true'},{text:'Optional',value:'false'}]).required(),
+        valid:choice('Predict validity',[{text:'Choose…',value:''},{text:'Valid',value:'true'},{text:'Invalid',value:'false'}]).required(),
     }, {method:'pickup',sample:'unnumbered',visible:'',required:'',valid:''});
     private result?: {visible:boolean;required:boolean;valid:boolean};
     private refresh = () => { this.result=undefined; this.requestUpdate(); };

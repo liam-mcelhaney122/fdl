@@ -4,7 +4,11 @@ A `Recordset` manages a collection of `Record` instances. It can fetch data,
 sort and filter it, paginate the visible records, and report collection-level
 validation errors.
 
-Use the same `FieldType` map for every row:
+Supply a map of builders or finalized `FieldType` objects. The recordset calls
+`valueOf()` on each definition once, then uses the resulting runtime types for
+every row. `getFieldType(name)` returns a finalized `FieldType`.
+
+Use the same definition map for every row:
 
 ```js
 import { boolean, Recordset, string } from 'digital-fdl';

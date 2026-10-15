@@ -1,4 +1,4 @@
-import FieldType from '../field-type.js';
+import FieldTypeBuilder from '../field-type-builder';
 import FormElement from '../form-element';
 import Record from '../record.js';
 
@@ -31,7 +31,7 @@ afterEach(() => {
 
 describe('FormElement accessibility', () => {
     it('gives each instance a stable unique control id and associates its label', async () => {
-        const fieldType = new FieldType().with.label('Full name');
+        const fieldType = new FieldTypeBuilder().label('Full name');
         const first = await renderField(new Record({ name: fieldType }, { name: 'Ada' }), 'name');
         const second = await renderField(
             new Record({ name: fieldType }, { name: 'Grace' }),
@@ -59,7 +59,7 @@ describe('FormElement accessibility', () => {
 
     it('renders a labeled semantic output for a read-only field', async () => {
         const record = new Record(
-            { status: new FieldType().with.label('Status').and.readOnly() },
+            { status: new FieldTypeBuilder().label('Status').readOnly() },
             { status: 'Approved' }
         );
         const element = await renderField(record, 'status');
@@ -75,7 +75,7 @@ describe('FormElement accessibility', () => {
 
     it('lets the adapter control when synchronous model errors are exposed', async () => {
         const record = new Record(
-            { name: new FieldType().with.label('Full name').and.required() },
+            { name: new FieldTypeBuilder().label('Full name').required() },
             { name: '' }
         );
         const element = await renderField(record, 'name');
@@ -111,14 +111,14 @@ describe('FormElement accessibility', () => {
 it('resolves field settings from the current value and record as dependencies change', async () => {
     const label = jest.fn((value: string, record: Record<any>, context: string) => `${context}:${record.getField('prefix')}:${value}`);
     const required = jest.fn((_value: string, record: Record<any>, context: string) => context === 'model' && record.getField('locked'));
-    const text = new FieldType<string>().with.label(label)
-        .and.placeholder((value, record, context) => `${context}:${record.getField('prefix')}:${value}`)
-        .and.type((_value, record) => record.getField('locked') ? 'password' : 'text')
-        .and.required(required)
-        .and.disabled((_value, record) => record.getField('locked'))
-        .and.minLength((_value, record) => record.getField('minimum'))
-        .and.maxLength((_value, record) => record.getField('maximum'));
-    const record = new Record({ text, prefix: new FieldType(), locked: new FieldType(), minimum: new FieldType(), maximum: new FieldType() },
+    const text = new FieldTypeBuilder<string>().label(label)
+        .placeholder((value, record, context) => `${context}:${record.getField('prefix')}:${value}`)
+        .type((_value, record) => record.getField('locked') ? 'password' : 'text')
+        .required(required)
+        .disabled((_value, record) => record.getField('locked'))
+        .minLength((_value, record) => record.getField('minimum'))
+        .maxLength((_value, record) => record.getField('maximum'));
+    const record = new Record({ text, prefix: new FieldTypeBuilder(), locked: new FieldTypeBuilder(), minimum: new FieldTypeBuilder(), maximum: new FieldTypeBuilder() },
         { text: 'Ada', prefix: 'Name', locked: false, minimum: 2, maximum: 10 });
     const element = await renderField(record, 'text');
     const input = element.shadowRoot!.querySelector('input')!;

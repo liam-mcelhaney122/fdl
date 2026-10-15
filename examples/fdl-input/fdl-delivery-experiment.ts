@@ -1,17 +1,17 @@
+import FieldTypeBuilder from '../../field-type-builder';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
-import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import './fdl-field';
 
 export class FdlDeliveryExperiment extends LitElement {
     private delivery = new Record({
-        fulfillment: new FieldType<string>().with.label('Delivery method').and.tag('select').and.options([
+        fulfillment: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([
             { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
         ]),
-        address: new FieldType<string>().with.label('Shipping address')
-            .and.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')
-            .and.required((_value, record) => record.getField('fulfillment') === 'ship'),
+        address: new FieldTypeBuilder<string>().label('Shipping address')
+            .visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')
+            .required((_value, record) => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }

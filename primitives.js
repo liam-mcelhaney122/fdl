@@ -1,18 +1,22 @@
 /* eslint-disable @treasury/no-date */
-import FieldType from './field-type.js';
+import FieldTypeBuilder from './field-type-builder';
 
-export const string = new FieldType().with.defaultValue('');
+const stringBase = /** @type {FieldTypeBuilder<string>} */ (new FieldTypeBuilder());
+export const string = stringBase.defaultValue('');
 
-export const boolean = new FieldType().with.schema('boolean').and.defaultValue(false);
+const booleanBase = /** @type {FieldTypeBuilder<boolean>} */ (new FieldTypeBuilder());
+export const boolean = booleanBase.schema('boolean').defaultValue(false);
 
-export const number = new FieldType().with
+const numberBase = /** @type {FieldTypeBuilder<number>} */ (new FieldTypeBuilder());
+export const number = numberBase
     .cellClass('numeric')
-    .and.defaultValue(0)
-    .and.inputMask(/[0-9$.,]/);
+    .defaultValue(0)
+    .inputMask(/[0-9$.,]/);
 
-export const date = new FieldType().with
+const dateBase = /** @type {FieldTypeBuilder<Date>} */ (new FieldTypeBuilder());
+export const date = dateBase
     .cellClass('date')
-    .and.minColumnWidth(50)
-    .and.targetColumnWidth(80)
-    .and.maxColumnWidth(200)
-    .and.defaultValue(new Date());
+    .minColumnWidth(50)
+    .targetColumnWidth(80)
+    .maxColumnWidth(200)
+    .defaultValue(new Date());

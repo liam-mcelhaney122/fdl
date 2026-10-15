@@ -1,31 +1,73 @@
 # Field types
 
-A `FieldType` describes how a value is displayed, parsed, validated, and
-presented. Field types are immutable: every modifier returns a new definition,
-so a shared type can be extended safely for a single use.
+A `FieldTypeBuilder` describes a field through direct modifier chaining. Each
+modifier returns a new builder without changing its source. `valueOf()` creates
+the actual `FieldType`, which exposes runtime operations such as parsing,
+formatting, and validation.
+
+The exported `string`, `number`, `boolean`, and `date` primitives are reusable
+builders. Start a custom definition with `new FieldTypeBuilder<T>()`.
 
 ```js
-import { FieldType } from 'digital-fdl';
+import { FieldTypeBuilder } from 'digital-fdl';
 
-const number = new FieldType().with
+const number = new FieldTypeBuilder()
   .validator({
     name: 'numeric',
     validate: value => Number.isFinite(Number(value)),
   })
-  .and.cellClass('numeric')
-  .and.cellClass(value => value < 0 ? 'negative' : []);
+  .cellClass('numeric')
+  .cellClass(value => value < 0 ? 'negative' : []);
 
-const money = number.with
+const money = number
   .formatter(formatUsd)
-  .and.parser(parseUsd)
-  .and.minColumnWidth(50)
-  .and.targetColumnWidth(80)
-  .and.maxColumnWidth(200);
+  .parser(parseUsd)
+  .minColumnWidth(50)
+  .targetColumnWidth(80)
+  .maxColumnWidth(200);
 ```
 
-`with`, `and`, and the other sentence-style aliases (`thatIs`, `thatHas`, and
-so on) are interchangeable builder entry points. They do not mutate the
-original field type.
+## Builders and runtime field types
+
+Pass builders directly to `Record`, `Recordset`, and `Record#addField()`. These
+boundaries call `valueOf()` and store actual `FieldType` objects internally.
+They also accept an already finalized type: `FieldType#valueOf()` returns itself.
+The exported `FieldDefinition<T>` type represents either input.
+
+```ts
+import { string, Record, FieldTypeBuilder } from 'digital-fdl';
+
+const name = string.maxLength(100);
+const requiredName = name.required(); // name stays optional
+const person = new Record({ name: requiredName }, { name: '' });
+person.isValid(); // false
+
+// Explicit finalization is useful for direct runtime operations.
+const nameType = requiredName.valueOf();
+nameType.required(); // true
+nameType.format('Ada', person); // 'Ada'
+
+// To specialize an already finalized type, create a builder from it.
+const displayName = FieldTypeBuilder.from(nameType).label('Display name');
+```
+
+Every `valueOf()` call on a builder creates a new runtime type with its own
+option cache and display-result state. Keep the returned type when repeatedly
+calling runtime methods, especially option loading. A recordset finalizes each
+builder once and shares that runtime type with its rows.
+
+### Migrating direct chains
+
+Remove sentence-style aliases (`with`, `and`, `thatIs`, `thatHas`, `andIs`,
+`as`, `thatWill`, `thatUses`, and `that`). Replace `new FieldType()` used to
+construct a definition with `new FieldTypeBuilder()`. Modifiers belong to the
+builder; methods on the finalized `FieldType` read or evaluate its behavior.
+For example, `string.required()` builds a required field, while
+`string.required().valueOf().required()` evaluates its required state.
+
+`Record` and `Recordset` callers do not need a final `valueOf()`. Direct callers
+of runtime methods such as `format()`, `validate()`, or `options(record)` do.
+This is a breaking API change; the sentence-style aliases have been removed.
 
 ## Fixed and calculated settings
 
@@ -57,12 +99,12 @@ read. Callbacks should be pure; they must not mutate the record or render UI.
 | `minLength`, `maxLength` | `number` |
 
 ```ts
-const amount = new FieldType<number>()
-  .with.label((_value, _record, context) =>
+const amount = new FieldTypeBuilder<number>()
+  .label((_value, _record, context) =>
     context === 'table-header' ? 'Amount' : 'Invoice amount')
-  .and.placeholder('Enter an amount')
-  .and.required((_value, record) => record.getField('submitted'))
-  .and.cellClass((value, record) =>
+  .placeholder('Enter an amount')
+  .required((_value, record) => record.getField('submitted'))
+  .cellClass((value, record) =>
     value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric');
 ```
 
@@ -109,8 +151,8 @@ value argument. Existing non-null values are preserved without invoking it.
 The model supplies `"model"` as context. For example:
 
 ```ts
-const reference = new FieldType<string>()
-  .with.defaultValue((record, context) =>
+const reference = new FieldTypeBuilder<string>()
+  .defaultValue((record, context) =>
     `${record.getField('prefix')}-${context}`);
 ```
 
@@ -129,10 +171,10 @@ accept a context string. A column has no single field value or owning record,
 so the callback has no value or record parameters.
 
 ```ts
-const amount = new FieldType<number>()
-  .with.minColumnWidth(context =>
+const amount = new FieldTypeBuilder<number>()
+  .minColumnWidth(context =>
     context === 'table' ? 100 : 60)
-  .and.sortable(true);
+  .sortable(true);
 ```
 
 ### Operations and structural configuration
@@ -201,7 +243,7 @@ function receives `(modelValue, viewValue, record, options, field)` and returns
 either `true`/`false` or a promise of `true`/`false`.
 
 ```js
-const positiveNumber = number.with.validator({
+const positiveNumber = number.validator({
   name: 'positive',
   validate: value => value > 0,
 });
@@ -240,10 +282,10 @@ For a native dropdown, use `tag('select')` and option objects with `text` and
 `value` properties:
 
 ```js
-const contactMethod = new FieldType().with
+const contactMethod = new FieldTypeBuilder()
   .tag('select')
-  .and.label('Preferred contact method')
-  .and.options([
+  .label('Preferred contact method')
+  .options([
     { text: 'Choose a method', value: '' },
     { text: 'Email', value: 'email' },
     { text: 'Phone', value: 'phone' },
@@ -254,11 +296,11 @@ const contactMethod = new FieldType().with
 receive the current record:
 
 ```js
-const localAssignee = new FieldType()
-  .with.options(record => directory[record.getField('department')]);
+const localAssignee = new FieldTypeBuilder()
+  .options(record => directory[record.getField('department')]);
 
-const remoteAssignee = new FieldType()
-  .with.options(async record => {
+const remoteAssignee = new FieldTypeBuilder()
+  .options(async record => {
     const response = await fetch(`/assignees?department=${encodeURIComponent(record.getField('department'))}`);
     return response.json();
   });
@@ -274,7 +316,7 @@ array or a promise. `fields` limits cache invalidation to the listed record
 fields.
 
 ```js
-const users = new FieldType().with.options({
+const users = new FieldTypeBuilder().options({
   fetch: record => userService.fetchUsers(record.getField('companyId')),
   fields: ['companyId'],
   text: user => user.name,
@@ -289,10 +331,10 @@ ordered. The table uses that comparator when its sort state includes the
 column:
 
 ```js
-import { FieldType, Recordset } from 'digital-fdl';
+import { FieldTypeBuilder, Recordset } from 'digital-fdl';
 
 const fields = {
-  name: new FieldType().with.compareFunction((a, b) => a.localeCompare(b)),
+  name: new FieldTypeBuilder().compareFunction((a, b) => a.localeCompare(b)),
 };
 
 const people = new Recordset(fields, [
@@ -320,8 +362,8 @@ filters with AND semantics and preserves any predicate already assigned to the
 
 ```js
 const fields = {
-  name: new FieldType().with.filter(),
-  accountCode: new FieldType().with.filter((text, value) =>
+  name: new FieldTypeBuilder().filter(),
+  accountCode: new FieldTypeBuilder().filter((text, value) =>
     value.toLowerCase().startsWith(text.toLowerCase())
   ),
 };
@@ -385,11 +427,11 @@ Return `[]` when no classes apply. Repeated calls accumulate in declaration
 order without changing the source definition.
 
 ```ts
-const status = new FieldType<string>()
-  .with.cellClass('status-cell')
-  .and.cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
-  .and.rowClass('invoice-row')
-  .and.rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
+const status = new FieldTypeBuilder<string>()
+  .cellClass('status-cell')
+  .cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
+  .rowClass('invoice-row')
+  .rowClass(value => value === 'Disputed' ? 'disputed-row' : []);
 ```
 
 The supported cell and row class signatures are:
@@ -408,10 +450,10 @@ The value type `T` comes from the field type. The callback can read other
 fields through `record.getField(name)`, for example:
 
 ```ts
-const amount = new FieldType<number>()
-  .with.cellClass((value, record) =>
+const amount = new FieldTypeBuilder<number>()
+  .cellClass((value, record) =>
     value > record.getField('limit') ? ['warning', 'over-limit'] : [])
-  .and.rowClass((value, record) =>
+  .rowClass((value, record) =>
     value > record.getField('limit') ? 'over-limit-row' : []);
 ```
 
