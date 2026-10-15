@@ -24,6 +24,6 @@ it('keeps trial data across rule changes and renaming, with explicit starting-va
  expect(demo.record.getField('reference')).toBe('AB');
  demo.configuration.setField('initialValue','XYZ');await demo.updateComplete;
  expect(demo.record.getField('reference')).toBe('XYZ');expect(demo.record.getField('condition')).toBe('disabled');
- demo.shadowRoot.querySelectorAll('button')[1].click();await demo.updateComplete;
+ demo.shadowRoot.querySelector('button').click();await demo.updateComplete;
  expect(demo.record.getField('notes')).toBe('');expect(demo.record.getField('condition')).toBe('enabled');demo.remove();
 });

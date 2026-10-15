@@ -1,4 +1,4 @@
-import { downloadStarter } from './starter-files';
+import './fdl-starter-download';
 import { modifierSignatures } from './modifier-signatures';
 import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
@@ -248,7 +248,7 @@ export class FdlModifierExplorer extends LitElement {
                     <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
                 <div class="details">
-                <section class="starter-handoff"><h3>Use this example</h3><p>Download the model, Lit UI, and example adapters together. Unzip, run <code>npm install</code>, then <code>npm run dev</code>.</p><button @click=${async () => { const {default: assets} = await import('virtual:fdl-starter'); downloadStarter(source, assets); }}>Download runnable example</button><p class="markup-note">Includes a snapshot of this FDL version. The adapters and their styles are included; they are not exported by <code>digital-fdl</code>.</p></section>
+                <section class="starter-handoff"><h3>Use this example</h3><p>Download the model, Lit UI, and example adapters together. Unzip, run <code>npm install</code>, then <code>npm run dev</code>.</p><fdl-starter-download .source=${source}></fdl-starter-download><p class="markup-note">Includes a snapshot of this FDL version. The adapters and their styles are included; they are not exported by <code>digital-fdl</code>.</p></section>
                 <p class="source-intro">Starting values are shown below. Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
                 <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>

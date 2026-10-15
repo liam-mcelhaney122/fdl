@@ -1,0 +1,20 @@
+import '../examples/fdl-input/fdl-starter-download';
+import {exampleSource} from '../examples/fdl-input/modifier-example-source';
+import * as starter from '../examples/fdl-input/starter-files';
+it('shows preparation, prevents duplicates, and allows retry after a failed load',async()=>{
+ const demo=document.createElement('fdl-starter-download') as any;
+ demo.source=exampleSource('required');
+ let reject!:(error:Error)=>void;
+ demo.loadAssets=jest.fn(()=>new Promise((_,fail)=>{reject=fail;}));
+ document.body.append(demo);await demo.updateComplete;
+ const button=demo.shadowRoot.querySelector('button') as HTMLButtonElement;
+ button.click();await demo.updateComplete;
+ expect(button.disabled).toBe(true);expect(button.textContent).toBe('Preparing example…');
+ button.click();expect(demo.loadAssets).toHaveBeenCalledTimes(1);
+ reject(new Error('offline'));await new Promise(resolve=>setTimeout(resolve,0));await demo.updateComplete;
+ expect(button.disabled).toBe(false);expect(demo.shadowRoot.querySelector('[role=status]').textContent).toContain('Please try again');
+ const download=jest.spyOn(starter,'downloadStarter').mockImplementation(()=>{});
+ demo.loadAssets.mockResolvedValue({});button.click();await new Promise(resolve=>setTimeout(resolve,0));await demo.updateComplete;
+ expect(download).toHaveBeenCalledTimes(1);expect(button.textContent).toBe('Download runnable example');
+ download.mockRestore();demo.remove();
+});
