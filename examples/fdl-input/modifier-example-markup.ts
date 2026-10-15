@@ -16,7 +16,7 @@ export const exampleTables: { [name: string]: [recordset: string, columns: strin
     cellClass: ['cellClassRecordset', ['amount', 'category']],
     conditionalCellClass: ['conditionalClassRecordset', ['day', 'amount']],
     compareFunction: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
-    sortable: ['compareRecordset', ['firstName', 'lastName', 'team']],
+    sortable: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
     filter: ['filterRecordset', ['name', 'team']],
     rowClasses: ['rowClassRecordset', ['status', 'owner']],
     template: ['templateRecordset', ['invoice', 'status']],

@@ -265,7 +265,10 @@ describe('extended model exercises', () => {
         const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
         expect(state.visibleRows[0].lastName).toBe('Alpha');
         expect(state.sortColumns[0].field).toBe('lastName');
-        expect(state.totalRecords).toBe(4);
+        expect(table.shadowRoot.querySelector('button[title="Sort by T-shirt size"]')).toBeNull();
+        expect(table.shadowRoot.textContent).toContain('T-shirt size');
+        expect(state.visibleRows.map((row: any) => row.shirtSize).sort()).toEqual(['L', 'M', 'S', 'XL', 'XS', 'XXL'].sort());
+        expect(state.totalRecords).toBe(6);
     });
 
     it('rejects an overlong value assigned directly to the model', async () => {

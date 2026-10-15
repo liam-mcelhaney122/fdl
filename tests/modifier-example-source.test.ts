@@ -128,3 +128,13 @@ it('exports working function and async options with a shared value that stays se
     }
     expect(container.querySelectorAll('fdl-field')).toHaveLength(3);
 });
+
+
+it('exports a T-shirt order table with sorting disabled for sizes', async () => {
+    const {model, container} = runExample('sortable');
+    await model.requestUpdate();
+    expect(model.getData()).toHaveLength(6);
+    expect(model.getFieldType('shirtSize').sortable()).toBe(false);
+    expect(model.getFieldType('firstName').sortable()).toBe(true);
+    expect([...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))).toEqual(['firstName', 'lastName', 'shirtSize']);
+});

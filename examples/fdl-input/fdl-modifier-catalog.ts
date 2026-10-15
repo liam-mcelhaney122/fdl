@@ -215,14 +215,9 @@ export class FdlModifierCatalog extends LitElement {
             lastName: new FieldType().with
                 .label('Last name')
                 .and.compareFunction((left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1),
-            team: new FieldType().with.label('Team').and.sortable(false),
+            shirtSize: new FieldType().with.label('T-shirt size').and.sortable(false),
         },
-        [
-            { firstName: 'Ada', lastName: 'Zulu', team: 'Research' },
-            { firstName: 'Grace', lastName: 'Alpha', team: 'Platform' },
-            { firstName: 'Ada', lastName: 'Mike', team: 'Platform' },
-            { firstName: 'Grace', lastName: 'Beta', team: 'Research' },
-        ]
+        shirtOrders.map(order => ({...order}))
     );
     private reducerType = new FieldType().with.reducer('sum');
     private formatterRecordset = new Recordset(
@@ -469,7 +464,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
-            case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
+            case 'sortable': return html`<p class="try">First name and Last name can sort. T-shirt size has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="shirtSize"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
             case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
