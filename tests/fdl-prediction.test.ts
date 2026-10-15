@@ -11,6 +11,8 @@ it('reveals actual hidden-but-invalid results after optional predictions', async
  demo.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();await settle(demo);
  const result=demo.shadowRoot!.querySelector('[role=status]')!.textContent!;
  expect(result).toContain('Hidden');expect(result).toContain('Invalid — differs from your prediction');
+ demo.rules={...demo.rules};await settle(demo);
+ expect(demo.shadowRoot!.querySelector('[role=status]')!.textContent).toBe(result);
  demo.rules={visibility:'shipping',requiredness:'shipping',validation:'off'};await settle(demo);
  expect(demo.shadowRoot!.querySelector('[role=status]')).toBeNull();demo.remove();
 });

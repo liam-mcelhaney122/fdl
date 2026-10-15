@@ -20,7 +20,10 @@ export class FdlPrediction extends LitElement {
     private refresh = () => { this.result=undefined; this.requestUpdate(); };
     connectedCallback() { super.connectedCallback(); this.guesses.addEventListener('change',this.refresh); }
     disconnectedCallback() { this.guesses.removeEventListener('change',this.refresh); super.disconnectedCallback(); }
-    willUpdate(changes: Map<string,unknown>) { if(changes.has('rules')) this.result=undefined; }
+    willUpdate(changes: Map<string,unknown>) {
+        const previous=changes.get('rules') as CompositionRules | undefined;
+        if(changes.has('rules') && (!previous || (['visibility','requiredness','validation'] as const).some(key=>previous[key]!==this.rules[key]))) this.result=undefined;
+    }
     private reveal = () => {
         const sample=addressCases.find(sample=>sample.id===this.guesses.getField('sample'))!;
         const record=compositionRecord(this.rules,this.guesses.getField('method'),sample.value), type=record.fieldTypeForField('address');
