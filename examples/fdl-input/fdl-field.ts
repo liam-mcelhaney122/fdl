@@ -60,7 +60,7 @@ export class FdlField extends FormElement {
             }
 
             select[multiple] { height: auto; min-height: 144px; }
-            textarea { min-height: 112px; resize: vertical; }
+            textarea { resize: vertical; }
 
             .validation-error {
                 margin-top: 0.35rem;

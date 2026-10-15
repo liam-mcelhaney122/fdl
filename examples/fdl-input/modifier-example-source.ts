@@ -5,7 +5,7 @@ import { disabledFieldStyles } from './field-example-styles';
 import { tableExampleStyles } from './table-example-styles';
 import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-markup';
 
-export type ExampleSettings = { required?: boolean; minimum?: number; filterMode?: 'prefix' | 'contains'; threshold?: number };
+export type ExampleSettings = { required?: boolean; minimum?: number; rows?: number; filterMode?: 'prefix' | 'contains'; threshold?: number };
 type Model = { name: string; fields: {[key: string]: string}; values: object; kind?: 'Recordset'; prefix?: string };
 const type = (chain: string) => `new FieldType()\n    .with.${chain}`;
 const currency = `const currency = new Intl.NumberFormat('en-US', {
@@ -59,7 +59,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         readOnly: {name:'record',fields:{fixedOwner:type("label('Owner').and.readOnly()")},values:{fixedOwner:'Ada Lovelace'}},
         readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').and.readOnlyWhen(record => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
         requiredWhen: {name:'record',fields:{followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes')")},values:{followUp:'no',followUpNotes:''}},
-        rowCount: {name:'record',fields:{comments:type("label('Comments').and.tag('textarea').and.rowCount(4)")},values:{comments:''}},
+        rowCount: {name:'record',fields:{comments:type(`label('Comments').and.tag('textarea').and.rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{dateType:type("label('Start date').and.type('date')")},values:{dateType:''}},
         validator: {name:'record',fields:{projectCode:type(`label('Project code').and.validator({
     name: 'must look like PRJ-1234',

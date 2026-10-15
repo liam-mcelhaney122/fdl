@@ -61,6 +61,7 @@ it('includes changed rules in complete working definitions', () => {
     const {model} = runExample('minLength', {minimum:2});
     model.setField('longCode', 'ab');
     expect(model.isValid()).toBe(true);
+    expect(runExample('rowCount', {rows:10}).model.fieldTypeForField('comments').rowCount()).toBe(10);
     expect(exampleSource('filter', {filterMode:'contains'}).definition).toContain('.includes(');
 });
 

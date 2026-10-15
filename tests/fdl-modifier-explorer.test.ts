@@ -477,3 +477,40 @@ it('resets one grouped example without resetting its neighbor', async () => {
     expect(root.querySelector('fdl-modifier-catalog[modifier="readOnlyWhen"]')).toBe(conditional);
     expect(field.record.getField('phase')).toBe('submitted');
 });
+
+
+it('changes textarea rows while retaining the comment and updating the example source', async () => {
+    const page = await openPage('#rowCount');
+    const root = page.shadowRoot!;
+    let catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const findField = async (name: string) => {
+        const field = catalog.shadowRoot!.querySelector(`fdl-field[field="${name}"]`) as any;
+        await field.updateComplete;
+        return field;
+    };
+    let comments = await findField('comments');
+    const textarea = comments.shadowRoot.querySelector('textarea') as HTMLTextAreaElement;
+    expect(textarea.rows).toBe(4);
+    textarea.value = 'Keep this comment.\nAnd its second line.';
+    textarea.dispatchEvent(new Event('input'));
+    const choice = await findField('textareaRows');
+    const select = choice.shadowRoot.querySelector('select') as HTMLSelectElement;
+    expect([...select.options].map(option => option.value)).toEqual(['1', '4', '10']);
+    for (const rows of [1, 4, 10]) {
+        select.value = String(rows);
+        select.dispatchEvent(new Event('change'));
+        await catalog.updateComplete;
+        await settle(page);
+        comments = await findField('comments');
+        expect(comments.shadowRoot.querySelector('textarea').rows).toBe(rows);
+        expect(comments.shadowRoot.querySelector('textarea').value).toBe(textarea.value);
+        expect(root.querySelector('.code-panel')?.textContent || root.textContent).toContain(`.rowCount(${rows})`);
+    }
+    root.querySelector<HTMLButtonElement>('.reset')!.click();
+    await settle(page);
+    catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    comments = await findField('comments');
+    expect(comments.shadowRoot.querySelector('textarea').rows).toBe(4);
+});

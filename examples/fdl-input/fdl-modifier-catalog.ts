@@ -286,6 +286,7 @@ export class FdlModifierCatalog extends LitElement {
         ),
     };
     private probes = new Record({
+        textareaRows: new FieldType<number>().with.label('Row count').and.tag('select').and.parser(Number).and.options([1, 4, 10].map(value => ({text: String(value), value}))),
         classThreshold: new FieldType<number>().with.label('Daily Expense Limit').and.type('number').and.parser(Number),
         input: new FieldType<string>().with.label('Digits and periods').and.inputMask(/[0-9.]/),
         filterProbe: new FieldType<string>().with.label('Search names'),
@@ -295,7 +296,7 @@ export class FdlModifierCatalog extends LitElement {
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { textareaRows: 4, classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
         return {
@@ -329,6 +330,12 @@ export class FdlModifierCatalog extends LitElement {
         this.requestUpdate();
     };
     private onProbeChange = () => {
+        if (this.modifier === 'rowCount') {
+            const rows = this.probes.getField('textareaRows');
+            this.record.addField('comments', new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(rows), this.record.getField('comments'));
+            this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {rows}, bubbles: true, composed: true}));
+        }
+
         if (this.modifier === 'conditionalCellClass') {
             const threshold = this.probes.getField('classThreshold');
             void this.conditionalClassRecordset.requestUpdate();
@@ -462,7 +469,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'required': return this.renderValidation('requiredName');
             case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
-            case 'rowCount': return html`${this.renderField('comments')}`;
+            case 'rowCount': return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
             case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
             case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
