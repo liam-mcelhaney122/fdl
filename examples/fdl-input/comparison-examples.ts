@@ -13,9 +13,6 @@ export function validatorCases(type: FieldType) {
         return html`<tr><th scope="row"><code>${value || '(empty)'}</code></th><td>${record.isValid() ? 'Valid' : record.readableFieldErrors('code').join('; ')}</td></tr>`;
     })}</tbody></table></section>`;
 }
-export function filterCases(text: string) {
-    return html`<table class="case-comparison"><caption>How both rules match “${text}”</caption><thead><tr><th scope="col">Name</th><th scope="col">Starts with</th><th scope="col">Contains</th></tr></thead><tbody>${['Ada', 'Grace', 'Margaret'].map(name => html`<tr><th scope="row">${name}</th><td>${prefixFilter.match(text, name) ? 'Match' : 'No match'}</td><td>${substringFilter.match(text, name) ? 'Match' : 'No match'}</td></tr>`)}</tbody></table>`;
-}
 export function sortCases(table: Recordset<any>) {
     const sizes = [...new Set(table.allRecords.map(record => record.values.shirtSize))] as string[];
     const sizeType = table.getFieldType('shirtSize');

@@ -7,7 +7,7 @@ import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
 import { inputText, valuePipeline } from './value-pipeline';
-import { validatorCases, filterCases, sortCases, prefixFilter, substringFilter } from './comparison-examples';
+import { validatorCases, sortCases, prefixFilter, substringFilter } from './comparison-examples';
 import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
@@ -427,7 +427,7 @@ export class FdlModifierCatalog extends LitElement {
                     ${this.record.fieldTypeForField(field).empty(this.record, field) ? 'This field is considered empty' : 'This field is not considered empty'}<br>
                     ${!this.record.isValid(field) ? 'Invalid: Reference is required.' : field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}
                 </p>`)}`;
-            case 'filter': return html`<p class="try">One search text drives the table and both matching rules.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>${filterCases(this.probes.getField('filterProbe'))}`;
+            case 'filter': return html`<p class="try">Choose a matching rule and enter search text to filter the table.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
             case 'hashFunction': return html`${this.renderField('firstId', this.probes)}${this.renderField('secondId', this.probes)}<p class="computed" role="status">Hash comparison: ${this.hashType.hashFunction()({ id: this.probes.getField('firstId') }) === this.hashType.hashFunction()({ id: this.probes.getField('secondId') }) ? 'same identity' : 'different identities'}. Separate objects match when their IDs match.</p>`;
             case 'inputMask': return html`${this.renderField('input', this.probes)}<p class="computed" role="status">${[...this.probes.getField('input')].map(character => html`<span class="probe-result">“${character}”: ${this.maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>`)}</p><p class="try">This tests FieldType.allowInputChar(). The native adapter does not block typing.</p>`;
