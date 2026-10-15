@@ -337,3 +337,48 @@ it('preserves currency editing text and caret while parsing, then formats on blu
     expect(input.value).toBe('$45.60');
     element.remove();
 });
+
+
+it.each(['checkbox', 'radio'] as const)('synchronizes native %s checked state as a Boolean', async type => {
+    const record = new Record({value:new FieldType().with.type(type)}, {value:false});
+    const element = document.createElement('fdl-field') as TestElement & {record:Record;field:string};
+    element.record = record;
+    element.field = 'value';
+    document.body.append(element);
+    await element.updateComplete;
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await element.updateComplete;
+    const input = element.shadowRoot!.querySelector('input')!;
+    expect(input.checked).toBe(false);
+    input.click();
+    await element.updateComplete;
+    expect(record.getField('value')).toBe(true);
+    record.setField('value', false);
+    await element.updateComplete;
+    expect(input.checked).toBe(false);
+    input.dispatchEvent(new Event('blur'));
+    expect(record.getField('value')).toBe(false);
+    element.remove();
+});
+
+it('does not try to assign a nonempty model value to a native file picker', async () => {
+    const record = new Record({value:new FieldType().with.type('file')}, {value:'C:\\fakepath\\notes.txt'});
+    const element = document.createElement('fdl-field') as TestElement & {record:Record;field:string};
+    element.record = record;
+    element.field = 'value';
+    document.body.append(element);
+    await element.updateComplete;
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await element.updateComplete;
+    const input = element.shadowRoot!.querySelector('input')!;
+    expect(input.type).toBe('file');
+    expect(input.value).toBe('');
+    expect(() => input.dispatchEvent(new Event('blur'))).not.toThrow();
+    record.setField('value', 'another-file.txt');
+    await element.updateComplete;
+    expect(input.value).toBe('');
+    record.setField('value', '');
+    await element.updateComplete;
+    expect(input.value).toBe('');
+    element.remove();
+});

@@ -23,7 +23,7 @@ class FormElement extends ListeningElement {
     public field: string;
 
     @property({ type: Object })
-    public record?: Record;
+    public record?: Record<any>;
 
     /**
      * Whether this adapter should expose the field's synchronous model validation errors.
@@ -87,7 +87,9 @@ class FormElement extends ListeningElement {
     addListenersToElement() {
         if (this.nativeTextControl) {
             this.listenTo(this.element, 'blur', () => {
-                this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
+                if (!['checkbox', 'radio', 'file'].includes(this.element.type)) {
+                    this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
+                }
             });
             this.listenTo(this.element, 'beforeinput', (event: Event) => {
                 if (!(event instanceof InputEvent)) return;
@@ -111,6 +113,8 @@ class FormElement extends ListeningElement {
                     value = event.detail.value ?? event.detail.values ?? event.detail;
                 } else if (this.element instanceof HTMLSelectElement && this.element.multiple) {
                     value = [...this.element.selectedOptions].map(option => option.value);
+                } else if (this.element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(this.element.type)) {
+                    value = this.element.checked;
                 } else {
                     value = event.target.value;
                 }
@@ -217,19 +221,24 @@ class FormElement extends ListeningElement {
         /**
          * assign all standard properties we can from the modifiers
          */
+        if (this.element instanceof HTMLInputElement) {
+            this.element.type = this.fieldType?.type();
+        }
         // Native selects use option identities, not formatted labels. Keep all
         // selected identities intact between native input and change events.
         if (this.element instanceof HTMLSelectElement) {
             this.element.multiple = this.fieldType?.hasMultipleValues() ?? false;
             this.syncSelectValue();
+        } else if (this.element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(this.element.type)) {
+            this.element.checked = Boolean(this.record?.getField(this.field));
+        } else if (this.element instanceof HTMLInputElement && this.element.type === 'file') {
+            // Browsers only allow clearing a file picker programmatically.
+            if (!this.record?.getField(this.field)) this.element.value = '';
         } else if (!this.parsingNativeInput) {
             // @ts-ignore
             this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
         }
         this.element.id = this.controlId;
-        if (this.element instanceof HTMLInputElement) {
-            this.element.type = this.fieldType?.type();
-        }
         this.element.required = this.fieldType?.required(this.record);
         this.element.visible = this.fieldType?.visible(this.record);
         this.element.readonly = this.fieldType?.readonly(this.record);
