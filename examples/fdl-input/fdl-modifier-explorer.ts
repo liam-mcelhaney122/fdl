@@ -61,6 +61,10 @@ export class FdlModifierExplorer extends LitElement {
         address: new FieldType<string>().with.label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
+    private closeCategoryMenu = (event: Event) => {
+        const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('.category-filters');
+        if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+    };
     private readLocation = () => {
         const hash = window.location.hash.slice(1);
         const page = sitePages.find(page => page.id === hash);
@@ -92,11 +96,13 @@ export class FdlModifierExplorer extends LitElement {
         super.connectedCallback();
         [this.person, this.money, this.delivery].forEach(record => record.addEventListener('change', this.refresh));
         window.addEventListener('hashchange', this.readLocation);
+        window.addEventListener('click', this.closeCategoryMenu);
         this.readLocation();
     }
     disconnectedCallback() {
         [this.person, this.money, this.delivery].forEach(record => record.removeEventListener('change', this.refresh));
         window.removeEventListener('hashchange', this.readLocation);
+        window.removeEventListener('click', this.closeCategoryMenu);
         super.disconnectedCallback();
     }
     private select(index: number, updateUrl = true) {
@@ -164,17 +170,29 @@ export class FdlModifierExplorer extends LitElement {
             <div class="modifier-tools"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2>
             <div class="modifier-search-field"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
             <input id="modifier-search" class="modifier-search" type="search" aria-label="Find a modifier" placeholder="Find a modifier…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}></div>
-            <details class="category-filters">
-                <summary>Categories${this.selectedCategories.size ? html` <span class="filter-count">(${this.selectedCategories.size} selected)</span>` : ''}</summary>
+            <details class="category-filters" @keydown=${(event: KeyboardEvent) => {
+                if (event.key === 'Escape') {
+                    const menu = event.currentTarget as HTMLDetailsElement;
+                    menu.open = false;
+                    menu.querySelector('summary')?.focus();
+                    event.stopPropagation();
+                }
+            }}>
+                <summary aria-label=${`Filter modifiers by category: ${this.selectedCategories.size ? [...this.selectedCategories].join(', ') : 'all categories'}`}><span>${this.selectedCategories.size === 0 ? 'All categories' : this.selectedCategories.size === 1 ? [...this.selectedCategories][0] : `${this.selectedCategories.size} categories`}</span><svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"></path></svg></summary>
+                <div class="category-menu">
                 <fieldset class="categories">
                 <legend class="visually-hidden">Filter modifiers by category</legend>
-                <p class="category-hint">No selection shows all categories.</p>
+                <p class="category-hint">Select any combination.</p>
                 <div class="category-options">${categories.map(category => html`<label><input type="checkbox" .checked=${this.selectedCategories.has(category)} @change=${(event: Event) => {
                     if ((event.target as HTMLInputElement).checked) this.selectedCategories.add(category);
                     else this.selectedCategories.delete(category);
                     this.requestUpdate();
                 }}><span>${category}</span></label>`)}</div>
-            </fieldset></details>
+            </fieldset><div class="category-actions"><button @click=${() => { this.selectedCategories.clear(); this.requestUpdate(); }}>All categories</button><button @click=${(event: Event) => {
+                const menu = (event.currentTarget as HTMLElement).closest('details')!;
+                menu.open = false;
+                menu.querySelector('summary')?.focus();
+            }}>Done</button></div></div></details>
             ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
             <p class="match-count" role="status">${filtered.length} of ${recipes.length} modifiers</p></div>
             <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.select(index); }}><span><strong>${entry.name}</strong><small>${entry.category}</small></span></a>`)}</nav>
@@ -229,10 +247,15 @@ export class FdlModifierExplorer extends LitElement {
         .modifier-search-field { position:relative; }
         .modifier-search-field svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; fill:none; stroke:#64748b; stroke-width:1.75; stroke-linecap:round; pointer-events:none; }
         .modifier-search { width:100%; height:48px; padding:10px 14px 10px 42px; border:1px solid #94a3b8; border-radius:6px; background:#ffffff; color:#0f172a; font-size:1rem; }
-        .category-filters { margin-top:16px; }
-        .category-filters summary { min-height:44px; padding:8px 0; font-size:1rem; font-weight:600; cursor:pointer; }
+        .category-filters { position:relative; margin-top:12px; }
+        .category-filters summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:white; font-size:1rem; cursor:pointer; list-style:none; }
+        .category-filters summary::-webkit-details-marker { display:none; }
+        .category-filters summary svg { width:16px; height:16px; flex-shrink:0; fill:none; stroke:#64748b; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
         .category-filters summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
-        .filter-count { font-size:.875rem; font-weight:400; color:var(--muted); }
+        .category-menu { position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:5; padding:12px; border:1px solid #cbd5e1; border-radius:6px; background:white; box-shadow:0 8px 24px #0f172a26; }
+        .category-options { max-height:240px; overflow-y:auto; overscroll-behavior:contain; }
+        .category-actions { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0; }
+        .category-actions button { min-height:36px; border:0; border-radius:4px; padding:6px 8px; background:#eff6ff; color:#1d4ed8; font-size:.875rem; }
         .categories { border:0; padding:0; margin:0; }
         .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
         .categories legend { padding:0; }
@@ -251,7 +274,7 @@ export class FdlModifierExplorer extends LitElement {
         .site-nav { flex-shrink:0; min-height:0; overflow:visible; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid #cbd5e1; gap:4px; }
         .site-nav a { min-height:44px; font-size:1rem; font-weight:600; padding:8px 10px; }
         .modifier-navigation { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
-        .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow-y:auto; }
+        .modifier-navigation > .modifier-tools { flex:0 1 auto; min-height:0; overflow:visible; }
         .modifier-list { flex:1 1 0; min-height:120px; overflow-y:auto; overflow-x:hidden; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .site-page { max-width:75ch; }
         .site-page h1 { font-family:Arial,Helvetica,sans-serif; font-size:clamp(30px,3vw,42px); font-weight:650; }

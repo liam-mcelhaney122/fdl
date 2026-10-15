@@ -244,6 +244,24 @@ describe('extended model exercises', () => {
 });
 
 describe('category navigation filters', () => {
+    it('keeps category choices in a dropdown and closes with Escape or an outside click', async () => {
+        const page = await openPage();
+        const menu = page.shadowRoot!.querySelector<HTMLDetailsElement>('.category-filters')!;
+        expect(menu.open).toBe(false);
+        expect(menu.querySelector('summary')!.textContent).toBe('All categories');
+        menu.open = true;
+        menu.querySelector<HTMLInputElement>('input')!.click();
+        await settle(page);
+        expect(menu.open).toBe(true);
+        expect(menu.querySelector('summary')!.getAttribute('aria-label')).not.toContain('all categories');
+        menu.querySelector('input')!.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
+        expect(menu.open).toBe(false);
+        expect(page.shadowRoot!.activeElement).toBe(menu.querySelector('summary'));
+        menu.open = true;
+        window.dispatchEvent(new MouseEvent('click'));
+        expect(menu.open).toBe(false);
+    });
+
     it('combines categories with OR and search with AND, and clears both filters', async () => {
         const page = await openPage('#formatter');
         const root = page.shadowRoot!;
