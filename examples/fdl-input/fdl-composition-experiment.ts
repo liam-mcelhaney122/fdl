@@ -78,16 +78,15 @@ export class FdlCompositionExperiment extends LitElement {
     }
     render() {
         return html`<section aria-labelledby="composition-title"><div class="title-row"><h2 id="composition-title">How do independent rules combine?</h2><button class="reset" @click=${this.reset}>Reset experiment</button></div>
-            <p>Hiding a field does not make it optional. Making it optional does not exempt a non-empty value from validation. Here, those decisions come from three independent rules.</p>
-            <p>With the initial rules, <strong>Pickup × Without a street number</strong> hides the control, yet the record is invalid. Select that case below, then turn off the format check and watch the outcomes change.</p>
-            <div class="rule-workspace"><section class="rule-controls" aria-label="Choose the rules"><h3>1. Choose the rules</h3>${['visibility','requiredness','validation'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</section>
-                <section class="definition"><h3>The resulting definition</h3><pre><code>${highlightJavaScript(compositionDefinition(this.rules))}</code></pre><p>This is the address definition used by every case and by the live form.</p></section></div>
+            <p>Change one rule and compare all six outcomes. Visibility, requiredness, and validity are independent decisions.</p>
+            <section class="rule-controls" aria-label="Choose the rules"><h3>1. Choose the rules</h3><div class="rule-workspace">${['visibility','requiredness','validation'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</div></section>
             <section aria-label="Compare all outcomes"><h3>2. Compare the possibilities</h3><p>Each cell runs a real FDL record with the rules above. Select a cell to inspect its exact example. When you edit the form, the grid highlights the matching kind of case.</p>${this.outcomes()}</section>
             <section class="selected-case" aria-labelledby="selected-case-title"><h3 id="selected-case-title" tabindex="-1">3. Inspect the selected case</h3><div class="case-workspace"><div class="editor">
                 <fdl-field .record=${this.record} field="fulfillment"></fdl-field>
                 ${keyed(this.record.fieldTypeForField('address'), html`<fdl-field .record=${this.record} field="address" .showValidationErrors=${true}></fdl-field>`)}
                 <p>Try your own address. The number check is an illustrative format rule, not proof that an address exists or accepts deliveries.</p>
             </div>${this.explanation()}</div></section>
+            <section class="definition"><h3>The resulting definition</h3><pre><code>${highlightJavaScript(compositionDefinition(this.rules))}</code></pre><p>This is the address definition used by every case and by the live form.</p></section>
             <details class="questions"><summary>Questions to investigate</summary><ul><li>Does hiding a field make it optional? Choose Always under requiredness, then inspect Pickup × Empty.</li><li>Does optional mean any value is allowed? Choose Never under requiredness and inspect an address without a number.</li><li>Which rule would you change to get the behavior you intended? Compare switching off the format check with showing the field for both delivery methods.</li></ul></details>
         </section>`;
     }
@@ -98,9 +97,10 @@ export class FdlCompositionExperiment extends LitElement {
         .title-row { display:flex; align-items:start; justify-content:space-between; gap:16px; margin-bottom:20px; }
         button { font:inherit; cursor:pointer; min-height:48px; }
         .reset { flex-shrink:0; border:1px solid #cbd5e1; background:white; color:#1d4ed8; padding:8px 12px; }
-        .rule-workspace,.case-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:20px; margin:24px 0; align-items:stretch; }
-        .rule-controls,.definition,.editor { border:1px solid var(--example-border); border-radius:var(--example-radius); padding:20px; min-width:0; }
-        .rule-controls fdl-field:last-child { margin-bottom:0; } .definition { margin-top:0; }
+        .rule-workspace { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:0; align-items:start; }
+        .case-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:20px; margin:24px 0; align-items:start; }
+        .definition,.editor { border:1px solid var(--example-border); border-radius:var(--example-radius); padding:20px; min-width:0; }
+        .rule-controls fdl-field { margin-bottom:0; } .definition { margin-top:0; }
         fdl-field { --field-label-width:100%; --field-control-width:100%; }
         pre { margin:0 0 16px; padding:16px; background:#0f172a; color:#e2e8f0; overflow:auto; font:.875rem/1.65 monospace; border-radius:6px; white-space:pre-wrap; overflow-wrap:anywhere; }
         .definition p,.editor p { font-size:.875rem; color:#475569; margin-bottom:0; }
@@ -118,8 +118,8 @@ export class FdlCompositionExperiment extends LitElement {
         .questions { border-top:1px solid var(--example-border); padding-top:12px; } summary { cursor:pointer; min-height:44px; padding:8px 0; }
         button:focus-visible,summary:focus-visible,.outcomes:focus-visible,#selected-case-title:focus { outline:3px solid #2563eb; outline-offset:3px; } #selected-case-title { scroll-margin-top:20px; }
         .syntax-string,.syntax-regex { color:#a7f3d0; } .syntax-keyword { color:#c4b5fd; } .syntax-builtin { color:#7dd3fc; } .syntax-number { color:#fdba74; }
-        @media(max-width:1100px) { .rule-workspace,.case-workspace { grid-template-columns:1fr; } }
-        @media(max-width:600px) { .title-row { flex-direction:column; } .rule-controls,.definition,.editor { padding:16px; } table { min-width:560px; } .scroll-hint { display:block; } }
+        @media(max-width:1100px) { .case-workspace { grid-template-columns:1fr; } }
+        @media(max-width:700px) { .rule-workspace { grid-template-columns:1fr; } .title-row { flex-direction:column; } .definition,.editor { padding:16px; } table { min-width:560px; } .scroll-hint { display:block; } }
         ${exampleTheme}
     `;
 }
