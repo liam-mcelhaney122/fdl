@@ -877,12 +877,13 @@ export default class FieldTypeBuilder<T> {
     }
 
     /**
-     * Sets an input mask based on a regular expression
+     * Accepts input characters matching a regular expression; other characters are ignored by input adapters
      * @param {RegExp} regex
      */
     inputMask(regex: RegExp) {
         const copy = this.copy();
-        copy.properties.allowInputChar = (char: string) => char.length !== 1 || regex.test(char);
+        const characterPattern = new RegExp(regex.source, regex.flags.replace(/[gy]/g, ''));
+        copy.properties.allowInputChar = (char: string) => [...char].length !== 1 || characterPattern.test(char);
         copy.properties.descriptions = [...copy.properties.descriptions, `input mask: ${regex}`];
         return copy;
     }

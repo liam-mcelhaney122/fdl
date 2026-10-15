@@ -176,3 +176,14 @@ which applies a field type's form-related modifiers to its child control.
 factories in application or test code, separate from field definitions.
 For generated demo rows, pass a row factory to
 [`ExampleRecordset`](./recordset.md#examplerecordset).
+
+## Input character masks
+
+`inputMask(regex)` accepts only input characters matching the regular expression;
+other characters are ignored. The native form adapter applies the mask to typing,
+pasted text, and completed text composition before parsing and storing the value.
+For example, `inputMask(/[0-9.]/)` accepts digits and periods.
+
+A character mask is not whole-value validation: multiple periods still match
+that mask. Use `validator(...)` for complete-value rules. Programmatic record
+assignments bypass input filtering.

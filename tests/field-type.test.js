@@ -623,6 +623,15 @@ describe('FieldType', () => {
     });
 
     describe('with.inputMask', () => {
+        it('tests every character independently with global or sticky regexes', () => {
+            for (const regex of [/[0-9]/g, /[0-9]/y]) {
+                const type = new FieldType().with.inputMask(regex);
+                expect(['1', '2', 'x', '3', '😀'].map(char => type.allowInputChar(char)))
+                    .toEqual([true, true, false, true, false]);
+                expect(regex.lastIndex).toBe(0);
+            }
+        });
+
         it('allows input if and only if it matches a regex', () => {
             const type = new FieldType().with.inputMask(/[0-9$.,]/);
             expect(type.allowInputChar('0')).toEqual(true);

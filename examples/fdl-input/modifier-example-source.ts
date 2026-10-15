@@ -66,7 +66,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     validate: value => /^PRJ-\\d{4}$/.test(String(value)),
   })`)},values:{projectCode:''}},
         hashFunction: {name:'probes',prefix:"const hashType = new FieldType().with.hashFunction(employee => employee.id);",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
-        inputMask: {name:'probes',prefix:'const maskType = new FieldType().with.inputMask(/[0-9.]/);',fields:{input:type("label('Characters to test')")},values:{input:'7.A'}},
+        inputMask: {name:'probes',fields:{input:type("label('Digits and periods').and.inputMask(/[0-9.]/)")},values:{input:'7.5'}},
         reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldType().with.reducer('sum');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').and.type('number').and.parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
     };
     if (records[name]) return records[name];
@@ -104,7 +104,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const model = modelFor(name, settings);
     const kind = model.kind ?? 'Record';
     const helpers: {[key: string]: string[]} = {
-        hashFunction: ['hashType'], inputMask: ['maskType'],
+        hashFunction: ['hashType'],
         reducer: ['currency', 'reducerType'],
     };
     const exports = [model.name, ...(helpers[name] ?? [])];
@@ -127,7 +127,6 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     if (name === 'options') markup += `\n\n<button @click=\${() => record.setField('assignee', '')}>\n  Clear stored selection\n</button>`;
     if (name === 'parser') markup += `\n\n<p>Stored number: \${record.getField('money')}</p>`;
     if (name === 'hashFunction') markup += `\n\n<p role="status">\n  \${hashType.hashFunction()({ id: probes.getField('firstId') }) ===\n    hashType.hashFunction()({ id: probes.getField('secondId') })\n    ? 'Same identity' : 'Different identities'}\n</p>`;
-    if (name === 'inputMask') markup += `\n\n<p>\n  \${[...probes.getField('input')].map(character =>\n    html\`<span>\${character}: \${maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>\`)}\n</p>\n<p>The native adapter does not block typing.</p>`;
     if (name === 'reducer') markup += `\n\n<p role="status">\n  Sum: \${currency.format(reducerType.aggregate([\n    probes.getField('firstAmount'),\n    probes.getField('secondAmount'),\n    probes.getField('thirdAmount'),\n  ]))}\n</p>`;
     const contract = !markup;
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;

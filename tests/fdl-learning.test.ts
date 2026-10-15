@@ -154,8 +154,9 @@ it('compares prefix and substring matching and updates the executable rule', asy
     const page = await openExplorer('#filter');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
-    const rows = catalog.shadowRoot!.querySelectorAll('.case-comparison tbody tr');
-    expect(rows[2].textContent).toBe('MargaretNo matchMatch');
+    expect(catalog.shadowRoot!.querySelector('.case-comparison')).toBeNull();
+    const initialTable = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    expect(initialTable.recordset.getFieldType('name').match('ar', 'Margaret')).toBe(false);
     await editField(catalog.shadowRoot!, 'matchRule', 'contains');
     await catalog.updateComplete; await page.updateComplete;
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.includes(');

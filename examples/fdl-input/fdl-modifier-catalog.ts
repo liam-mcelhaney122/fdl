@@ -177,7 +177,6 @@ export class FdlModifierCatalog extends LitElement {
         ]
     );
     private hashType = new FieldType().with.hashFunction((employee: { id: string }) => employee.id);
-    private maskType = new FieldType().with.inputMask(/[0-9.]/);
     private cellClassRecordset = new Recordset(
         {
             amount: new FieldType().with.label('Amount').and.cellClass('amount-cell').and.textAlign('right'),
@@ -281,7 +280,7 @@ export class FdlModifierCatalog extends LitElement {
     };
     private probes = new Record({
         classThreshold: new FieldType<number>().with.label('Daily Expense Limit').and.type('number').and.parser(Number),
-        input: new FieldType<string>().with.label('Characters to test'),
+        input: new FieldType<string>().with.label('Digits and periods').and.inputMask(/[0-9.]/),
         filterProbe: new FieldType<string>().with.label('Search names'),
         matchRule: new FieldType<string>().with.label('Filter matching rule').and.tag('select').and.options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
         firstId: new FieldType<string>().with.label('First employee ID'),
@@ -289,7 +288,7 @@ export class FdlModifierCatalog extends LitElement {
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
         return {
@@ -430,7 +429,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'filter': return html`<p class="try">Choose a matching rule and enter search text to filter the table.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;
             case 'hashFunction': return html`${this.renderField('firstId', this.probes)}${this.renderField('secondId', this.probes)}<p class="computed" role="status">Hash comparison: ${this.hashType.hashFunction()({ id: this.probes.getField('firstId') }) === this.hashType.hashFunction()({ id: this.probes.getField('secondId') }) ? 'same identity' : 'different identities'}. Separate objects match when their IDs match.</p>`;
-            case 'inputMask': return html`${this.renderField('input', this.probes)}<p class="computed" role="status">${[...this.probes.getField('input')].map(character => html`<span class="probe-result">“${character}”: ${this.maskType.allowInputChar(character) ? 'allowed' : 'blocked'} </span>`)}</p><p class="try">This tests FieldType.allowInputChar(). The native adapter does not block typing.</p>`;
+            case 'inputMask': return html`${this.renderField('input', this.probes)}<p class="try">Only digits and periods are accepted. Other characters are ignored.</p>`;
             case 'label': return html`<p class="try">Change the expense type and watch the amount label.</p>${this.renderField('expenseType')}${this.renderField('dynamicAmount')}`;
             case 'maxColumnWidth': return this.renderWidth('maxColumnWidth');
             case 'maxLength': return html`${this.renderValidation('shortCode')}${this.modifier ? html`<button class="model-assignment" @click=${() => { this.record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG'); this.validateField('shortCode'); }}>Assign an overlong model value</button>` : nothing}`;
@@ -475,7 +474,7 @@ export class FdlModifierCatalog extends LitElement {
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
         if (name === 'defaultValue') return this.defaultRecord.values;
         if (name === 'hashFunction') return { firstObject: { id: this.probes.getField('firstId') }, secondObject: { id: this.probes.getField('secondId') } };
-        if (name === 'inputMask') return [...this.probes.getField('input')].map(character => ({ character, allowed: this.maskType.allowInputChar(character) }));
+        if (name === 'inputMask') return {input: this.probes.getField('input')};
         if (name === 'reducer') return { values: (['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field)), sum: this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))) };
         const table = this.tableRecordsets[name];
         return table ? {
@@ -489,8 +488,9 @@ export class FdlModifierCatalog extends LitElement {
         const table = this.tableRecordsets[name];
         if (table) return tableSummary(table);
         if (name === 'defaultValue') return recordSummary(this.defaultRecord);
+        if (name === 'inputMask') return recordSummary(this.probes, ['input']);
         const state = this.focusedState(name);
-        if (state && !['hashFunction', 'inputMask', 'reducer'].includes(name)) return recordSummary(this.record, Object.keys(state as object));
+        if (state && !['hashFunction', 'reducer'].includes(name)) return recordSummary(this.record, Object.keys(state as object));
         if (name === 'reducer') return html`<p class="state-summary">Three values aggregate to ${currency.format(this.reducerType.aggregate((['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field => this.probes.getField(field))))}.</p>`;
         return html`<p class="state-summary">${describeValue(state)}</p>`;
     }
@@ -499,7 +499,7 @@ export class FdlModifierCatalog extends LitElement {
             const entry = modifierEntries.find(entry => entry.name === this.modifier);
             if (!entry) return nothing;
             return html`<div class=${`focused ${['cellClass', 'compareFunction', 'conditionalCellClass', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClasses', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`} data-modifier=${entry.name}>
-                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['hashFunction', 'inputMask', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
+                ${entry.demo ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div><div class="focused-state"><p class="state-label">${['hashFunction', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p>${this.stateSummary(entry.name)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre></details></div>`
                 : html`<div class="limitation"><strong>Adapter support needed</strong><p>${entry.limitation}</p><p>This page documents the contract; it does not simulate an unsupported control.</p></div>`}
             </div>`;
     }

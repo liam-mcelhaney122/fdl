@@ -182,3 +182,78 @@ describe('<fdl-field>', () => {
         element.remove();
     });
 });
+
+describe('native input masks', () => {
+    async function maskedField(tag = 'input') {
+        const record = new Record({value: new FieldType<string>().with.tag(tag).and.inputMask(/[0-9.]/)}, {value: '12.3'});
+        const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
+        element.record = record;
+        element.field = 'value';
+        document.body.append(element);
+        await settle(element);
+        const input = element.shadowRoot!.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement;
+        return {record, element, input};
+    }
+
+    it('ignores rejected typing without replacing the selected text', async () => {
+        const {record, element, input} = await maskedField();
+        input.setSelectionRange(1, 3);
+        const rejected = new InputEvent('beforeinput', {data: 'x', inputType: 'insertText', cancelable: true});
+        input.dispatchEvent(rejected);
+        expect(rejected.defaultPrevented).toBe(true);
+        expect(input.value).toBe('12.3');
+        expect([input.selectionStart, input.selectionEnd]).toEqual([1, 3]);
+        expect(record.getField('value')).toBe('12.3');
+        const accepted = new InputEvent('beforeinput', {data: '4', inputType: 'insertText', cancelable: true});
+        input.dispatchEvent(accepted);
+        expect(accepted.defaultPrevented).toBe(false);
+        element.remove();
+    });
+
+    it.each(['input', 'textarea'])('filters mixed pasted text in a native %s and preserves the caret', async tag => {
+        const {record, element, input} = await maskedField(tag);
+        input.value = '1a😀4.2b3';
+        input.setSelectionRange(8, 8);
+        input.dispatchEvent(new InputEvent('input', {inputType: 'insertFromPaste'}));
+        await settle(element);
+        expect(input.value).toBe('14.23');
+        expect(record.getField('value')).toBe('14.23');
+        expect(input.selectionStart).toBe(4);
+        // Deletion and clearing remain ordinary editing operations.
+        input.value = '';
+        input.dispatchEvent(new InputEvent('input', {inputType: 'deleteContentBackward'}));
+        expect(record.getField('value')).toBe('');
+        element.remove();
+    });
+
+    it('waits for composition to finish before filtering and storing input', async () => {
+        const {record, element, input} = await maskedField();
+        input.dispatchEvent(new Event('compositionstart'));
+        input.value = '12あ4';
+        input.dispatchEvent(new InputEvent('input', {isComposing: true}));
+        expect(input.value).toBe('12あ4');
+        expect(record.getField('value')).toBe('12.3');
+        input.dispatchEvent(new Event('compositionend'));
+        await settle(element);
+        expect(input.value).toBe('124');
+        expect(record.getField('value')).toBe('124');
+        element.remove();
+    });
+
+    it('filters before parsing while leaving programmatic model values untouched', async () => {
+        const record = new Record({value: new FieldType<number>().with.inputMask(/[0-9]/).and.parser(Number)}, {value: 12});
+        const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
+        element.record = record;
+        element.field = 'value';
+        document.body.append(element);
+        await settle(element);
+        const input = element.shadowRoot!.querySelector('input')!;
+        input.value = '3a4';
+        input.dispatchEvent(new Event('input'));
+        expect(record.getField('value')).toBe(34);
+        record.setField('value', -9);
+        await settle(element);
+        expect(input.value).toBe('-9');
+        element.remove();
+    });
+});

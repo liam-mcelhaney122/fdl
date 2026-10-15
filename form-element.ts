@@ -55,9 +55,53 @@ class FormElement extends ListeningElement {
         this.addListenersToRecord();
     }
 
+    private composing = false;
+
+    private get nativeTextControl(): HTMLInputElement | HTMLTextAreaElement | undefined {
+        return this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement
+            ? this.element : undefined;
+    }
+
+    private acceptedInput(text: string) {
+        return [...text].filter(character => this.fieldType?.allowInputChar(character)).join('');
+    }
+
+    private filterNativeInput() {
+        const control = this.nativeTextControl;
+        if (!control) return;
+        const value = control.value;
+        const accepted = this.acceptedInput(value);
+        if (accepted === value) return;
+        const {selectionStart, selectionEnd, selectionDirection} = control;
+        control.value = accepted;
+        if (selectionStart !== null && selectionEnd !== null) {
+            control.setSelectionRange(
+                this.acceptedInput(value.slice(0, selectionStart)).length,
+                this.acceptedInput(value.slice(0, selectionEnd)).length,
+                selectionDirection ?? undefined
+            );
+        }
+    }
+
     addListenersToElement() {
+        if (this.nativeTextControl) {
+            this.listenTo(this.element, 'beforeinput', (event: Event) => {
+                if (!(event instanceof InputEvent)) return;
+                if (!this.composing && !event.isComposing && event.data &&
+                    event.inputType.startsWith('insert') && this.acceptedInput(event.data) === '') {
+                    event.preventDefault();
+                }
+            });
+            this.listenTo(this.element, 'compositionstart', () => { this.composing = true; });
+            this.listenTo(this.element, 'compositionend', () => {
+                this.composing = false;
+                this.element.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+            });
+        }
         Events.forEach(e => {
             this.listenTo(this.element, e, async (event: any) => {
+                if (this.composing || event.isComposing) return;
+                this.filterNativeInput();
                 let value;
                 if (event.detail) {
                     value = event.detail.value ?? event.detail.values ?? event.detail;
