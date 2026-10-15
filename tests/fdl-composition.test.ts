@@ -105,6 +105,8 @@ it('keeps custom cases and compares saved rules with changed rules',async()=>{
  const cells=demo.shadowRoot!.querySelectorAll('.collected-cases tbody td');
  expect(cells[0].textContent).toContain('Hidden · Optional · Invalid');
  expect(cells[1].textContent).toContain('Hidden · Optional · Valid');
+ expect(cells[1].textContent).toContain('Format check: street number → off');
  demo.shadowRoot!.querySelector<HTMLButtonElement>('.collected-cases button')!.click();await demo.updateComplete;
  expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('The record is invalid');
+ expect(demo.shadowRoot!.querySelector('.collected-cases')!.textContent).toContain('Rules unchanged');
 });

@@ -7,7 +7,7 @@ import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import { exampleTheme } from './example-theme';
 import { highlightJavaScript } from './highlight-javascript';
-import { addressCases, addressCase, compositionFields, compositionRecord, compositionExplanation, compositionDefinition, defaultCompositionRules, type CompositionRules } from './composition-model';
+import { addressCases, addressCase, compositionFields, compositionRecord, compositionRuleChanges, compositionExplanation, compositionDefinition, defaultCompositionRules, type CompositionRules } from './composition-model';
 import './fdl-field';
 
 export class FdlCompositionExperiment extends LitElement {
@@ -77,7 +77,7 @@ export class FdlCompositionExperiment extends LitElement {
         return html`<section class="collected-cases"><h3>Your kept cases</h3><p>Saved outcomes keep the rules from that moment. The last column applies the rules currently selected above.</p><div class="outcomes"><table><thead><tr><th>Case</th><th>With saved rules</th><th>With current rules</th><th>Actions</th></tr></thead><tbody>${this.savedCases.map((sample,index)=>{
             const saved=compositionRecord(sample.rules,sample.method,sample.address),current=compositionRecord(this.rules,sample.method,sample.address);
             const describe=(record: ReturnType<typeof compositionRecord>)=>`${record.fieldTypeForField('address').visible(record)?'Visible':'Hidden'} · ${record.fieldTypeForField('address').required(record)?'Required':'Optional'} · ${record.isValid()?'Valid':'Invalid'}`;
-            return html`<tr><th scope="row">${sample.method}<small>${JSON.stringify(sample.address)}</small></th><td>${describe(saved)}</td><td>${describe(current)}</td><td><button @click=${()=>{this.configuration.setFields({...sample.rules});this.selectCase(sample.method,sample.address);}}>Restore case ${index+1}</button><button aria-label=${`Remove case ${index+1}`} @click=${()=>{this.savedCases=this.savedCases.filter((_,i)=>i!==index);this.requestUpdate();}}>Remove</button></td></tr>`;
+            return html`<tr><th scope="row">${sample.method}<small>${JSON.stringify(sample.address)}</small></th><td>${describe(saved)}</td><td>${describe(current)}<small>${compositionRuleChanges(sample.rules,this.rules).join('; ') || 'Rules unchanged'}</small></td><td><button @click=${()=>{this.configuration.setFields({...sample.rules});this.selectCase(sample.method,sample.address);}}>Restore case ${index+1}</button><button aria-label=${`Remove case ${index+1}`} @click=${()=>{this.savedCases=this.savedCases.filter((_,i)=>i!==index);this.requestUpdate();}}>Remove</button></td></tr>`;
         })}</tbody></table></div><button @click=${()=>{this.savedCases=[];this.caseNotice='';this.requestUpdate();}}>Clear kept cases</button></section>`;
     }
     private explanation() {

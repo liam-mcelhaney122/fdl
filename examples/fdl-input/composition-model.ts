@@ -51,3 +51,16 @@ export function compositionExplanation(rules: CompositionRules, method: string, 
         format: rules.validation === 'off' ? 'No format validator is declared.' : value === '' ? 'The format validator accepts an empty value; requiredness is checked separately.' : hasStreetNumber(value) ? 'The stored address passes the street-number check.' : 'The stored address fails the street-number check.',
     };
 }
+
+export function compositionRuleChanges(saved: CompositionRules, current: CompositionRules) {
+    const descriptions = {
+        visibility: {label:'Show address', values:{all:'both methods', shipping:'shipping only'}},
+        requiredness: {label:'Require address', values:{never:'never', shipping:'shipping only', always:'always'}},
+        validation: {label:'Format check', values:{off:'off', on:'street number'}},
+    };
+    return (Object.keys(descriptions) as (keyof CompositionRules)[]).filter(key=>saved[key]!==current[key]).map(key=>{
+        const description=descriptions[key];
+        const values=description.values as {[value:string]:string};
+        return `${description.label}: ${values[saved[key]]} → ${values[current[key]]}`;
+    });
+}
