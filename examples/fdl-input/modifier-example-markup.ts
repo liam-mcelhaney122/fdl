@@ -15,7 +15,7 @@ export const exampleFields: { [name: string]: [record: string, fields: string[]]
 export const exampleTables: { [name: string]: [recordset: string, columns: string[]] } = {
     cellClass: ['cellClassRecordset', ['amount', 'category']],
     conditionalCellClass: ['conditionalClassRecordset', ['day', 'amount']],
-    compareFunction: ['compareRecordset', ['firstName', 'lastName', 'team']],
+    compareFunction: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
     sortable: ['compareRecordset', ['firstName', 'lastName', 'team']],
     filter: ['filterRecordset', ['name', 'team']],
     rowClasses: ['rowClassRecordset', ['status', 'owner']],

@@ -119,7 +119,7 @@ it('explains actual sort precedence without requiring a JSON read', async () => 
     table.shadowRoot.querySelector('button[title="Sort by Last name"]').click();
     await table.recordset.requestUpdate(); await catalog.updateComplete;
     expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('Sorted by Last name ↑');
-    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('4 of 4');
+    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('6 of 6');
     expect(catalog.shadowRoot!.querySelector('.focused-state details')!.hasAttribute('open')).toBe(false);
 });
 
@@ -294,4 +294,16 @@ it('highlights fixed weekday expenses above the adjustable threshold and formats
     expect(highlighted()).toEqual(['$142.75']);
     expect(rendered.map(row=>row.querySelectorAll('td')[1].textContent!.trim())).toEqual(['$85.50','$142.75','$60.00','$100.00','$125.25']);
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('value > 125.25');
+});
+
+it('sorts the live T-shirt size column in size order and highlights all comparator calls',async()=>{
+    const page=await openExplorer('#compareFunction');
+    const catalog=page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;await catalog.updateComplete;
+    const table=catalog.shadowRoot!.querySelector('fdl-table') as any;await table.updateComplete;await table.recordset.requestUpdate();
+    table.shadowRoot.querySelector('button[title="Sort by T-shirt size"]').click();
+    await table.recordset.requestUpdate();await table.updateComplete;
+    expect([...table.shadowRoot.querySelectorAll('tbody tr')].map((row:any)=>row.querySelectorAll('td')[2].textContent.trim())).toEqual(['XS','S','M','L','XL','XXL']);
+    const focused=page.shadowRoot!.querySelectorAll('.code .focused-line');
+    expect([...focused].filter(line=>line.textContent!.includes('.compareFunction('))).toHaveLength(3);
+    expect(catalog.shadowRoot!.querySelector('.case-comparison')!.textContent).toContain('XS → S → M → L → XL → XXL');
 });

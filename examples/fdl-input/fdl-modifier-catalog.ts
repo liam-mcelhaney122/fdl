@@ -1,3 +1,4 @@
+import { compareShirtSizes, compareShirtSizesSource, shirtOrders } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html, nothing, type TemplateResult } from 'lit';
@@ -42,20 +43,10 @@ const placeholder = (name: string, intent: string, limitation: string): CatalogE
 
 export const modifierEntries: CatalogEntry[] = [
     live('cellClass', 'Adds a CSS class to every table cell for this field.', 'cellClass', `.cellClass('amount-cell')`),
-    live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `const people = new Recordset({
-  firstName: new FieldType().with
-    .label('First name')
-    .and.compareFunction((a, b) => a.localeCompare(b)),
-  lastName: new FieldType().with
-    .label('Last name')
-    .and.compareFunction((a, b) => a.localeCompare(b)),
-}, data);
+    live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
-<fdl-table .recordset=\${people}>
-  <fdl-column field="firstName"></fdl-column>
-  <fdl-column field="lastName"></fdl-column>
-  <fdl-column field="team"></fdl-column>
-</fdl-table>`),
+new FieldType().with.label('T-shirt size')
+  .and.compareFunction(compareShirtSizes)`),
     live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > this.probes.getField('classThreshold'), 'high-value')`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Pending assignment')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
@@ -205,7 +196,14 @@ export class FdlModifierCatalog extends LitElement {
         },
         weeklyExpenses.map(expense => ({...expense}))
     );
-    private compareRecordset = new Recordset(
+    private compareRecordset = new Recordset({
+        firstName: new FieldType<string>().with.label('First name')
+            .and.compareFunction((left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1),
+        lastName: new FieldType<string>().with.label('Last name')
+            .and.compareFunction((left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1),
+        shirtSize: new FieldType<string>().with.label('T-shirt size').and.compareFunction(compareShirtSizes),
+    }, shirtOrders.map(order => ({...order})));
+    private sortableRecordset = new Recordset(
         {
             firstName: new FieldType().with
                 .label('First name')
@@ -301,7 +299,7 @@ export class FdlModifierCatalog extends LitElement {
             compareFunction: this.compareRecordset, filter: this.filterRecordset,
             formatter: this.formatterRecordset, rowClasses: this.rowClassRecordset,
             template: this.templateRecordset, textAlign: this.alignRecordset,
-            sortable: this.compareRecordset, ...this.widthRecordsets,
+            sortable: this.sortableRecordset, ...this.widthRecordsets,
         };
     }
 
@@ -414,11 +412,11 @@ export class FdlModifierCatalog extends LitElement {
         switch (name) {
             case 'cellClass': return html`<p class="try">The Amount column is bold, blue, and highlighted because its cells receive the <code>amount-cell</code> class.</p><fdl-table .recordset=${this.cellClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="category"></fdl-column></fdl-table>`;
             case 'compareFunction': {
-                return html`<p class="try">Click First name and Last name. Numbered arrows show the primary and secondary sort.</p>
+                return html`<p class="try">Sort T-shirt size to order sizes from XS to XXL instead of alphabetically. First and last names use alphabetic order.</p>
                     <fdl-table .recordset=${this.compareRecordset}>
                         <fdl-column field="firstName"></fdl-column>
                         <fdl-column field="lastName"></fdl-column>
-                        <fdl-column field="team"></fdl-column>
+                        <fdl-column field="shirtSize"></fdl-column>
                     </fdl-table>${sortCases(this.compareRecordset)}`;
             }
             case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
@@ -452,7 +450,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'requiredWhen': return html`<p class="try">Choose Yes, then check the empty notes.</p>${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClasses': return html`<p class="try">Only the Disputed row receives the <code>disputed-row</code> class.</p><fdl-table .recordset=${this.rowClassRecordset}><fdl-column field="status"></fdl-column><fdl-column field="owner"></fdl-column></fdl-table>`;
             case 'rowCount': return html`${this.renderField('comments')}`;
-            case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.compareRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
+            case 'sortable': return html`<p class="try">First name and Last name can sort. Team has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
             case 'template': return html`<p class="try">The stored value <code>1048</code> is rendered through the field template.</p><fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="status"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;

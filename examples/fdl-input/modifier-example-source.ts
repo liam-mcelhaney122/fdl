@@ -1,3 +1,4 @@
+import { shirtOrders, compareShirtSizesSource } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { disabledFieldStyles } from './field-example-styles';
 import { tableExampleStyles } from './table-example-styles';
@@ -73,7 +74,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     const tables: {[key: string]: Model} = {
         cellClass: {name:'cellClassRecordset',fields:{amount:type("label('Amount').and.cellClass('amount-cell').and.textAlign('right')"),category:type("label('Category')")},values:[{amount:42,category:'Travel'},{amount:84,category:'Meals'}]},
         conditionalCellClass: {name:'conditionalClassRecordset',prefix:currency,fields:{day:type("label('Day').and.sortable(false)"),amount:type(`label('Expenses').and.textAlign('right').and.formatter(value => currency.format(Number(value))).and.conditionalCellClass(value => value > ${settings.threshold ?? expenseHighlightThreshold}, 'high-value')`)},values:weeklyExpenses},
-        compareFunction: {name:'compareRecordset',fields:peopleFields,values:people},
+        compareFunction: {name:'compareRecordset',prefix:compareShirtSizesSource,fields:{firstName:peopleFields.firstName,lastName:peopleFields.lastName,shirtSize:type("label('T-shirt size').and.compareFunction(compareShirtSizes)")},values:shirtOrders},
         sortable: {name:'compareRecordset',fields:peopleFields,values:people},
         filter: {name:'filterRecordset',fields:{name:type(`label('Name').and.filter((text, value) =>
     value.toLowerCase().${settings.filterMode === 'contains' ? 'includes' : 'startsWith'}(text.toLowerCase()))`),team:type("label('Team')")},values:[{name:'Ada',team:'Research'},{name:'Grace',team:'Platform'},{name:'Margaret',team:'Research'}]},

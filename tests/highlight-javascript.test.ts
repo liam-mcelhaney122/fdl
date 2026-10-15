@@ -34,3 +34,20 @@ it('shows HTML bindings as highlighted source without creating controls', () => 
     expect(container.querySelector('fdl-field')).toBeNull();
     expect(container.querySelector('.syntax-string')!.textContent).toBe('"amount"');
 });
+
+it('highlights every modifier call while ignoring lookalikes in comments and strings', () => {
+    const code = `// .compareFunction(ignored)
+const note = '.compareFunction(ignored)';
+first.and.compareFunction((a, b) => a.localeCompare(b));
+second.and.compareFunction(
+  compareShirtSizes
+);
+third.and.label('Unrelated');`;
+    const container = document.createElement('div');
+    render(highlightModifier(code, 'compareFunction'), container);
+    expect(container.textContent).toBe(code);
+    expect([...container.querySelectorAll('.focused-line')].map(line=>line.textContent)).toEqual([
+        'first.and.compareFunction((a, b) => a.localeCompare(b));',
+        'second.and.compareFunction(', '  compareShirtSizes', ');',
+    ]);
+});

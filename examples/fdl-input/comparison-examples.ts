@@ -2,7 +2,6 @@ import { html } from 'lit';
 import FieldType from '../../field-type.js';
 import Record from '../../record.js';
 import Recordset from '../../recordset.js';
-import comparatorFromColumns from '../../utilities/comparator-from-columns.js';
 
 export const prefixFilter = new FieldType<string>().with.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()));
 export const substringFilter = new FieldType<string>().with.filter((text, value) => value.toLowerCase().includes(text.toLowerCase()));
@@ -18,7 +17,7 @@ export function filterCases(text: string) {
     return html`<table class="case-comparison"><caption>How both rules match “${text}”</caption><thead><tr><th scope="col">Name</th><th scope="col">Starts with</th><th scope="col">Contains</th></tr></thead><tbody>${['Ada', 'Grace', 'Margaret'].map(name => html`<tr><th scope="row">${name}</th><td>${prefixFilter.match(text, name) ? 'Match' : 'No match'}</td><td>${substringFilter.match(text, name) ? 'Match' : 'No match'}</td></tr>`)}</tbody></table>`;
 }
 export function sortCases(table: Recordset<any>) {
-    const values = table.allRecords.map(record => record.values);
-    const fields = { firstName: table.getFieldType('firstName'), lastName: table.getFieldType('lastName') };
-    return html`<section class="case-comparison"><h3>Compare sort precedence</h3><p>Both views use FDL’s comparator and the same source records.</p><div class="comparison-grid">${[['firstName', 'lastName'], ['lastName', 'firstName']].map(order => html`<div><h4>${order.map(field => fields[field as keyof typeof fields].label()).join(' → ')}</h4><ol>${[...values].sort(comparatorFromColumns(order.map(field => ({ field, sort: 'ascending' })), fields)).map(value => html`<li>${value.firstName} ${value.lastName}</li>`)}</ol></div>`)}</div></section>`;
+    const sizes = [...new Set(table.allRecords.map(record => record.values.shirtSize))] as string[];
+    const sizeType = table.getFieldType('shirtSize');
+    return html`<section class="case-comparison"><h3>Alphabetic order versus size order</h3><p>The same sizes produce different orders. The table uses compareShirtSizes.</p><div class="comparison-grid"><div><h4>Alphabetic order</h4><p>${[...sizes].sort().join(' → ')}</p></div><div><h4>T-shirt size order</h4><p>${[...sizes].sort((left,right)=>sizeType.compare(left,right)).join(' → ')}</p></div></div></section>`;
 }

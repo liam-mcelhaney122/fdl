@@ -88,3 +88,14 @@ it('exports the same weekday expenses, dollar formatting, and strict threshold',
     expect(model.getFieldType('amount').cellClasses(125.25)).not.toContain('high-value');
     expect(model.getFieldType('amount').cellClasses(142.75)).toContain('high-value');
 });
+
+it('exports a named size comparator and sorts sizes in domain order rather than alphabetically', async () => {
+    const {model,container}=runExample('compareFunction');
+    const size=model.getFieldType('shirtSize');
+    expect(['XL','S','XXL','L','XS','M'].sort((a,b)=>size.compare(a,b))).toEqual(['XS','S','M','L','XL','XXL']);
+    expect(size.compare('M','M')).toBe(0);
+    expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['firstName','lastName','shirtSize']);
+    const source=exampleSource('compareFunction');
+    expect(source.definition).toContain('function compareShirtSizes(left, right)');
+    expect(source.definition).toContain('.compareFunction(compareShirtSizes)');
+});

@@ -31,25 +31,32 @@ export function highlightJavaScript(source: string): Array<string | TemplateResu
     return output;
 }
 
-/** Locate the complete modifier call, treating strings and comments as tokens. */
-export function modifierLineRange(source: string, modifier: string): [number, number] | undefined {
-    const start = source.indexOf(`.${modifier}(`);
-    if (start < 0) return undefined;
-    const opening = start + modifier.length + 1;
-    let depth = 0;
-    let end = source.length;
-    for (const token of source.matchAll(tokens)) {
-        if (token.index! < opening) continue;
-        if (token[0] === '(') depth++;
-        if (token[0] === ')' && --depth === 0) { end = token.index!; break; }
+/** Locate every complete call, skipping apparent calls inside strings/comments. */
+export function modifierLineRanges(source: string, modifier: string): Array<[number, number]> {
+    const lexemes = [...source.matchAll(tokens)];
+    const ranges: Array<[number, number]> = [];
+    for (let index = 0; index < lexemes.length - 2; index++) {
+        if (lexemes[index][0] !== '.' || lexemes[index + 1][0] !== modifier || lexemes[index + 2][0] !== '(') continue;
+        const start = lexemes[index].index!;
+        let depth = 0;
+        let end = source.length;
+        for (let cursor = index + 2; cursor < lexemes.length; cursor++) {
+            if (lexemes[cursor][0] === '(') depth++;
+            if (lexemes[cursor][0] === ')' && --depth === 0) { end = lexemes[cursor].index!; break; }
+        }
+        ranges.push([source.slice(0, start).split('\n').length - 1, source.slice(0, end).split('\n').length - 1]);
     }
-    return [source.slice(0, start).split('\n').length - 1, source.slice(0, end).split('\n').length - 1];
+    return ranges;
+}
+
+export function modifierLineRange(source: string, modifier: string): [number, number] | undefined {
+    return modifierLineRanges(source, modifier)[0];
 }
 
 export function highlightModifier(source: string, modifier: string) {
-    const range = modifierLineRange(source, modifier);
+    const ranges = modifierLineRanges(source, modifier);
     const lines = source.split('\n');
-    return lines.map((line, index) => html`<span class=${`code-line${range && index >= range[0] && index <= range[1] ? ' focused-line' : ''}`}>${highlightJavaScript(line)}</span>${index < lines.length - 1 ? '\n' : ''}`);
+    return lines.map((line, index) => html`<span class=${`code-line${ranges.some(range => index >= range[0] && index <= range[1]) ? ' focused-line' : ''}`}>${highlightJavaScript(line)}</span>${index < lines.length - 1 ? '\n' : ''}`);
 }
 
 export function highlightMarkup(source: string) {
