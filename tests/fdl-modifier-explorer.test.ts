@@ -1,3 +1,4 @@
+import { inputTypes } from '../types/input-types.types';
 import { modifierPage, modifierPageGroups } from '../examples/fdl-input/modifier-page-groups';
 import { relatedModifierNames } from '../examples/fdl-input/related-modifiers';
 import { categoryDescriptions } from '../examples/fdl-input/category-icon';
@@ -545,4 +546,41 @@ it('switches invoice template output when its balance is edited, even after sort
         expect(table.shadowRoot.querySelectorAll('.paid-balance')).toHaveLength(amount === '0' ? 2 : 1);
         if (amount === '42.5') expect(table.shadowRoot.textContent).toContain('$42.50');
     }
+});
+
+
+it('previews every declared input type and keeps the source and record panel in sync', async () => {
+    const page = await openPage('#type');
+    const root = page.shadowRoot!;
+    const catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const selector = catalog.shadowRoot!.querySelector('fdl-field[field="inputType"]') as any;
+    await selector.updateComplete;
+    const select = selector.shadowRoot.querySelector('select') as HTMLSelectElement;
+    expect([...select.options].map(option => option.value)).toEqual(inputTypes);
+    for (const inputType of inputTypes) {
+        select.value = inputType;
+        select.dispatchEvent(new Event('change'));
+        await catalog.updateComplete;
+        await settle(page);
+        const preview = catalog.shadowRoot!.querySelector('fdl-field[field="inputValue"]') as any;
+        await preview.updateComplete;
+        const input = preview.shadowRoot.querySelector('input') as HTMLInputElement;
+        expect(input.type).toBe(inputType);
+        expect(preview.record.fieldTypeForField('inputValue').type()).toBe(inputType);
+        expect(root.textContent).toContain(`.type('${inputType}')`);
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Example: ' + inputType);
+        if (inputType === 'checkbox' || inputType === 'radio') {
+            input.click();
+            await catalog.updateComplete;
+            expect(preview.record.getField('inputValue')).toBe(true);
+        }
+    }
+    root.querySelector<HTMLButtonElement>('.reset')!.click();
+    await settle(page);
+    const resetCatalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await resetCatalog.updateComplete;
+    const preview = resetCatalog.shadowRoot!.querySelector('fdl-field[field="inputValue"]') as any;
+    await preview.updateComplete;
+    expect(preview.shadowRoot.querySelector('input').type).toBe('text');
 });

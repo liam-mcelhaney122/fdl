@@ -1,3 +1,5 @@
+import { inputTypeChoices, inputTypeField, inputTypeInitialValue, inputTypeNote } from './input-type-example';
+import type { inputType } from '../../types/input-types.types';
 import { assigneeDirectory, optionsDelay } from './assignee-options';
 import { compareShirtSizes, compareShirtSizesSource, shirtOrders } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
@@ -102,6 +104,7 @@ export class FdlModifierCatalog extends LitElement {
 
     private validatedFields = new Set<string>();
     private minimum = 4;
+    private inputTypeRecord = new Record({inputValue: inputTypeField('text')}, {inputValue: inputTypeInitialValue('text')});
     private moneyInput?: string;
     private captureMoneyInput = {capture: true, handleEvent: (event: Event) => { this.moneyInput = inputText(event); this.requestUpdate(); }};
     private optionsDepartment = '';
@@ -152,7 +155,6 @@ export class FdlModifierCatalog extends LitElement {
             followUp: new FieldType().with.label('Follow-up needed?').and.tag('select').and.options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
             followUpNotes: new FieldType().with.label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes'),
             comments: new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(4),
-            dateType: new FieldType().with.label('Start date').and.type('date'),
             projectCode: new FieldType().with.label('Project code').and.validator({ name: 'must look like PRJ-1234', validate: value => /^PRJ-\d{4}$/.test(String(value)) }),
             fulfillment: new FieldType().with.label('Fulfillment').and.tag('select').and.options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
             address: new FieldType().with.label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship'),
@@ -163,7 +165,7 @@ export class FdlModifierCatalog extends LitElement {
             money: 1000,
             shortCode: '', longCode: '', skills: ['design'], quantity: 2, total: 50, department: 'engineering', assignee: 'margaret', asyncAssignee: 'margaret',
             projectName: '', fixedOwner: 'Ada Lovelace', phase: 'draft', conditionalOwner: 'Ada Lovelace', requiredName: '',
-            followUp: 'no', followUpNotes: '', comments: '', dateType: '', projectCode: '',
+            followUp: 'no', followUpNotes: '', comments: '', projectCode: '',
             fulfillment: 'ship', address: '',
         }
     );
@@ -282,6 +284,7 @@ export class FdlModifierCatalog extends LitElement {
         ),
     };
     private probes = new Record({
+        inputType: new FieldType().with.label('Input type').and.tag('select').and.options(inputTypeChoices),
         textareaRows: new FieldType<number>().with.label('Row count').and.tag('select').and.parser(Number).and.options([1, 4, 10].map(value => ({text: String(value), value}))),
         classThreshold: new FieldType<number>().with.label('Daily Expense Limit').and.type('number').and.parser(Number),
         input: new FieldType<string>().with.label('Digits and periods').and.inputMask(/[0-9.]/),
@@ -292,7 +295,7 @@ export class FdlModifierCatalog extends LitElement {
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { textareaRows: 4, classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { inputType: 'text', textareaRows: 4, classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
         return {
@@ -308,6 +311,7 @@ export class FdlModifierCatalog extends LitElement {
         super.connectedCallback();
         this.record.addEventListener('change', this.onRecordChange);
         this.defaultRecord.addEventListener('change', this.onRecordChange);
+        this.inputTypeRecord.addEventListener('change', this.onRecordChange);
         this.probes.addEventListener('change', this.onProbeChange);
         this.templateRecordset.addEventListener('updated', this.onRecordChange);
         if (this.modifier === 'options') this.loadAssigneeChoices();
@@ -317,6 +321,7 @@ export class FdlModifierCatalog extends LitElement {
     disconnectedCallback() {
         this.record.removeEventListener('change', this.onRecordChange);
         this.defaultRecord.removeEventListener('change', this.onRecordChange);
+        this.inputTypeRecord.removeEventListener('change', this.onRecordChange);
         this.probes.removeEventListener('change', this.onProbeChange);
         this.templateRecordset.removeEventListener('updated', this.onRecordChange);
         new Set(Object.values(this.tableRecordsets)).forEach(table => table.removeEventListener('page-changed', this.onRecordChange));
@@ -328,6 +333,12 @@ export class FdlModifierCatalog extends LitElement {
         this.requestUpdate();
     };
     private onProbeChange = () => {
+        if (this.modifier === 'type') {
+            const inputType = this.probes.getField('inputType') as inputType;
+            this.inputTypeRecord.addField('inputValue', inputTypeField(inputType), inputTypeInitialValue(inputType));
+            this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {inputType}, bubbles: true, composed: true}));
+        }
+
         if (this.modifier === 'rowCount') {
             const rows = this.probes.getField('textareaRows');
             this.record.addField('comments', new FieldType().with.label('Comments').and.tag('textarea').and.rowCount(rows), this.record.getField('comments'));
@@ -474,7 +485,9 @@ export class FdlModifierCatalog extends LitElement {
                 ${this.templateRecordset.allRecords[0] ? this.renderField('balance', this.templateRecordset.allRecords[0]) : nothing}
                 <fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="balance"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
-            case 'type': return html`${this.renderField('dateType')}`;
+            case 'type': return html`${this.renderField('inputType', this.probes)}
+                <p class="try">${inputTypeNote(this.probes.getField('inputType') as inputType)}</p>
+                ${this.renderField('inputValue', this.inputTypeRecord)}`;
             case 'validator': return html`${this.renderValidation('projectCode')}${validatorCases(this.record.fieldTypeForField('projectCode'))}`;
             case 'visibleWhen': return html`<p class="try">Choose Pickup to remove Shipping address.</p>${this.renderField('fulfillment')}${this.renderField('address')}`;
         }
@@ -488,9 +501,10 @@ export class FdlModifierCatalog extends LitElement {
             multipleValues: ['skills'], options: ['department', 'assignee', 'asyncAssignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
             required: ['requiredName'], requiredWhen: ['followUp', 'followUpNotes'], rowCount: ['comments'],
-            type: ['dateType'], validator: ['projectCode'], visibleWhen: ['fulfillment', 'address'],
+            validator: ['projectCode'], visibleWhen: ['fulfillment', 'address'],
         };
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
+        if (name === 'type') return this.inputTypeRecord.values;
         if (name === 'defaultValue') return this.defaultRecord.values;
         if (name === 'hashFunction') return { firstObject: { id: this.probes.getField('firstId') }, secondObject: { id: this.probes.getField('secondId') } };
         if (name === 'inputMask') return {input: this.probes.getField('input')};
@@ -506,6 +520,7 @@ export class FdlModifierCatalog extends LitElement {
     private stateSummary(name: string) {
         const table = this.tableRecordsets[name];
         if (table) return tableSummary(table);
+        if (name === 'type') return recordSummary(this.inputTypeRecord);
         if (name === 'defaultValue') return recordSummary(this.defaultRecord);
         if (name === 'inputMask') return recordSummary(this.probes, ['input']);
         const state = this.focusedState(name);

@@ -1,3 +1,4 @@
+import { inputTypes, type inputType } from '../types/input-types.types';
 import { html, render } from 'lit';
 import * as ts from 'typescript';
 import FieldType from '../field-type.js';
@@ -160,4 +161,15 @@ it('renders conditional invoice balances without changing the stored number', as
     expect(editor.record).toBe(first);
     expect(editor.getAttribute('field')).toBe('balance');
     expect(exampleSource('template').styles).toContain('.paid-balance');
+});
+
+
+it.each(inputTypes)('exports a working definition and Lit binding for input type %s', inputType => {
+    const {model, container} = runExample('type', {inputType:inputType as inputType});
+    expect(model.fieldTypeForField('inputValue').type()).toBe(inputType);
+    expect((container.querySelector('fdl-field') as any).record).toBe(model);
+    if (['number', 'range'].includes(inputType)) {
+        model.parseAndSetField('inputValue', '63');
+        expect(model.getField('inputValue')).toBe(63);
+    }
 });

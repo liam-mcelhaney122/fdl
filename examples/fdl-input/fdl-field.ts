@@ -59,6 +59,17 @@ export class FdlField extends FormElement {
                 box-shadow: inset 0 0 0 1px #a42b20;
             }
 
+            input[type='checkbox'], input[type='radio'] {
+                width: 1.25rem;
+                height: 1.25rem;
+                min-height: 0;
+                padding: 0;
+                accent-color: #5b52d6;
+            }
+            input[type='range'] { padding: 0; accent-color: #5b52d6; }
+            input[type='color'] { padding: 0.25rem; }
+            input[type='file'] { height: auto; }
+
             select[multiple] { height: auto; min-height: 144px; }
             textarea { resize: vertical; }
 
