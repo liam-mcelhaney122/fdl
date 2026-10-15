@@ -3,7 +3,6 @@ module.exports = {
     transformIgnorePatterns: [
         '/node_modules/(?!(@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html)/)',
     ],
-    moduleNameMapper: {'^virtual:fdl-starter$':'<rootDir>/tests/jest-helpers/starter-assets.js'},
     watchman: false,
     testEnvironment: 'jsdom',
     verbose: false,

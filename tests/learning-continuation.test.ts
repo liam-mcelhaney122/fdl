@@ -37,18 +37,6 @@ it('restores the lesson and entered value after a reference detour', async()=>{
     page.remove();window.location.hash='';
 });
 
-it('takes the home run-local link directly to the existing starter handoff',async()=>{
-    HTMLElement.prototype.scrollIntoView=jest.fn();
-    window.location.hash='#home';
-    const page=document.createElement('fdl-modifier-explorer') as FdlModifierExplorer;
-    document.body.append(page);await page.updateComplete;
-    const link=Array.from(page.shadowRoot!.querySelectorAll('a')).find(link=>link.textContent==='Run a complete example locally')!;
-    window.location.hash=link.getAttribute('href')!;window.dispatchEvent(new Event('hashchange'));await page.updateComplete;await Promise.resolve();
-    expect(page.shadowRoot!.querySelector('.starter-handoff h3')).toBe(page.shadowRoot!.activeElement);
-    expect(page.shadowRoot!.querySelector('fdl-starter-download')).not.toBeNull();
-    page.remove();window.location.hash='';
-});
-
 it.each(['#composition',compositionLink({method:'pickup',charge:25})])('keeps composition and builder work through navigation detours from %s',async(route)=>{
     window.location.hash=route;
     const page=document.createElement('fdl-modifier-explorer') as FdlModifierExplorer;
@@ -69,7 +57,7 @@ it.each(['#composition',compositionLink({method:'pickup',charge:25})])('keeps co
         expect(disclosure.open).toBe(true);expect(builder.configuration.getField('name')).toBe('reference');
         expect(builder.configuration.getField('validation')).toBe('minimum');
         expect(builder.record.getField('reference')).toBe('AB');expect(builder.record.getField('condition')).toBe('disabled');
-        expect(builder.shadowRoot.querySelector('fdl-starter-download').source.definition).toContain('"AB"');
+        expect(builder.shadowRoot.querySelector('pre').textContent).toContain('"AB"');
     }
     demo.reset();await demo.updateComplete;
     expect(demo.savedCases).toHaveLength(1);expect(demo.record.getField('address')).toBe('42 Orchard Street');

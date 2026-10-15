@@ -70,14 +70,6 @@ Disabled field controls use a gray fill, dashed border, and unavailable cursor
 while keeping their values readable. The `disabled` page
 shows the same CSS used by the field adapter.
 
-Every modifier offers a downloadable runnable ZIP with its model/view files,
-compiled example adapters and styles, a bundled snapshot of the current FDL
-model, and a minimal Lit/Vite project. `starter-assets.mjs` supplies those assets
-through a Vite virtual module, loaded only when downloading. The ZIP is created
-locally in the browser; it does not use a download service. Verify representative
-starters independently, including a form, table styling, and dependent options.
-
-
 The learning path uses a compact question selector and a reset for the current
 question. Its final step distinguishes the form/review record from table
 snapshots, lists abilities to check, and offers an optional cancellation-rule
@@ -96,7 +88,7 @@ the site also starts fresh. Reset rules and example preserves kept cases;
 Remove and Clear kept cases delete them. Reset builder restores its initial
 configuration and preview values.
 The optional field builder uses structured rules, previews an actual FDL Record,
-and exports matching model/Lit files in the same runnable starter format.
+and displays matching model and Lit code below the preview.
 
 Reference paging follows active search/category results. Narrow screens collapse
 navigation behind Browse modifiers. Conditional-cell styling exposes an editable
@@ -111,5 +103,4 @@ Related modifiers share one reference page: permanent and conditional cell
 classes, disabled state, read-only state, and requiredness; minimum and maximum
 text length; and minimum, target, and maximum column widths. Every modifier
 retains its original hash link and sidebar entry, which opens its section.
-Each section has its own live example, reset, model source, Lit source, and
-download. Previous/Next navigates between distinct reference pages.
+Each section has its own live example, reset, model source, and Lit source. Previous/Next navigates between distinct reference pages.
