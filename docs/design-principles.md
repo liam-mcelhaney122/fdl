@@ -1,6 +1,6 @@
 # FDL design principles
 
-FDL is a language for describing fields, records, and recordsets independently
+FDL is a library for describing fields, records, and recordsets independently
 of the components that render them. A field definition should capture reusable
 meaning and behavior so forms, tables, printed output, filters, tests, and other
 consumers can interpret the same definition consistently.

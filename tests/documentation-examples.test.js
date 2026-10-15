@@ -6,7 +6,7 @@ import { boolean, date, field, number, Record, Recordset, string } from '../inde
 // fail here instead of in a reader's first application.
 function readmeAppointment() {
     const markdown = fs.readFileSync(path.join(__dirname, '../README.md'), 'utf8');
-    const source = markdown.match(/```js\n([\s\S]*?)```/)[1]
+    const source = markdown.slice(markdown.indexOf('## Example: Dog Walking Service')).match(/```js\n([\s\S]*?)```/)[1]
         .replace(/^import .*;\n/m, '');
     return new Function('string', 'boolean', 'date', 'Record', `${source}\nreturn appointment;`)(
         string, boolean, date, Record

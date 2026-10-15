@@ -12,3 +12,5 @@ export type { FieldSetting, RecordSetting, ValueSetting, ColumnSetting, DefaultS
 
 export { field } from './primitives.js';
 export type { FieldDefinition } from './types/field-definition.types';
+
+export * from './field-definitions.js';

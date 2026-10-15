@@ -266,7 +266,7 @@ export class FdlModifierExplorer extends LitElement {
         const previous = position > 0 ? pages[position - 1] : undefined;
         const next = pages[position + 1];
         return html`
-        <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
+        <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LIBRARY</span></header>
         <div class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}>
             <button class="mobile-browse" aria-expanded=${this.navigationOpen} aria-controls="site-navigation" @click=${() => { this.navigationOpen = !this.navigationOpen; this.requestUpdate(); }}><span>Browse modifiers</span><small>${this.page === 'modifier' ? `.${recipe.name}()` : sitePages.find(entry => entry.id === this.page)?.title}</small><span aria-hidden="true">${this.navigationOpen ? '−' : '+'}</span></button>
             <aside id="site-navigation">

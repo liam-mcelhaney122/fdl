@@ -8,3 +8,5 @@ export { boolean, number, string, date, Record, Recordset, FieldType, Field };
 export * from './recordset.events';
 
 export { field } from './primitives.js';
+
+export * from './field-definitions.js';

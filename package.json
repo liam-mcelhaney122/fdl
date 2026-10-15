@@ -1,7 +1,7 @@
 {
   "name": "digital-fdl",
   "version": "1.0.0",
-  "description": "Field Definition Language used to build field types",
+  "description": "Field Definition Library used to build field types",
   "main": "index.js",
   "license": "apache-2.0",
   "private": false,

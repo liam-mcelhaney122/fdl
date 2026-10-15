@@ -1,4 +1,4 @@
-# FDL
+# FDL — Field Definition Library
 
 [![Tests](https://github.com/pmcelhaney/FDL/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/tests.yml)
 [![Type check](https://github.com/pmcelhaney/FDL/actions/workflows/typecheck.yml/badge.svg?branch=main)](https://github.com/pmcelhaney/FDL/actions/workflows/typecheck.yml)
@@ -19,6 +19,38 @@ modifier reference pages that group related rules, with live examples, model
 state, and highlighted code. Each modifier retains its own hash link.
 Run it locally with `npm run docs:dev` and open the root URL printed by Vite.
 Building or previewing the site does not publish it.
+
+## Common field definitions
+
+Use named exports or the `fieldDefinitions` collection as reusable starting points:
+
+```js
+import { firstName, email, fieldDefinitions, Record } from "digital-fdl";
+
+const contact = new Record({
+  firstName: firstName.required(),
+  email: email.required(),
+  streetAddress: fieldDefinitions.streetAddress,
+  postalCode: fieldDefinitions.postalCode.label("ZIP / postal code"),
+}, {
+  firstName: "Ada",
+  email: "ada@example.com",
+  streetAddress: "",
+  postalCode: "",
+});
+```
+
+The exports are `name`, `firstName`, `middleName`, `lastName`, `email`,
+`phoneNumber`, `streetAddress`, `addressLine1`, `addressLine2`, `city`, `state`,
+`postalCode`, `country`, `organization`, and `username`. Each provides a label
+and autocomplete intent. Email and phone also provide input-type intent.
+
+All presets are optional and default to an empty string. Email checks basic
+`local@domain.suffix` syntax in the model, including when no UI is present;
+it does not verify delivery or ownership. Names, phone numbers, and addresses
+have no locale-specific validation or automatic normalization. Postal codes
+remain strings, preserving leading zeros. Add application rules with modifiers;
+specializing a preset leaves it and other specializations unchanged.
 
 ## Example: Dog Walking Service
 

@@ -102,7 +102,16 @@ type AutoComplete =
     | 'username'
     | 'new-password'
     | 'current-password'
-    | 'one-time-code';
+    | 'one-time-code'
+    | 'tel'
+    | 'street-address'
+    | 'address-line1'
+    | 'address-line2'
+    | 'address-level2'
+    | 'address-level1'
+    | 'postal-code'
+    | 'country-name'
+    | 'organization';
 
 export interface Properties<T = unknown> {
     accept: string;

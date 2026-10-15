@@ -348,7 +348,7 @@ describe('FDL site pages', () => {
     it('opens Home by default and separates site pages from the modifier reference', async () => {
         const page = await openPage('');
         const root = page.shadowRoot!;
-        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
+        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Library');
         expect(root.querySelector('.site-page')!.textContent).toContain('Recordset');
         expect(root.querySelectorAll('.site-nav a')).toHaveLength(6);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
@@ -373,7 +373,7 @@ describe('FDL site pages', () => {
         window.location.hash = 'home';
         window.dispatchEvent(new Event('hashchange'));
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Language');
+        expect(root.querySelector('h1')!.textContent).toBe('Field Definition Library');
         expect(document.title).toBe('Home — FDL');
     });
 });
