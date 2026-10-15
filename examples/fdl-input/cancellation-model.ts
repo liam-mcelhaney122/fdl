@@ -1,0 +1,21 @@
+import FieldType from '../../field-type.js';
+import Record from '../../record.js';
+export type CancellationRules={visibility:'always'|'cancelled';requiredness:'always'|'cancelled'|'never'};
+export function cancellationFields(rules:CancellationRules) {
+    let reason=new FieldType<string>().with.label('Cancellation reason').and.tag('textarea').and.rowCount(2);
+    if(rules.visibility==='cancelled') reason=reason.with.visibleWhen(record=>record.getField('status')==='cancelled');
+    if(rules.requiredness==='always') reason=reason.with.required();
+    if(rules.requiredness==='cancelled') reason=reason.with.requiredWhen(record=>record.getField('status')==='cancelled');
+    return {status:new FieldType<string>().with.label('Request status').and.tag('select').and.options([{text:'Active',value:'active'},{text:'Cancelled',value:'cancelled'}]),reason};
+}
+export const cancellationCases=[{status:'active',reason:'',visible:false,required:false,valid:true},{status:'active',reason:'Changed plans',visible:false,required:false,valid:true},{status:'cancelled',reason:'',visible:true,required:true,valid:false},{status:'cancelled',reason:'Changed plans',visible:true,required:true,valid:true}];
+export function checkCancellation(rules:CancellationRules) {
+    return cancellationCases.map(sample=>{
+        const record=new Record(cancellationFields(rules),{status:sample.status,reason:sample.reason}),type=record.fieldTypeForField('reason');
+        const actual={visible:type.visible(record),required:type.required(record),valid:record.isValid()};
+        return {sample,actual,passes:actual.visible===sample.visible&&actual.required===sample.required&&actual.valid===sample.valid};
+    });
+}
+export function cancellationDefinition(rules:CancellationRules) {
+    return `const reason = new FieldType().with.label('Cancellation reason')${rules.visibility==='cancelled' ? "\n  .and.visibleWhen(record => record.getField('status') === 'cancelled')" : ''}${rules.requiredness==='always' ? '\n  .and.required()' : rules.requiredness==='cancelled' ? "\n  .and.requiredWhen(record => record.getField('status') === 'cancelled')" : ''};`;
+}
