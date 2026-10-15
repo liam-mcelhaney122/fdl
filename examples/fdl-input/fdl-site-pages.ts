@@ -29,8 +29,8 @@ person.isValid(); // false
 person.setField('name', 'Ada');
 person.isValid(); // true`;
 
-export function renderSitePage(page: SitePage, learningState?: LearningState) {
-    if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1><fdl-composition-experiment></fdl-composition-experiment></article>`;
+export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement) {
+    if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1>${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</article>`;
     if (page === 'learn') return html`<article class="site-page"><h1 tabindex="-1">Learn by exploring</h1><p class="description">Build one delivery example from a field into a collection. Follow the questions in order or jump to the one you want to investigate.</p><fdl-learning-path .session=${learningState}></fdl-learning-path></article>`;
     if (page === 'home') return html`
         <article class="site-page">

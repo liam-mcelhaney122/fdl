@@ -78,13 +78,19 @@ The learning path uses a compact question selector and a reset for the current
 question. Its final step distinguishes the form/review record from table
 snapshots, lists abilities to check, and offers an optional cancellation-rule
 transfer challenge. Continuing into composition carries the delivery choice and
-charge snapshot in the link; plain composition links start a fresh experiment.
+charge snapshot in the link; changing between a continued scenario and a plain
+composition link starts a fresh experiment.
 
 Composition places rule controls directly before the outcome comparison. Optional
 prediction practice reveals actual model outcomes after a guess. Keep up to six
 custom cases to compare their saved rules with current rules, restore them, or
-remove them. These cases live only in the current experiment. Reset rules and example preserves
-them; Remove and Clear kept cases delete them.
+remove them. The explorer retains this experiment, its kept cases, and the field
+builder while visiting other pages in the same session. Returning resumes that
+work.
+Opening a different composition scenario starts a fresh experiment; reloading
+the site also starts fresh. Reset rules and example preserves kept cases;
+Remove and Clear kept cases delete them. Reset builder restores its initial
+configuration and preview values.
 The optional field builder uses structured rules, previews an actual FDL Record,
 and exports matching model/Lit files in the same runnable starter format.
 
