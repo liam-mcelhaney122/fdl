@@ -35,3 +35,15 @@ it('restores the lesson and entered value after a reference detour', async()=>{
     lesson.reset();expect(lesson.record.getField('charge')).toBe(25);
     page.remove();window.location.hash='';
 });
+
+it('takes the home run-local link directly to the existing starter handoff',async()=>{
+    HTMLElement.prototype.scrollIntoView=jest.fn();
+    window.location.hash='#home';
+    const page=document.createElement('fdl-modifier-explorer') as FdlModifierExplorer;
+    document.body.append(page);await page.updateComplete;
+    const link=Array.from(page.shadowRoot!.querySelectorAll('a')).find(link=>link.textContent==='Run a complete example locally')!;
+    window.location.hash=link.getAttribute('href')!;window.dispatchEvent(new Event('hashchange'));await page.updateComplete;await Promise.resolve();
+    expect(page.shadowRoot!.querySelector('.starter-handoff h3')).toBe(page.shadowRoot!.activeElement);
+    expect(page.shadowRoot!.querySelector('fdl-starter-download')).not.toBeNull();
+    page.remove();window.location.hash='';
+});
