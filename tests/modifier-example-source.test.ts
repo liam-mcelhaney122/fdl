@@ -157,9 +157,7 @@ it('renders conditional invoice balances without changing the stored number', as
     first.setField('balance', 85.5);
     render(first.print('balance'), cell);
     expect(cell.querySelector('.due-balance')!.textContent).toBe('$85.50Payment due');
-    const editor = container.querySelector('fdl-field') as any;
-    expect(editor.record).toBe(first);
-    expect(editor.getAttribute('field')).toBe('balance');
+    expect(container.querySelector('fdl-field')).toBeNull();
     expect(exampleSource('template').styles).toContain('.paid-balance');
 });
 

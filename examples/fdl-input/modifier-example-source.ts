@@ -127,12 +127,6 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const uiFile = `${name}-view.js`;
     const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { FieldType, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(/\.and\./g, '\n    .and.')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
     let markup = exampleMarkup(name);
-    if (name === 'template') markup = `\${templateRecordset.allRecords[0] ? html\`
-  <p>Edit the balance for invoice #1048. Set it to 0 to mark it paid.</p>
-  <fdl-field .record=\${templateRecordset.allRecords[0]} field="balance"></fdl-field>
-\` : ''}
-
-${markup}`;
     let setup = '';
     const validation = validationFields[name];
     if (validation && markup) {
@@ -158,7 +152,7 @@ ${markup}`;
     if (name === 'reducer') markup += `\n\n<p role="status">\n  Sum: \${currency.format(reducerType.aggregate([\n    probes.getField('firstAmount'),\n    probes.getField('secondAmount'),\n    probes.getField('thirdAmount'),\n  ]))}\n</p>`;
     const contract = !markup;
     if (contract) markup = `<p>This adapter does not implement .${name}().</p>\n<p>Stored value: \${JSON.stringify(record.getField('value'))}</p>`;
-    const adapters = exampleTables[name] ? `import './fdl-table';\n${name === 'template' ? "import './fdl-field';\n" : ''}` : exampleFields[name] ? "import './fdl-field';\n" : '';
+    const adapters = exampleTables[name] ? "import './fdl-table';\n" : exampleFields[name] ? "import './fdl-field';\n" : '';
     const ui = `import { html, render } from 'lit';\nimport { ${exports.join(', ')} } from './${modelFile}';\n${adapters}\nconst container = document.createElement('div');\ndocument.body.append(container);\n${setup}\nconst view = () => html\`\n${markup!.split('\n').map(line => `  ${line}`).join('\n')}\n\`;\n\nconst update = () => render(view(), container);\n${model.name}.addEventListener('${kind === 'Recordset' ? 'page-changed' : 'change'}', update);\nupdate();`;
     const fieldStyles = name === 'disabled' || name === 'disabledWhen';
     const styles = (fieldStyles ? disabledFieldStyles : tableExampleStyles[name as keyof typeof tableExampleStyles])?.cssText.trim();

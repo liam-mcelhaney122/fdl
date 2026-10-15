@@ -490,7 +490,6 @@ export class FdlModifierCatalog extends LitElement {
             case 'sortable': return html`<p class="try">First name and Last name can sort. T-shirt size has .sortable(false), so its header has no sort action.</p><fdl-table .recordset=${this.sortableRecordset}><fdl-column field="firstName"></fdl-column><fdl-column field="lastName"></fdl-column><fdl-column field="shirtSize"></fdl-column></fdl-table>`;
             case 'targetColumnWidth': return this.renderWidth('targetColumnWidth');
             case 'template': return html`
-                ${this.templateRecordset.allRecords[0] ? this.renderField('balance', this.templateRecordset.allRecords[0]) : nothing}
                 <fdl-table .recordset=${this.templateRecordset}><fdl-column field="invoice"></fdl-column><fdl-column field="balance"></fdl-column></fdl-table>`;
             case 'textAlign': return html`<p class="try">The columns demonstrate left, center, and right alignment.</p><fdl-table .recordset=${this.alignRecordset}><fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column></fdl-table>`;
             case 'type': return html`${this.renderField('inputType', this.probes)}
