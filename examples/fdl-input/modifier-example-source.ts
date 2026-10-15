@@ -1,3 +1,4 @@
+import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { disabledFieldStyles } from './field-example-styles';
 import { tableExampleStyles } from './table-example-styles';
 import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-markup';
@@ -71,7 +72,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {
         cellClass: {name:'cellClassRecordset',fields:{amount:type("label('Amount').and.cellClass('amount-cell').and.textAlign('right')"),category:type("label('Category')")},values:[{amount:42,category:'Travel'},{amount:84,category:'Meals'}]},
-        conditionalCellClass: {name:'conditionalClassRecordset',fields:{amount:type(`label('Amount').and.textAlign('right').and.conditionalCellClass(value => value > ${settings.threshold ?? 10000}, 'high-value')`),label:type("label('Label')")},values:[{amount:(settings.threshold ?? 10000)-1,label:'Below threshold'},{amount:settings.threshold ?? 10000,label:'At threshold'},{amount:(settings.threshold ?? 10000)+1,label:'Above threshold'},{amount:12000,label:'Your amount'}]},
+        conditionalCellClass: {name:'conditionalClassRecordset',prefix:currency,fields:{day:type("label('Day').and.sortable(false)"),amount:type(`label('Expenses').and.textAlign('right').and.formatter(value => currency.format(Number(value))).and.conditionalCellClass(value => value > ${settings.threshold ?? expenseHighlightThreshold}, 'high-value')`)},values:weeklyExpenses},
         compareFunction: {name:'compareRecordset',fields:peopleFields,values:people},
         sortable: {name:'compareRecordset',fields:peopleFields,values:people},
         filter: {name:'filterRecordset',fields:{name:type(`label('Name').and.filter((text, value) =>

@@ -274,16 +274,24 @@ it('resets the active learning question without losing its rules', async () => {
 });
 
 
-it('evaluates editable class thresholds at the boundary using the field definition', async () => {
+it('highlights fixed weekday expenses above the adjustable threshold and formats dollars', async () => {
     const page = await openExplorer('#conditionalCellClass');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
-    await editField(catalog.shadowRoot!, 'classThreshold', '100');
-    await editField(catalog.shadowRoot!, 'classAmount', '100');
-    await catalog.updateComplete; await page.updateComplete;
-    expect(catalog.shadowRoot!.querySelector('.computed')!.textContent).toContain('false');
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('value > 100');
+    expect(catalog.shadowRoot!.querySelector('fdl-field[field="classAmount"]')).toBeNull();
     const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
-    await table.updateComplete; await table.recordset.requestUpdate(); await table.updateComplete;
-    expect([...table.shadowRoot.querySelectorAll('td.high-value')].map((cell:any) => cell.textContent.trim())).toEqual(['101']);
+    const rows = async () => {
+        await table.recordset.requestUpdate();await table.updateComplete;
+        return Array.from(table.shadowRoot.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>);
+    };
+    let rendered = await rows();
+    expect(rendered.map(row=>row.querySelector('td')!.textContent!.trim())).toEqual(['Monday','Tuesday','Wednesday','Thursday','Friday']);
+    expect(rendered.map(row=>row.querySelectorAll('td')[1].textContent!.trim())).toEqual(['$85.50','$142.75','$60.00','$100.00','$125.25']);
+    const highlighted = () => [...table.shadowRoot.querySelectorAll('td.high-value')].map((cell:any)=>cell.textContent.trim());
+    expect(highlighted()).toEqual(['$142.75','$125.25']);
+    await editField(catalog.shadowRoot!, 'classThreshold', '125.25');
+    await catalog.updateComplete;await page.updateComplete;rendered=await rows();
+    expect(highlighted()).toEqual(['$142.75']);
+    expect(rendered.map(row=>row.querySelectorAll('td')[1].textContent!.trim())).toEqual(['$85.50','$142.75','$60.00','$100.00','$125.25']);
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('value > 125.25');
 });

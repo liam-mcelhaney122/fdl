@@ -1,3 +1,4 @@
+import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html, nothing, type TemplateResult } from 'lit';
 import FieldType from '../../field-type.js';
@@ -196,13 +197,13 @@ export class FdlModifierCatalog extends LitElement {
     );
     private conditionalClassRecordset = new Recordset(
         {
-            amount: new FieldType().with
-                .label('Amount')
+            day: new FieldType().with.label('Day').and.sortable(false),
+            amount: new FieldType().with.label('Expenses')
                 .and.textAlign('right')
+                .and.formatter(value => currency.format(Number(value)))
                 .and.conditionalCellClass((value: number) => value > this.probes.getField('classThreshold'), 'high-value'),
-            label: new FieldType().with.label('Label'),
         },
-        [{ amount: 9999, label: 'Below threshold' }, { amount: 10000, label: 'At threshold' }, { amount: 10001, label: 'Above threshold' }, { amount: 12000, label: 'Your amount' }]
+        weeklyExpenses.map(expense => ({...expense}))
     );
     private compareRecordset = new Recordset(
         {
@@ -283,7 +284,6 @@ export class FdlModifierCatalog extends LitElement {
     };
     private probes = new Record({
         classThreshold: new FieldType<number>().with.label('Highlight above').and.type('number').and.parser(Number),
-        classAmount: new FieldType<number>().with.label('Your amount').and.type('number').and.parser(Number),
         input: new FieldType<string>().with.label('Characters to test'),
         filterProbe: new FieldType<string>().with.label('Search names'),
         matchRule: new FieldType<string>().with.label('Filter matching rule').and.tag('select').and.options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
@@ -292,7 +292,7 @@ export class FdlModifierCatalog extends LitElement {
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { classThreshold:10000, classAmount:12000, filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
     private exampleOffset = 0;
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
@@ -329,10 +329,7 @@ export class FdlModifierCatalog extends LitElement {
     private onProbeChange = () => {
         if (this.modifier === 'conditionalCellClass') {
             const threshold = this.probes.getField('classThreshold');
-            this.conditionalClassRecordset.setData([
-                {amount:threshold - 1, label:'Below threshold'}, {amount:threshold, label:'At threshold'},
-                {amount:threshold + 1, label:'Above threshold'}, {amount:this.probes.getField('classAmount'), label:'Your amount'},
-            ]);
+            void this.conditionalClassRecordset.requestUpdate();
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail:{threshold}, bubbles:true, composed:true}));
         }
 
@@ -424,7 +421,7 @@ export class FdlModifierCatalog extends LitElement {
                         <fdl-column field="team"></fdl-column>
                     </fdl-table>${sortCases(this.compareRecordset)}`;
             }
-            case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}${this.renderField('classAmount', this.probes)}<p class="computed" role="status"><code>${this.probes.getField('classAmount')} &gt; ${this.probes.getField('classThreshold')}</code> → ${String(this.probes.getField('classAmount') > this.probes.getField('classThreshold'))} → ${this.conditionalClassRecordset.getFieldType('amount').cellClasses(this.probes.getField('classAmount')).includes('high-value') ? 'high-value class' : 'no high-value class'}</p><fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="label"></fdl-column></fdl-table>`;
+            case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('defaultId', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('defaultId')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;

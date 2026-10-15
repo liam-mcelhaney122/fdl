@@ -75,3 +75,16 @@ it('generates the next examples through its declared factory', () => {
     container.querySelector('button')!.click();
     expect(container.textContent).toContain('Sample contact 4, Sample contact 5, Sample contact 6');
 });
+
+it('exports the same weekday expenses, dollar formatting, and strict threshold', async () => {
+    const {model, container} = runExample('conditionalCellClass', {threshold:125.25});
+    await model.requestUpdate();
+    expect(model.getData()).toEqual([
+        {day:'Monday',amount:85.5}, {day:'Tuesday',amount:142.75},
+        {day:'Wednesday',amount:60}, {day:'Thursday',amount:100}, {day:'Friday',amount:125.25},
+    ]);
+    expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['day','amount']);
+    expect(model.createRecord({day:'Monday',amount:85.5}).getFormattedField('amount','print')).toBe('$85.50');
+    expect(model.getFieldType('amount').cellClasses(125.25)).not.toContain('high-value');
+    expect(model.getFieldType('amount').cellClasses(142.75)).toContain('high-value');
+});
