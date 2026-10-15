@@ -41,12 +41,13 @@ export const explorerRecipes: ExplorerRecipe[] = [
         use: 'Shipping details, payment-specific fields, and branching forms.',
     },
     ...additionalRecipes,
-];
+].sort((a, b) => a.name.localeCompare(b.name, 'en'));
 
 const recipes = explorerRecipes;
 
 export class FdlModifierExplorer extends LitElement {
     private selected = 0;
+    private get modifierName() { return recipes[this.selected].name; }
     private page: SitePage | 'modifier' = 'home';
     private checked = false;
     private requiredRule = true;
@@ -150,14 +151,14 @@ export class FdlModifierExplorer extends LitElement {
     }
     private reset() {
         this.resetVersion += 1;
-        if (this.selected === 0) { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
+        if (this.modifierName === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', new FieldType<string>().with.label('Legal name').and.required(), ''); }
         this.exampleSettings = {};
-        if (this.selected === 1) { this.amountInput = undefined; this.money.setField('amount', 1250); }
-        if (this.selected === 2) { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
+        if (this.modifierName === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
+        if (this.modifierName === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
     }
     private demo() {
-        if (this.selected === 0) return html`
+        if (this.modifierName === 'required') return html`
             <label class="rule-control"><input type="checkbox" .checked=${this.requiredRule} @change=${(event: Event) => {
                 this.requiredRule = (event.target as HTMLInputElement).checked;
                 const base = new FieldType<string>().with.label('Legal name');
@@ -167,11 +168,11 @@ export class FdlModifierExplorer extends LitElement {
             ${this.field(this.person, 'name')}
             <button class="primary" @click=${() => { this.checked = true; this.requestUpdate(); }}>Check record </button>
             <p class="result" role="status">${this.checked ? (this.person.isValid() ? '✓ The record is valid.' : 'Legal name is required. Add a value to continue.') : 'Ready to validate. Try an empty value first.'}</p>`;
-        if (this.selected === 1) return html`
+        if (this.modifierName === 'formatter') return html`
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>${valuePipeline(this.money, 'amount', this.amountInput)}`;
-        if (this.selected > 2) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
+        if (!['required', 'formatter', 'visibleWhen'].includes(this.modifierName)) return html`<fdl-modifier-catalog modifier=${recipes[this.selected].name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
     render() {
@@ -182,7 +183,8 @@ export class FdlModifierExplorer extends LitElement {
             (this.selectedCategories.size === 0 || this.selectedCategories.has(entry.category)) &&
             entry.name.toLowerCase().includes(this.query.toLowerCase().trim())
         );
-        const model = this.selected === 0 ? this.person : this.selected === 1 ? this.money : this.delivery;
+        const standaloneDemo = ['required', 'formatter', 'visibleWhen'].includes(recipe.name);
+        const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
         return html`
         <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
         <div class="shell">
@@ -233,7 +235,7 @@ export class FdlModifierExplorer extends LitElement {
                 <section class="playground" aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'inputMask', 'exampleValue', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${this.reset}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
-                    <div class=${this.selected > 2 ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${this.selected < 3 ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
+                    <div class=${!standaloneDemo ? "demo-grid catalog-demo" : "demo-grid"}><div class="controls" role="group" aria-label="Current modifier effect">${keyed(`${recipe.name}-${this.resetVersion}`, this.demo())}</div>${standaloneDemo ? html`<div class="model"><p class="eyebrow">IN THE RECORD</p>${recordSummary(model)}<details><summary>Inspect full JSON</summary><pre>${JSON.stringify(model.values, null, 2)}</pre></details><div class="model-foot">Actual FDL model state</div></div>` : ''}</div>
                 </section>
                 <div class="details">
                 <p class="source-intro">Save these as two files in the same folder. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>

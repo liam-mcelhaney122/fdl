@@ -26,21 +26,20 @@ afterEach(() => { document.body.replaceChildren(); window.location.hash = ''; })
 
 describe('modifier explorer', () => {
     it('shows one modifier, supports next/back and direct links, and disables boundary controls', async () => {
-        const page = await openPage();
+        const page = await openPage('#cellClass');
         const root = page.shadowRoot!;
-        expect(root.querySelector('h1')!.textContent).toContain('.required()');
+        expect(root.querySelector('h1')!.textContent).toContain('.cellClass(className)');
         expect(root.querySelector<HTMLButtonElement>('.pager')!.disabled).toBe(true);
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('.formatter(fn)');
-        expect(root.querySelectorAll('fdl-field')).toHaveLength(1);
+        expect(root.querySelector('h1')!.textContent).toContain('.compareFunction(compare)');
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('.required()');
+        expect(root.querySelector('h1')!.textContent).toContain('.cellClass(className)');
         root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');
-        expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(false);
+        expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(true);
         expect(window.location.hash).toBe('#visibleWhen');
         window.location.hash = explorerRecipes[explorerRecipes.length - 1].name;
         window.dispatchEvent(new Event('hashchange'));
@@ -103,9 +102,12 @@ describe('modifier explorer', () => {
 
 
 describe('complete explorer', () => {
-    it('covers the documented modifier inventory exactly once', () => {
+    it('covers the documented modifier inventory exactly once in alphabetical order', async () => {
+        const page = await openPage();
         expect(explorerRecipes.map(recipe => recipe.name).sort()).toEqual(modifierEntries.map(entry => entry.name).sort());
         expect(new Set(explorerRecipes.map(recipe => recipe.name)).size).toBe(explorerRecipes.length);
+        const names = [...page.shadowRoot!.querySelectorAll('.modifier-list strong')].map(link => link.textContent!);
+        expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'en')));
     });
 
     it('covers all public builder modifiers outside the compatibility-only surface', () => {
@@ -200,7 +202,7 @@ describe('complete explorer', () => {
         expect(root.querySelector('h1')!.textContent).toContain('required');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('formatter');
+        expect(root.querySelector('h1')!.textContent).toContain('requiredWhen');
         search.value = 'no matching modifier';
         search.dispatchEvent(new Event('input'));
         await settle(page);
