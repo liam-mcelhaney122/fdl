@@ -54,6 +54,7 @@ export class FdlModifierExplorer extends LitElement {
     private amountInput?: string;
     private captureAmountInput = {capture: true, handleEvent: (event: Event) => { this.amountInput = inputText(event); this.requestUpdate(); }};
     private query = '';
+    private categoryTooltip = false;
     private tooltip?: {recipe: ExplorerRecipe; left: number; top: number};
     private tooltipTimer?: ReturnType<typeof setTimeout>;
     private showTooltip(event: Event, recipe: ExplorerRecipe) {
@@ -131,7 +132,7 @@ export class FdlModifierExplorer extends LitElement {
         const changed = this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
         this.selected = index;
-        if (changed) this.exampleSettings = {};
+        if (changed) { this.exampleSettings = {}; this.categoryTooltip = false; }
         this.requestUpdate();
         this.updateComplete.then(() => this.shadowRoot?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' }));
         if (updateUrl) {
@@ -221,8 +222,12 @@ export class FdlModifierExplorer extends LitElement {
             </section></aside>
             <main>
                 ${this.page !== 'modifier' ? renderSitePage(this.page) : html`
-                <div class="chapter"><span>${recipe.category}</span></div>
-                <h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
+                <div class="modifier-title-row"><h1 tabindex="-1">.${recipe.name}<span>${recipe.signature}</span></h1>
+                    <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
+                        <button class="page-category-icon" aria-label=${`Category: ${recipe.category}`} aria-describedby=${this.categoryTooltip ? 'category-tooltip' : ''} @focus=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @blur=${() => { this.categoryTooltip = false; this.requestUpdate(); }} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') { this.categoryTooltip = false; this.requestUpdate(); } }}>${categoryIcon(recipe.category)}</button>
+                        ${this.categoryTooltip ? html`<span id="category-tooltip" role="tooltip">${recipe.category}</span>` : ''}
+                    </div>
+                </div>
                 <h2 class="modifier-signature"><code>${modifierSignatures[recipe.name]}</code></h2>
                 <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
                 <section class="playground" aria-label="Interactive example">
@@ -317,8 +322,13 @@ export class FdlModifierExplorer extends LitElement {
         .concepts dd { margin:8px 0 0; }
         .empty-search { font-size:1rem; }
         main { min-width:0; padding:32px 0 32px 40px; }
-        .chapter { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:.875rem; color:var(--muted); }
-        .chapter span:first-child { padding:4px 8px; border:1px solid #93c5fd; border-radius:3px; color:var(--accent); }
+        .modifier-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin:24px 0 16px; }
+        .modifier-title-row h1 { margin:0; min-width:0; }
+        .page-category { position:relative; flex-shrink:0; }
+        .page-category-icon { display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:6px; background:transparent; color:var(--muted); cursor:help; }
+        .page-category-icon .category-icon { width:24px; height:24px; }
+        .page-category-icon:hover,.page-category-icon:focus-visible { background:#f1f5f9; color:var(--accent); }
+        #category-tooltip { position:absolute; top:calc(100% + 4px); right:0; z-index:10; width:max-content; max-width:220px; padding:8px 12px; border-radius:5px; background:#0f172a; color:#f8fafc; font-size:.875rem; box-shadow:0 4px 12px #0f172a26; }
         h1 { margin:24px 0 16px; font:500 clamp(28px,3.2vw,44px)/1.3 monospace; letter-spacing:-1px; overflow-wrap:anywhere; scroll-margin-top:24px; }
         h1 span { color:#64748b; font-size:.75em; }
         h2 { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }

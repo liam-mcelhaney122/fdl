@@ -145,7 +145,16 @@ describe('complete explorer', () => {
         expect(page.shadowRoot!.querySelector('.code code')!.textContent).toBe(exampleSource(name).definition);
         expect(page.shadowRoot!.querySelector('.code .syntax-function, .code .syntax-builtin')).toBeTruthy();
         expect(page.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
-        expect(page.shadowRoot!.querySelector('.chapter')!.textContent).not.toContain('MODIFIER');
+        expect(page.shadowRoot!.querySelector('.chapter')).toBeNull();
+        const categoryButton = page.shadowRoot!.querySelector<HTMLButtonElement>('.page-category-icon')!;
+        expect(categoryButton.getAttribute('aria-label')).toBe(`Category: ${recipe.category}`);
+        expect(categoryButton.querySelector('.category-icon')!.getAttribute('data-category')).toBe(recipe.category);
+        categoryButton.dispatchEvent(new FocusEvent('focus'));
+        await settle(page);
+        expect(page.shadowRoot!.querySelector('#category-tooltip')!.textContent).toBe(recipe.category);
+        categoryButton.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+        await settle(page);
+        expect(page.shadowRoot!.querySelector('#category-tooltip')).toBeNull();
         expect(page.shadowRoot!.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
         const css = page.shadowRoot!.querySelector('.example-css');
         if (exampleSource(name).styles) expect(css!.textContent).toBe(exampleSource(name).styles);
