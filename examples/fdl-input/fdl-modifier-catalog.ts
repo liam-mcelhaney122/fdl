@@ -48,7 +48,7 @@ export const modifierEntries: CatalogEntry[] = [
 new FieldType().with.label('T-shirt size')
   .and.compareFunction(compareShirtSizes)`),
     live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > this.probes.getField('classThreshold'), 'high-value')`),
-    live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Pending assignment')`),
+    live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
     live('emptyWhen', 'Defines additional values that should count as empty during validation.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
@@ -110,8 +110,8 @@ export class FdlModifierCatalog extends LitElement {
     private optionsLoading = false;
 
     private defaultRecord = new Record(
-        { defaultId: new FieldType().with.label('Request ID').and.defaultValue('Pending assignment') },
-        { defaultId: 'REQ-1042' }
+        { documentTitle: new FieldType().with.label('Document title').and.defaultValue('Untitled document') },
+        { documentTitle: 'Quarterly plan' }
     );
 
     private record = new Record(
@@ -420,7 +420,7 @@ export class FdlModifierCatalog extends LitElement {
                     </fdl-table>${sortCases(this.compareRecordset)}`;
             }
             case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}<fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="day"></fdl-column><fdl-column field="amount"></fdl-column></fdl-table>`;
-            case 'defaultValue': return html`${this.renderField('defaultId', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('defaultId')}</p>`;
+            case 'defaultValue': return html`${this.renderField('documentTitle', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('documentTitle')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
             case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderValidation('emptyCode')}`;

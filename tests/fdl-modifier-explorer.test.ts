@@ -221,12 +221,12 @@ describe('complete explorer', () => {
         await catalog.updateComplete;
         catalog.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
         await catalog.updateComplete;
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Pending assignment');
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Untitled document');
         root.querySelector<HTMLButtonElement>('.reset')!.click();
         await settle(page);
         catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
         await catalog.updateComplete;
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('REQ-1042');
+        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Quarterly plan');
     });
 });
 

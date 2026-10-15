@@ -67,7 +67,7 @@ it('includes changed rules in complete working definitions', () => {
 it('shows the declared default when the Lit clear button is used', () => {
     const {model, container} = runExample('defaultValue');
     container.querySelector('button')!.click();
-    expect(model.getField('defaultId')).toBe('Pending assignment');
+    expect(model.getField('documentTitle')).toBe('Untitled document');
 });
 
 it('generates the next examples through its declared factory', () => {

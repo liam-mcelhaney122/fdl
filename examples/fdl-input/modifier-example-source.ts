@@ -27,7 +27,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     .and.formatter((value, record, context) =>
       context === 'input-focus' ? String(value) : currency.format(value))`)}, values:{amount:1250}},
         visibleWhen: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').and.visibleWhen(record => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
-        defaultValue: {name:'defaultRecord',fields:{defaultId:type("label('Request ID').and.defaultValue('Pending assignment')")},values:{defaultId:'REQ-1042'}},
+        defaultValue: {name:'defaultRecord',fields:{documentTitle:type("label('Document title').and.defaultValue('Untitled document')")},values:{documentTitle:'Quarterly plan'}},
         disabled: {name:'record',fields:{lockedId:type("label('System ID').and.disabled()")},values:{lockedId:'SYS-77'}},
         disabledWhen: {name:'record',fields:{approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved')")},values:{approvalStatus:'draft',budget:5000}},
         emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').and.required().and.emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A'}},
