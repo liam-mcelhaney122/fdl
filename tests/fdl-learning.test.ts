@@ -272,3 +272,18 @@ it('resets the active learning question without losing its rules', async () => {
     expect(root.querySelector('.lesson-state')!.textContent).toContain('25 (number)');
     expect(root.querySelector('.lesson-state')!.textContent).toContain('Required');
 });
+
+
+it('evaluates editable class thresholds at the boundary using the field definition', async () => {
+    const page = await openExplorer('#conditionalCellClass');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    await editField(catalog.shadowRoot!, 'classThreshold', '100');
+    await editField(catalog.shadowRoot!, 'classAmount', '100');
+    await catalog.updateComplete; await page.updateComplete;
+    expect(catalog.shadowRoot!.querySelector('.computed')!.textContent).toContain('false');
+    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('value > 100');
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    await table.updateComplete; await table.recordset.requestUpdate(); await table.updateComplete;
+    expect([...table.shadowRoot.querySelectorAll('td.high-value')].map((cell:any) => cell.textContent.trim())).toEqual(['101']);
+});

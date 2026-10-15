@@ -55,7 +55,7 @@ export const modifierEntries: CatalogEntry[] = [
   <fdl-column field="lastName"></fdl-column>
   <fdl-column field="team"></fdl-column>
 </fdl-table>`),
-    live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > 10000, 'high-value')`),
+    live('conditionalCellClass', 'Adds a table-cell class when a value predicate passes.', 'conditionalCellClass', `.conditionalCellClass(value => value > this.probes.getField('classThreshold'), 'high-value')`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Pending assignment')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
@@ -199,10 +199,10 @@ export class FdlModifierCatalog extends LitElement {
             amount: new FieldType().with
                 .label('Amount')
                 .and.textAlign('right')
-                .and.conditionalCellClass((value: number) => value > 10000, 'high-value'),
+                .and.conditionalCellClass((value: number) => value > this.probes.getField('classThreshold'), 'high-value'),
             label: new FieldType().with.label('Label'),
         },
-        [{ amount: 12000, label: 'High' }, { amount: 2000, label: 'Normal' }]
+        [{ amount: 9999, label: 'Below threshold' }, { amount: 10000, label: 'At threshold' }, { amount: 10001, label: 'Above threshold' }, { amount: 12000, label: 'Your amount' }]
     );
     private compareRecordset = new Recordset(
         {
@@ -282,6 +282,8 @@ export class FdlModifierCatalog extends LitElement {
         ),
     };
     private probes = new Record({
+        classThreshold: new FieldType<number>().with.label('Highlight above').and.type('number').and.parser(Number),
+        classAmount: new FieldType<number>().with.label('Your amount').and.type('number').and.parser(Number),
         input: new FieldType<string>().with.label('Characters to test'),
         filterProbe: new FieldType<string>().with.label('Search names'),
         matchRule: new FieldType<string>().with.label('Filter matching rule').and.tag('select').and.options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
@@ -290,7 +292,7 @@ export class FdlModifierCatalog extends LitElement {
         firstAmount: new FieldType<number>().with.label('First amount').and.type('number').and.parser(Number),
         secondAmount: new FieldType<number>().with.label('Second amount').and.type('number').and.parser(Number),
         thirdAmount: new FieldType<number>().with.label('Third amount').and.type('number').and.parser(Number),
-    }, { filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
+    }, { classThreshold:10000, classAmount:12000, filterProbe: 'ar', matchRule: 'prefix', input: '7.A', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
     private exampleOffset = 0;
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
@@ -325,6 +327,15 @@ export class FdlModifierCatalog extends LitElement {
         this.requestUpdate();
     };
     private onProbeChange = () => {
+        if (this.modifier === 'conditionalCellClass') {
+            const threshold = this.probes.getField('classThreshold');
+            this.conditionalClassRecordset.setData([
+                {amount:threshold - 1, label:'Below threshold'}, {amount:threshold, label:'At threshold'},
+                {amount:threshold + 1, label:'Above threshold'}, {amount:this.probes.getField('classAmount'), label:'Your amount'},
+            ]);
+            this.dispatchEvent(new CustomEvent('example-settings-change', {detail:{threshold}, bubbles:true, composed:true}));
+        }
+
         if (this.modifier === 'filter') {
             const filterMode = this.probes.getField('matchRule') === 'contains' ? 'contains' : 'prefix';
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {filterMode}, bubbles: true, composed: true}));
@@ -413,7 +424,7 @@ export class FdlModifierCatalog extends LitElement {
                         <fdl-column field="team"></fdl-column>
                     </fdl-table>${sortCases(this.compareRecordset)}`;
             }
-            case 'conditionalCellClass': return html`<p class="try">Only 12000 receives the <code>high-value</code> class.</p><fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="label"></fdl-column></fdl-table>`;
+            case 'conditionalCellClass': return html`${this.renderField('classThreshold', this.probes)}${this.renderField('classAmount', this.probes)}<p class="computed" role="status"><code>${this.probes.getField('classAmount')} &gt; ${this.probes.getField('classThreshold')}</code> → ${String(this.probes.getField('classAmount') > this.probes.getField('classThreshold'))} → ${this.conditionalClassRecordset.getFieldType('amount').cellClasses(this.probes.getField('classAmount')).includes('high-value') ? 'high-value class' : 'no high-value class'}</p><fdl-table .recordset=${this.conditionalClassRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="label"></fdl-column></fdl-table>`;
             case 'defaultValue': return html`${this.renderField('defaultId', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('defaultId')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
