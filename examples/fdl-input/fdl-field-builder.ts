@@ -21,18 +21,22 @@ export class FdlFieldBuilder extends LitElement{
     private refresh=()=>this.requestUpdate();
     private changeRules=()=>{
         if(this.configuration.isValid()){
-            this.spec={...this.configuration.values} as FieldSpec;
+            const nextSpec={...this.configuration.values} as FieldSpec;
+            const values=nextSpec.initialValue !== this.spec.initialValue
+                ? {initialValue:nextSpec.initialValue,condition:this.record.getField('condition')}
+                : {initialValue:this.record.getField(this.spec.name),condition:this.record.getField('condition')};
+            this.spec=nextSpec;
             this.record.removeEventListener('change',this.refresh);
-            this.record=buildFieldRecord(this.spec);this.record.addEventListener('change',this.refresh);
+            this.record=buildFieldRecord({...this.spec,...values});this.record.addEventListener('change',this.refresh);
         }
         this.requestUpdate();
     };
     connectedCallback(){super.connectedCallback();this.configuration.addEventListener('change',this.changeRules);this.record.addEventListener('change',this.refresh);}
     disconnectedCallback(){this.configuration.removeEventListener('change',this.changeRules);this.record.removeEventListener('change',this.refresh);super.disconnectedCallback();}
     private currentSpec():FieldSpec{return {...this.spec,condition:this.record.getField('condition'),initialValue:this.record.getField(this.spec.name)};}
-    render(){const source=builderSource(this.currentSpec());return html`<h3>Build a field of your own</h3><p>Name a field, give it a starting value, and choose one dependency and value check. Conditional rules use the Condition field. “Digits only” accepts digits in non-empty values; requiredness determines whether an empty value is allowed.</p><p>Changing a rule rebuilds the preview from your starting value. Export captures the preview’s current value and condition.</p>
+    render(){const source=builderSource(this.currentSpec());return html`<h3>Build a field of your own</h3><p>Name a field, give it a starting value, and choose one dependency and value check. Conditional rules use the Condition field. “Digits only” accepts digits in non-empty values; requiredness determines whether an empty value is allowed.</p><p>Changing a rule or field name preserves your current preview value and condition. Editing Starting value replaces the preview value; Reset restores the initial example. Export captures the preview’s current value and condition.</p>
     <div class="workspace"><section aria-label="Field definition controls">${['name','initialValue','visibility','requiredness','validation'].map(field=>html`<fdl-field .record=${this.configuration} field=${field} .showValidationErrors=${true}></fdl-field>`)}</section><section class="preview"><h3>Try your field</h3>${keyed(this.record,html`<fdl-field .record=${this.record} field="condition"></fdl-field><fdl-field .record=${this.record} field=${this.spec.name} .showValidationErrors=${true}></fdl-field>`)}${recordSummary(this.record,[this.spec.name])}</section></div>
-    <div class="actions"><button ?disabled=${!this.configuration.isValid()} @click=${async()=>{const {default:assets}=await import('virtual:fdl-starter');downloadStarter(source,assets);}}>Download your runnable example</button><button @click=${()=>{this.configuration.setFields({...defaultFieldSpec});this.changeRules();}}>Reset builder</button></div>
+    <div class="actions"><button ?disabled=${!this.configuration.isValid()} @click=${async()=>{const {default:assets}=await import('virtual:fdl-starter');downloadStarter(source,assets);}}>Download your runnable example</button><button @click=${()=>{this.configuration.setFields({...defaultFieldSpec});this.changeRules();this.record.setFields({condition:defaultFieldSpec.condition,[defaultFieldSpec.name]:defaultFieldSpec.initialValue});}}>Reset builder</button></div>
     <h3>${source.modelFile}</h3><pre><code>${highlightJavaScript(source.definition)}</code></pre><h3>${source.uiFile}</h3><pre><code>${highlightJavaScript(source.ui)}</code></pre>`;}
     static styles=css`:host{display:block;font-size:1rem;line-height:1.6}.workspace{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}.workspace section{min-width:0}.preview{padding:16px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:6px;align-self:start}fdl-field{--field-label-width:100%;--field-control-width:100%}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}button{font:inherit;min-height:44px;padding:8px 16px;border:1px solid #94a3b8;border-radius:4px;background:white;color:#1d4ed8;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible{outline:3px solid #2563eb;outline-offset:3px}pre{padding:16px;white-space:pre-wrap;overflow-wrap:anywhere;background:#0f172a;color:#f8fafc;font:.875rem/1.6 monospace}.syntax-string{color:#a7f3d0}.syntax-keyword{color:#c4b5fd}h3{font-size:1.125rem}${exampleTheme}`;
 }
