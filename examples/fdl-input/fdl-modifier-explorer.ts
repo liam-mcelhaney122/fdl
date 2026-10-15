@@ -189,7 +189,7 @@ export class FdlModifierExplorer extends LitElement {
             <aside>
             <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
             <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
-            <div class="modifier-tools"><div class="modifier-heading"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2><span class="match-count" role="status" aria-label=${`${filtered.length} of ${recipes.length} modifiers`}>(${filtered.length} of ${recipes.length})</span></div>
+            <div class="modifier-tools"><div class="modifier-heading"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2></div>
             <div class="modifier-search-field"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
             <input id="modifier-search" class="modifier-search" type="search" aria-label="Find a modifier" placeholder="Find a modifier…" .value=${this.query} @input=${(event: Event) => { this.query = (event.target as HTMLInputElement).value; this.requestUpdate(); }}></div>
             <details class="category-filters" @keydown=${(event: KeyboardEvent) => {
@@ -215,7 +215,7 @@ export class FdlModifierExplorer extends LitElement {
                 menu.open = false;
                 menu.querySelector('summary')?.focus();
             }}>Done</button></div></div></details>
-            ${this.query || this.selectedCategories.size ? html`<button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button>` : ''}
+            ${this.query.trim() || this.selectedCategories.size ? html`<div class="filter-status"><button class="clear-filters" @click=${() => { this.query = ''; this.selectedCategories.clear(); this.requestUpdate(); }}>Clear filters</button><span class="match-count" role="status">(${filtered.length} of ${recipes.length} shown)</span></div>` : ''}
             </div>
             <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-describedby=${this.tooltip?.recipe.name === entry.name ? 'modifier-tooltip' : ''} @mouseenter=${(event: Event) => this.showTooltip(event, entry)} @mouseleave=${this.deferHideTooltip} @focus=${(event: Event) => this.showTooltip(event, entry)} @blur=${this.hideTooltip} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') this.hideTooltip(); }} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.hideTooltip(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
@@ -294,6 +294,7 @@ export class FdlModifierExplorer extends LitElement {
         .category-options { display:grid; gap:2px; }
         .category-options label { display:flex; align-items:center; gap:10px; min-height:36px; font-size:1rem; cursor:pointer; }
         .category-options input { width:20px; height:20px; margin:0; accent-color:var(--accent); }
+        .filter-status { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .clear-filters { align-self:flex-start; min-height:44px; padding:8px 0; border:0; background:none; color:var(--accent); font-size:1rem; text-decoration:underline; text-underline-offset:3px; }
         .modifier-heading { display:flex; align-items:baseline; gap:8px; margin-bottom:16px; }
         .modifier-heading .eyebrow { margin:0; }

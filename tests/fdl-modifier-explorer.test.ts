@@ -183,6 +183,7 @@ describe('complete explorer', () => {
         const page = await openPage();
         const root = page.shadowRoot!;
         const search = root.querySelector<HTMLInputElement>('#modifier-search')!;
+        expect(root.querySelector('.match-count')).toBeNull();
         expect(search.getAttribute('aria-label')).toBe('Find a modifier');
         expect(root.querySelector('.search-label')).toBeNull();
         expect(root.querySelector('.modifier-search-field svg')!.getAttribute('aria-hidden')).toBe('true');
@@ -195,6 +196,7 @@ describe('complete explorer', () => {
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
+        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 39 shown)');
         expect(root.querySelector('h1')!.textContent).toContain('required');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
@@ -313,6 +315,7 @@ describe('category navigation filters', () => {
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(explorerRecipes.length);
         expect(root.querySelectorAll('.category-options input:checked')).toHaveLength(0);
+        expect(root.querySelector('.match-count')).toBeNull();
         expect(search.value).toBe('');
     });
 
