@@ -1,3 +1,4 @@
+import './fdl-field-builder';
 import './fdl-prediction';
 import { learningContinuation } from './learning-continuation';
 import { LitElement, css, html } from 'lit';
@@ -110,6 +111,7 @@ export class FdlCompositionExperiment extends LitElement {
             </div>${this.explanation()}</div><button class="keep-case" ?disabled=${this.savedCases.length >= 6} @click=${this.keepCase}>Keep this case</button><p class="case-notice" role="status">${this.caseNotice || 'Keep up to six cases to compare your own counterexamples.'}</p></section>
             ${this.collectedCases()}
             <section class="definition"><h3>The resulting definition</h3><pre><code>${highlightJavaScript(compositionDefinition(this.rules))}</code></pre><p>This is the address definition used by every case and by the live form.</p></section>
+            <details class="field-builder"><summary>Build and export a field of your own (optional)</summary><fdl-field-builder></fdl-field-builder></details>
             <details class="questions"><summary>Questions to investigate</summary><ul><li>Does hiding a field make it optional? Choose Always under requiredness, then inspect Pickup × Empty.</li><li>Does optional mean any value is allowed? Choose Never under requiredness and inspect an address without a number.</li><li>Which rule would you change to get the behavior you intended? Compare switching off the format check with showing the field for both delivery methods.</li></ul></details>
         </section>`;
     }
