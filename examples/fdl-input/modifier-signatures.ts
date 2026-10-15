@@ -34,3 +34,9 @@ export const modifierSignatures: {[name: string]: string} = {
     "type": "type(type: inputType)",
     "validator": "validator(validator: Validator<T>)"
 };
+
+/** Present supported call forms separately when the implementation uses a broader signature. */
+export const displayedModifierSignatures: {[name: string]: string} = {
+    ...modifierSignatures,
+    cellClass: '.cellClass(className: string)\n.cellClass(predicate: (value: T) => boolean, className: string)',
+};

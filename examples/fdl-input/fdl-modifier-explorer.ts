@@ -1,6 +1,6 @@
 import { modifierPage } from './modifier-page-groups';
 import { relatedModifierNames } from './related-modifiers';
-import { modifierSignatures } from './modifier-signatures';
+import { displayedModifierSignatures as modifierSignatures } from './modifier-signatures';
 import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
@@ -423,7 +423,7 @@ export class FdlModifierExplorer extends LitElement {
         h2 { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }
         .modifier-title { margin:0 0 16px; font-size:1.75rem; line-height:1.35; font-weight:600; }
         .modifier-signature { margin:0 0 24px; font:400 1rem/1.65 monospace; color:var(--muted); overflow-wrap:anywhere; }
-        .modifier-signature code { font:inherit; }
+        .modifier-signature code { font:inherit; white-space:pre-wrap; }
         .description { max-width:70ch; margin:0 0 28px; font-size:1.125rem; line-height:1.7; color:var(--muted); }
         .playground { border:1px solid var(--example-border); border-radius:var(--example-radius); background:#ffffff; overflow:hidden; }
         .playground[data-modifier="multipleValues"] { overflow:visible; }

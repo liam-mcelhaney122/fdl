@@ -2,7 +2,7 @@ import { inputTypes } from '../types/input-types.types';
 import { modifierPage, modifierPageGroups } from '../examples/fdl-input/modifier-page-groups';
 import { relatedModifierNames } from '../examples/fdl-input/related-modifiers';
 import { categoryDescriptions } from '../examples/fdl-input/category-icon';
-import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
+import { displayedModifierSignatures as modifierSignatures } from '../examples/fdl-input/modifier-signatures';
 import FieldType from '../field-type.js';
 import { exampleSource } from '../examples/fdl-input/modifier-example-source';
 import '../examples/fdl-input/fdl-modifier-explorer';
