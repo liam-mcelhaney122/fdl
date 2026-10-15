@@ -224,6 +224,7 @@ export class FdlModifierExplorer extends LitElement {
         return html`<section class="modifier-section" id=${recipe.name} data-modifier=${recipe.name}>
                 <h2 class="modifier-signature" tabindex="-1"><code>${modifierSignatures[recipe.name]}</code></h2>
                 <p class="modifier-title">${recipe.title}</p><p class="description">${recipe.description}</p>
+                ${recipe.deprecation ? html`<p class="deprecation-note"><strong>Deprecated.</strong> ${recipe.deprecation} The existing modifier remains available for compatibility.</p>` : ''}
                 <section class="playground" data-modifier=${recipe.name} aria-label="Interactive example">
                     <div class="section-bar"><span><i></i> ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span>${recipe.limitation ? html`` : html`<button class="reset" @click=${() => this.reset(recipe.name)}>Reset example ↺</button>`}</div>
                     <p class="instruction">${recipe.prompt}</p>
@@ -324,6 +325,7 @@ export class FdlModifierExplorer extends LitElement {
     static styles = css`
         .page-sections { display:flex; min-height:0; overflow:visible; flex-wrap:wrap; gap:10px 20px; margin:0 0 32px; }
         .page-sections a { color:var(--accent); text-underline-offset:3px; }
+        .deprecation-note { padding:16px 20px; border-left:4px solid #b7791f; background:#fffbeb; color:#713f12; line-height:1.65; }
         .modifier-section + .modifier-section { margin-top:56px; padding-top:40px; border-top:2px solid #cbd5e1; }
         .modifier-signature { scroll-margin-top:24px; }
 

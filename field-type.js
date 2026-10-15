@@ -398,6 +398,7 @@ export default class FieldType {
         return this.properties.segmentedFunctions.some(fn => fn(record));
     }
 
+    /** @deprecated Textarea sizing is a presentation concern. Move row-count configuration into fdl-field instead of FieldType. */
     rowCount() {
         return this.properties.numberOfRows;
     }

@@ -219,3 +219,10 @@ There is no replacement FDL modifier.
 and choose checkbox or switch presentation in the component or form adapter.
 The component owns labeling, keyboard interaction, and accessible checked state.
 There is no replacement FDL modifier.
+
+## Deprecated textarea sizing modifier
+
+`rowCount(rows)` is deprecated. Textarea sizing is a presentation concern and
+row-count configuration needs to move into `fdl-field`, separate from the field
+model. The existing modifier and adapter behavior remain available for
+compatibility while that component configuration is introduced.

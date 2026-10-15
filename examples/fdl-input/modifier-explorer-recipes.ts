@@ -11,6 +11,7 @@ export type ExplorerRecipe = {
     note: string;
     use: string;
     limitation?: string;
+    deprecation?: string;
 };
 
 type Detail = [category: string, signature: string, title: string, prompt: string, steps: [string, string, string], note: string, use: string];
@@ -59,5 +60,5 @@ export const additionalRecipes: ExplorerRecipe[] = modifierEntries
         const detail = details[entry.name];
         if (!detail) throw new Error(`Missing explorer detail for ${entry.name}`);
         const [category, signature, title, prompt, steps, note, use] = detail;
-        return { name: entry.name, category, signature, title, description: entry.intent, prompt, steps, note, use, limitation: entry.limitation };
+        return { name: entry.name, category, signature, title, description: entry.intent, prompt, steps, note, use, limitation: entry.limitation, deprecation: entry.name === 'rowCount' ? 'Textarea sizing is a presentation concern. Move row-count configuration into fdl-field instead of FieldType.' : undefined };
     });

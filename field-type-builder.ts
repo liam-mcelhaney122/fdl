@@ -898,6 +898,7 @@ export default class FieldTypeBuilder<T> {
 
     /**
      * Sets the number of rows on a field
+     * @deprecated Textarea sizing is a presentation concern. Move row-count configuration into fdl-field instead of FieldType.
      * @param {number} numberOfRows
      */
     rowCount(numberOfRows: number) {

@@ -60,7 +60,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         readOnly: {name:'record',fields:{fixedOwner:type("label('Owner').and.readOnly()")},values:{fixedOwner:'Ada Lovelace'}},
         readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').and.readOnlyWhen(record => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
         requiredWhen: {name:'record',fields:{followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').and.tag('textarea').and.rowCount(2).and.requiredWhen(record => record.getField('followUp') === 'yes')")},values:{followUp:'no',followUpNotes:''}},
-        rowCount: {name:'record',fields:{comments:type(`label('Comments').and.tag('textarea').and.rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
+        rowCount: {name:'record',prefix:'// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',fields:{comments:type(`label('Comments').and.tag('textarea').and.rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{inputValue:type(`label('Example: ${settings.inputType ?? 'text'}').and.type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.and.parser(Number)' : ''}`)},values:{inputValue:inputTypeInitialValue(settings.inputType ?? 'text')}},
         validator: {name:'record',fields:{
             email:type(`label('Email address').and.type('email').and.validator({

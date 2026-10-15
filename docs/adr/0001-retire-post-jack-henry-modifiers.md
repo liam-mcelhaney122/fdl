@@ -108,6 +108,7 @@ future retirement work from losing historical context.
 | `parseDynamicRange` | Deprecated | `parser(...)` | Parsing belongs in the value pipeline. |
 | `pattern` | Deprecated | Model validation or renderer input configuration | Browser constraint is not model-enforced. |
 | `readOnlyExceptionWhen` | Deprecated | Renderer | Composite-control exception. |
+| `rowCount` | Deprecated | `fdl-field` presentation configuration | Textarea sizing is a presentation concern rather than reusable field behavior. |
 | `schema` | Deprecated | Application metadata outside `FieldType` | Legacy metadata without reusable field behavior. |
 | `selectionDisabledFunctions` | Deprecated | Renderer or form adapter | Individual choice disabling is renderer-specific and is not enforced by the FDL model or native controls. |
 | `selectOnFocus` | Removed — 2026-10-15 | Component or form adapter | Focus and text selection are control interactions, not reusable field behavior. |

@@ -84,7 +84,7 @@ new FieldType()
     live('required', 'Always requires a non-empty value and adds record validation.', 'required', `.required()`),
     live('requiredWhen', 'Requires a value only while a record predicate is true.', 'requiredWhen', `.requiredWhen(record => record.getField('followUp') === 'yes')`),
     live('rowClasses', 'Computes CSS classes for the table row containing a value.', 'rowClasses', `.rowClasses(value => value === 'Disputed' ? ['disputed-row'] : [])`),
-    live('rowCount', 'Sets the visible row count of textarea-like controls.', 'rowCount', `.rowCount(4)`),
+    live('rowCount', 'Deprecated: textarea sizing belongs in fdl-field rather than the field model.', 'rowCount', `.rowCount(4)`),
     placeholder('search', 'Enables a rich option-search dialog and describes its result columns.', customControlGap),
     live('sortable', 'Enables or disables sorting for a table column.', 'sortable', `.sortable(false)`),
     live('targetColumnWidth', 'Sets the preferred width requested for a table column.', 'targetColumnWidth', `.targetColumnWidth(140)`),

@@ -618,3 +618,14 @@ it('lists every category and modifier once with purposes and linked relationship
     await settle(page);
     expect(root.getElementById('emptyWhen')).not.toBeNull();
 });
+
+
+it('marks rowCount as deprecated and points textarea sizing to fdl-field', async () => {
+    const page = await openPage('#rowCount');
+    const note = page.shadowRoot!.querySelector('.deprecation-note')!;
+    expect(note.textContent).toContain('Deprecated.');
+    expect(note.textContent).toContain('presentation concern');
+    expect(note.textContent).toContain('fdl-field');
+    expect(note.textContent).toContain('remains available for compatibility');
+    expect(exampleSource('rowCount').definition).toContain('// Deprecated: textarea sizing belongs in fdl-field');
+});
