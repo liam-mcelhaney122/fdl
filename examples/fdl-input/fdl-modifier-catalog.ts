@@ -51,7 +51,7 @@ new FieldType().with.label('T-shirt size')
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
     live('disabled', 'Makes a control visible but permanently unavailable for editing.', 'disabled', `.disabled()`),
     live('disabledWhen', 'Disables a control only while a record predicate is true.', 'disabledWhen', `.disabledWhen(record => record.getField('status') === 'approved')`),
-    live('emptyWhen', 'Defines additional values that should count as empty during validation.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
+    live('emptyWhen', 'Defines additional values that should count as empty.', 'emptyWhen', `.emptyWhen(value => value === 'N/A')`),
     live('exampleValue', 'Supplies fixed or index-derived values for generated example records.', 'exampleValue', `.exampleValue(index => \`Sample contact \${index + 1}\`)`),
     live('filter', 'Makes a table column filterable and defines how text matches its values.', 'filter', `.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase()))`),
     live('formatter', 'Transforms a stored value for display without changing the model value.', 'formatter', `.formatter(value => currency.format(Number(value)))`),
@@ -120,7 +120,7 @@ export class FdlModifierCatalog extends LitElement {
             lockedId: new FieldType().with.label('System ID').and.disabled(),
             approvalStatus: new FieldType().with.label('Approval status').and.tag('select').and.options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
             budget: new FieldType().with.label('Budget').and.type('number').and.disabledWhen(record => record.getField('approvalStatus') === 'approved'),
-            emptyCode: new FieldType().with.label('Reference').and.required().and.emptyWhen(value => value === 'N/A'),
+            emptyCode: new FieldType().with.label('Reference').and.emptyWhen(value => value === 'N/A'),
             hiddenSearch: new FieldType().with.label('Search directory').and.placeholder('Search directory'),
             expenseType: new FieldType().with.label('Expense type').and.tag('select').and.options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
             dynamicAmount: new FieldType<any>().with.label((record: any) => `Amount for ${record.getField('expenseType')}`).and.type('number'),
@@ -423,7 +423,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'defaultValue': return html`${this.renderField('documentTitle', this.defaultRecord)}<button type="button" @click=${this.clearDefaultRecord}>Clear the record</button><p class="computed">Current record value: ${this.defaultRecord.getField('documentTitle')}</p>`;
             case 'disabled': return html`${this.renderField('lockedId')}`;
             case 'disabledWhen': return html`<p class="try">Choose Approved to disable Budget.</p>${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
-            case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderValidation('emptyCode')}`;
+            case 'emptyWhen': return html`<p class="try">“N/A” is configured to count as empty.</p>${this.renderField('emptyCode')}<p class="computed" role="status">${this.record.fieldTypeForField('emptyCode').empty(this.record, 'emptyCode') ? 'This field is considered empty' : 'This field is not considered empty'}</p>`;
             case 'exampleValue': return html`<button @click=${() => { this.exampleOffset += 3; this.requestUpdate(); }}>Generate next three</button><p class="computed">Generated values: ${[0, 1, 2].map(index => this.exampleType.exampleValue()(index + this.exampleOffset)).join(', ')}</p>`;
             case 'filter': return html`<p class="try">One search text drives the table and both matching rules.</p>${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table .recordset=${this.filterRecordset} .filters=${{name: this.probes.getField('filterProbe')}} @filters-changed=${(event: CustomEvent<{name?: string}>) => { const text = event.detail.name ?? ''; if (text !== this.probes.getField('filterProbe')) this.probes.setField('filterProbe', text); }}><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column></fdl-table>${filterCases(this.probes.getField('filterProbe'))}`;
             case 'formatter': return html`<p class="try">The record stores <code>1250</code>; the table prints the formatted value.</p><fdl-table .recordset=${this.formatterRecordset}><fdl-column field="amount"></fdl-column><fdl-column field="invoice"></fdl-column></fdl-table>`;

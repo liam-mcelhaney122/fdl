@@ -418,3 +418,22 @@ it('links cell styling alternatives in both directions', async () => {
     expect(page.shadowRoot!.querySelector('h1')!.textContent).toContain('conditionalCellClass');
     expect(page.shadowRoot!.querySelector('.related-modifiers a[href="#cellClass"]')).not.toBeNull();
 });
+
+
+it('updates the emptiness message as the reference is edited', async () => {
+    const page = await openPage('#emptyWhen');
+    const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const demo = catalog.shadowRoot!.querySelector('.focused-demo')!;
+    expect(demo.querySelector('button')).toBeNull();
+    const field = demo.querySelector('fdl-field') as any;
+    await field.updateComplete;
+    const input = field.shadowRoot.querySelector('input') as HTMLInputElement;
+    for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+        await catalog.updateComplete;
+        expect(demo.querySelector('[role=status]')!.textContent).toBe(
+            empty ? 'This field is considered empty' : 'This field is not considered empty');
+    }
+});

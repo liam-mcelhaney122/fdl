@@ -99,3 +99,16 @@ it('exports a named size comparator and sorts sizes in domain order rather than 
     expect(source.definition).toContain('function compareShirtSizes(left, right)');
     expect(source.definition).toContain('.compareFunction(compareShirtSizes)');
 });
+
+
+it('reports emptiness directly in the exported Lit example without requiring the field', () => {
+    const {model, container} = runExample('emptyWhen');
+    expect(container.querySelector('button')).toBeNull();
+    for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
+        model.setField('emptyCode', value);
+        expect(container.querySelector('[role=status]')!.textContent!.trim()).toBe(
+            empty ? 'This field is considered empty' : 'This field is not considered empty');
+        expect(model.isValid('emptyCode')).toBe(true);
+        expect(model.getField('emptyCode')).toBe(value);
+    }
+});
