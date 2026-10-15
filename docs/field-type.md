@@ -1,17 +1,14 @@
 # Field types
 
-A `FieldTypeBuilder` describes a field through direct modifier chaining. Each
-modifier returns a new builder without changing its source. `valueOf()` creates
-the actual `FieldType`, which exposes runtime operations such as parsing,
-formatting, and validation.
-
-The exported `string`, `number`, `boolean`, and `date` primitives are reusable
-builders. Start a custom definition with `new FieldTypeBuilder<T>()`.
+Start a custom field definition with the exported `field` instance and chain
+modifiers directly. Each modifier returns a new definition without changing its
+source. The exported `string`, `number`, `boolean`, and `date` primitives are
+reusable starting points with type-specific defaults.
 
 ```js
-import { FieldTypeBuilder } from 'digital-fdl';
+import { field } from 'digital-fdl';
 
-const number = new FieldTypeBuilder()
+const number = field
   .validator({
     name: 'numeric',
     validate: value => Number.isFinite(Number(value)),
@@ -27,47 +24,45 @@ const money = number
   .maxColumnWidth(200);
 ```
 
-## Builders and runtime field types
+## Definitions and runtime behavior
 
-Pass builders directly to `Record`, `Recordset`, and `Record#addField()`. These
-boundaries call `valueOf()` and store actual `FieldType` objects internally.
-They also accept an already finalized type: `FieldType#valueOf()` returns itself.
-The exported `FieldDefinition<T>` type represents either input.
+Pass definitions directly to `Record`, `Recordset`, and `Record#addField()`.
+They prepare runtime behavior automatically. The exported `FieldDefinition<T>`
+type describes an accepted field definition.
 
 ```ts
-import { string, Record, FieldTypeBuilder } from 'digital-fdl';
+import { field, Record } from 'digital-fdl';
 
-const name = string.maxLength(100);
+const name = field.maxLength(100);
 const requiredName = name.required(); // name stays optional
 const person = new Record({ name: requiredName }, { name: '' });
 person.isValid(); // false
 
-// Explicit finalization is useful for direct runtime operations.
-const nameType = requiredName.valueOf();
+// Inspect behavior through the record.
+const nameType = person.fieldTypeForField('name');
 nameType.required(); // true
 nameType.format('Ada', person); // 'Ada'
 
-// To specialize an already finalized type, create a builder from it.
-const displayName = FieldTypeBuilder.from(nameType).label('Display name');
+// Specialize the reusable definition for another use.
+const displayName = name.label('Display name');
 ```
 
-Every `valueOf()` call on a builder creates a new runtime type with its own
-option cache and display-result state. Keep the returned type when repeatedly
-calling runtime methods, especially option loading. A recordset finalizes each
-builder once and shares that runtime type with its rows.
+A record keeps its runtime field types, including option caches and display
+results. A recordset shares its runtime field types with its rows. Use
+`record.fieldTypeForField(name)` or `recordset.getFieldType(name)` when you need
+to inspect or invoke that behavior directly.
 
 ### Migrating direct chains
 
 Remove sentence-style aliases (`with`, `and`, `thatIs`, `thatHas`, `andIs`,
-`as`, `thatWill`, `thatUses`, and `that`). Replace `new FieldType()` used to
-construct a definition with `new FieldTypeBuilder()`. Modifiers belong to the
-builder; methods on the finalized `FieldType` read or evaluate its behavior.
-For example, `string.required()` builds a required field, while
-`string.required().valueOf().required()` evaluates its required state.
+`as`, `thatWill`, `thatUses`, and `that`). Start custom definitions with `field`
+and chain modifiers directly. Pass the result to a record or recordset.
+For example, `field.required()` defines a required field; use the record to
+validate its value or inspect its required state. Keep reusable definitions
+when you need to specialize them later.
 
-`Record` and `Recordset` callers do not need a final `valueOf()`. Direct callers
-of runtime methods such as `format()`, `validate()`, or `options(record)` do.
-This is a breaking API change; the sentence-style aliases have been removed.
+This is a breaking API change; the sentence-style aliases and public builder
+constructor export have been removed.
 
 ## Fixed and calculated settings
 
@@ -99,7 +94,7 @@ read. Callbacks should be pure; they must not mutate the record or render UI.
 | `minLength`, `maxLength` | `number` |
 
 ```ts
-const amount = new FieldTypeBuilder<number>()
+const amount = field
   .label((_value, _record, context) =>
     context === 'table-header' ? 'Amount' : 'Invoice amount')
   .placeholder('Enter an amount')
@@ -151,7 +146,7 @@ value argument. Existing non-null values are preserved without invoking it.
 The model supplies `"model"` as context. For example:
 
 ```ts
-const reference = new FieldTypeBuilder<string>()
+const reference = field
   .defaultValue((record, context) =>
     `${record.getField('prefix')}-${context}`);
 ```
@@ -171,7 +166,7 @@ accept a context string. A column has no single field value or owning record,
 so the callback has no value or record parameters.
 
 ```ts
-const amount = new FieldTypeBuilder<number>()
+const amount = field
   .minColumnWidth(context =>
     context === 'table' ? 100 : 60)
   .sortable(true);
@@ -282,7 +277,7 @@ For a native dropdown, use `tag('select')` and option objects with `text` and
 `value` properties:
 
 ```js
-const contactMethod = new FieldTypeBuilder()
+const contactMethod = field
   .tag('select')
   .label('Preferred contact method')
   .options([
@@ -296,10 +291,10 @@ const contactMethod = new FieldTypeBuilder()
 receive the current record:
 
 ```js
-const localAssignee = new FieldTypeBuilder()
+const localAssignee = field
   .options(record => directory[record.getField('department')]);
 
-const remoteAssignee = new FieldTypeBuilder()
+const remoteAssignee = field
   .options(async record => {
     const response = await fetch(`/assignees?department=${encodeURIComponent(record.getField('department'))}`);
     return response.json();
@@ -316,7 +311,7 @@ array or a promise. `fields` limits cache invalidation to the listed record
 fields.
 
 ```js
-const users = new FieldTypeBuilder().options({
+const users = field.options({
   fetch: record => userService.fetchUsers(record.getField('companyId')),
   fields: ['companyId'],
   text: user => user.name,
@@ -331,10 +326,10 @@ ordered. The table uses that comparator when its sort state includes the
 column:
 
 ```js
-import { FieldTypeBuilder, Recordset } from 'digital-fdl';
+import { field, Recordset } from 'digital-fdl';
 
 const fields = {
-  name: new FieldTypeBuilder().compareFunction((a, b) => a.localeCompare(b)),
+  name: field.compareFunction((a, b) => a.localeCompare(b)),
 };
 
 const people = new Recordset(fields, [
@@ -362,8 +357,8 @@ filters with AND semantics and preserves any predicate already assigned to the
 
 ```js
 const fields = {
-  name: new FieldTypeBuilder().filter(),
-  accountCode: new FieldTypeBuilder().filter((text, value) =>
+  name: field.filter(),
+  accountCode: field.filter((text, value) =>
     value.toLowerCase().startsWith(text.toLowerCase())
   ),
 };
@@ -427,7 +422,7 @@ Return `[]` when no classes apply. Repeated calls accumulate in declaration
 order without changing the source definition.
 
 ```ts
-const status = new FieldTypeBuilder<string>()
+const status = field
   .cellClass('status-cell')
   .cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
   .rowClass('invoice-row')
@@ -450,7 +445,7 @@ The value type `T` comes from the field type. The callback can read other
 fields through `record.getField(name)`, for example:
 
 ```ts
-const amount = new FieldTypeBuilder<number>()
+const amount = field
   .cellClass((value, record) =>
     value > record.getField('limit') ? ['warning', 'over-limit'] : [])
   .rowClass((value, record) =>

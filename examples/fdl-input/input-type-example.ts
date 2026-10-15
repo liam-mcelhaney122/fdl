@@ -1,4 +1,4 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import { inputTypes, type inputType } from '../../types/input-types.types';
 
 export const inputTypeChoices = inputTypes.map(value => ({text: value, value}));
@@ -15,8 +15,8 @@ const initialValues: Partial<{[name in inputType]: string | number | boolean}> =
 export const inputTypeInitialValue = (type: inputType) => initialValues[type] ?? '';
 export const inputTypeNeedsNumber = (type: inputType) => type === 'number' || type === 'range';
 export function inputTypeField(type: inputType) {
-    const field = new FieldTypeBuilder().label(`Example: ${type}`).type(type);
-    return inputTypeNeedsNumber(type) ? field.parser(Number) : field;
+    const definition = field.label(`Example: ${type}`).type(type);
+    return inputTypeNeedsNumber(type) ? definition.parser(Number) : definition;
 }
 
 export function inputTypeNote(type: inputType) {

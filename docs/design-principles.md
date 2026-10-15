@@ -93,9 +93,10 @@ business validation into the component.
 ## What a modifier is
 
 A modifier adds one focused piece of declarative behavior to a field type and
-returns a new `FieldTypeBuilder`. Finalizing with `valueOf()` produces the
-runtime `FieldType`. It answers a question about the field rather than
-issuing instructions to a particular component.
+returns a new field definition. Start definitions with `field` or a primitive;
+records and recordsets prepare their runtime behavior automatically. A modifier
+answers a question about the field rather than issuing instructions to a
+particular component.
 
 Good modifiers describe concepts such as:
 
@@ -132,7 +133,7 @@ tag or setting one component's private property does not.
 ### Composable
 
 Modifiers must preserve immutable specialization: applying one returns a new
-`FieldTypeBuilder` and leaves the source definition unchanged. `Record` and
+field definition and leaves the source definition unchanged. `Record` and
 `Recordset` finalize builders at their input boundaries.
 
 When multiple applications make sense, behavior should compose predictably.
@@ -211,7 +212,7 @@ language.
 
 When a new modifier is justified:
 
-- return a new `FieldTypeBuilder`; never mutate the source definition;
+- return a new field definition; never mutate the source definition;
 - clone and extend collection properties rather than sharing mutable arrays;
 - give callbacks precise argument and return types; use `FieldSetting` for
   fixed or calculated field settings and `ColumnSetting` when there is no

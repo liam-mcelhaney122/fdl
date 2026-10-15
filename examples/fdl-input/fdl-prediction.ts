@@ -1,11 +1,11 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import { addressCases, compositionExplanation, compositionRecord, defaultCompositionRules, type CompositionRules } from './composition-model';
 import { exampleTheme } from './example-theme';
 import './fdl-field';
 
-const choice = (label: string, options: {text:string;value:string}[]) => new FieldTypeBuilder<string>().label(label).tag('select').options(options);
+const choice = (label: string, options: {text:string;value:string}[]) => field.label(label).tag('select').options(options);
 export class FdlPrediction extends LitElement {
     static properties = {rules:{attribute:false}};
     rules: CompositionRules = {...defaultCompositionRules};

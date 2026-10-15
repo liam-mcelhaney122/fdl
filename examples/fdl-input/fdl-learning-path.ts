@@ -1,4 +1,4 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import './fdl-transfer-challenge';
 import { compositionLink } from './learning-continuation';
 import { exampleTheme } from './example-theme';
@@ -26,7 +26,7 @@ export class FdlLearningPath extends LitElement {
     session?: LearningState;
     private step = 0;
     private definitions() {
-        let charge = new FieldTypeBuilder<any>().label('Delivery charge').textAlign('right');
+        let charge = field.label('Delivery charge').textAlign('right');
         if (this.step >= 1) charge = charge.parser(value => String(value).trim() === '' ? undefined : Number(String(value).replace(/[$,]/g, '')))
             .formatter((value: unknown, _record?: unknown, context?: string) => value == null ? '' : context === 'input-focus' ? String(value) : currency.format(Number(value)));
         if (this.step >= 2) {
@@ -35,7 +35,7 @@ export class FdlLearningPath extends LitElement {
         }
         if (this.step >= 3) charge = charge.visibleWhen((_value, record) => record.getField('method') === 'ship');
         return {
-            method: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
+            method: field.label('Delivery method').tag('select').options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
             charge,
         };
     }
@@ -73,7 +73,7 @@ export class FdlLearningPath extends LitElement {
         this.requestUpdate();
     };
     private code() {
-        return `const charge = new FieldTypeBuilder().label('Delivery charge')
+        return `const charge = field.label('Delivery charge')
   .textAlign('right')${this.step >= 1 ? `
   .parser(value => String(value).trim() === ''
     ? undefined : Number(String(value).replace(/[$,]/g, '')))

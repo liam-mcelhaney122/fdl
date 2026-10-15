@@ -1,9 +1,10 @@
 # Record
 
 A `Record` combines a map of field names and field definitions with one
-object of values. Definitions may be `FieldTypeBuilder` instances or finalized
-`FieldType` objects. The constructor calls `valueOf()` on each definition and
-stores the resulting runtime types. It is the model passed to FDL form controls.
+object of values. Start definitions with `field` or a primitive and chain
+modifiers, then pass them directly to the constructor. The record connects their
+rules to values and is the model passed to FDL form controls.
+Use `fieldTypeForField(name)` to inspect a field's runtime behavior.
 
 ```js
 import { Record, string } from 'digital-fdl';

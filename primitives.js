@@ -1,6 +1,9 @@
 /* eslint-disable @treasury/no-date */
 import FieldTypeBuilder from './field-type-builder';
 
+/** The reusable starting point for custom field definitions. */
+export const field = /** @type {FieldTypeBuilder<any>} */ (new FieldTypeBuilder());
+
 const stringBase = /** @type {FieldTypeBuilder<string>} */ (new FieldTypeBuilder());
 export const string = stringBase.defaultValue('');
 

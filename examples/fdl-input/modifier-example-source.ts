@@ -12,7 +12,7 @@ import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-
 export type ExampleSettings = { required?: boolean; minimum?: number; rows?: number; inputType?: inputType; filterMode?: 'prefix' | 'contains'; threshold?: number };
 type Model = { name: string; fields: {[key: string]: string}; values: object; kind?: 'Recordset'; prefix?: string };
 const modifierCall = new RegExp(`\\s*\\.(?=(?:${Object.keys(modifierSignatures).join('|')})\\()`, 'g');
-const type = (chain: string) => `new FieldTypeBuilder()\n    .${chain}`;
+const type = (chain: string) => `field\n    .${chain}`;
 const currency = `const currency = new Intl.NumberFormat('en-US', {
   style: 'currency', currency: 'USD',
 });`;
@@ -74,9 +74,9 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     .validator({name: 'must start with a letter', validate: value => /^[A-Za-z]/.test(String(value))})
     .validator({name: 'must contain only letters, numbers, or underscores', validate: value => /^[A-Za-z0-9_]+$/.test(String(value))})`),
         },values:{email:'ada@',orderQuantity:2.5,username:'7bad-name'}},
-        hashFunction: {name:'probes',prefix:"const hashType = new FieldTypeBuilder()\n  .hashFunction(employee => employee.id).valueOf();",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
+        hashFunction: {name:'probes',prefix:"const employees = new Record({\n  employee: field.hashFunction(employee => employee.id),\n}, {});\nconst hashType = employees.fieldTypeForField('employee');",fields:{firstId:type("label('First employee ID')"),secondId:type("label('Second employee ID')")},values:{firstId:'ada',secondId:'ada'}},
         inputMask: {name:'probes',fields:{input:type("label('Digits and periods').inputMask(/[0-9.]/)")},values:{input:'7.5'}},
-        reducer: {name:'probes',prefix:`${currency}\n\nconst reducerType = new FieldTypeBuilder()\n  .reducer('sum').valueOf();`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').type('number').parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
+        reducer: {name:'probes',prefix:`${currency}\n\nconst totals = new Record({ amount: field.reducer('sum') }, {});\nconst reducerType = totals.fieldTypeForField('amount');`,fields:Object.fromEntries(['first','second','third'].map((word,index) => [`${word}Amount`, type(`label('${['First','Second','Third'][index]} amount').type('number').parser(Number)`)])),values:{firstAmount:1200,secondAmount:800,thirdAmount:500}},
     };
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {
@@ -124,7 +124,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const exports = [model.name, ...(helpers[name] ?? [])];
     const modelFile = `${name}-model.js`;
     const uiFile = `${name}-view.js`;
-    const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { FieldTypeBuilder, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
+    const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
     let markup = exampleMarkup(name);
     let setup = '';
     const validation = validationFields[name];

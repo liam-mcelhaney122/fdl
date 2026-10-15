@@ -4,9 +4,9 @@ A `Recordset` manages a collection of `Record` instances. It can fetch data,
 sort and filter it, paginate the visible records, and report collection-level
 validation errors.
 
-Supply a map of builders or finalized `FieldType` objects. The recordset calls
-`valueOf()` on each definition once, then uses the resulting runtime types for
-every row. `getFieldType(name)` returns a finalized `FieldType`.
+Supply a map of field definitions built from `field` or the primitives. The
+recordset prepares their runtime behavior once and shares it across every row.
+`getFieldType(name)` returns the runtime type for inspecting that behavior.
 
 Use the same definition map for every row:
 

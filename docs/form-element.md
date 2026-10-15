@@ -60,7 +60,9 @@ Always use that component as the outer form control and pass the record and
 field. The `FieldType` tag names the native child created inside it:
 
 ```ts
-const contactMethod = new FieldTypeBuilder()
+import { field, Record } from 'digital-fdl';
+
+const contactMethod = field
   .tag('select')
   .label('Preferred contact method')
   .options([

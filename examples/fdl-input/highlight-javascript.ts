@@ -1,7 +1,7 @@
 import { html, type TemplateResult } from 'lit';
 
 const keywords = new Set(['async', 'await', 'const', 'let', 'var', 'new', 'return', 'if', 'else', 'throw', 'function', 'class', 'import', 'from', 'export', 'default', 'typeof', 'instanceof']);
-const builtins = new Set(['Intl', 'Number', 'String', 'Boolean', 'Promise', 'FieldType', 'FieldTypeBuilder', 'Record', 'Recordset']);
+const builtins = new Set(['Intl', 'Number', 'String', 'Boolean', 'Promise', 'FieldType', 'field', 'Record', 'Recordset']);
 
 // A display-only tokenizer for the cookbook's JavaScript snippets. Render every
 // token through Lit text bindings, so code never becomes executable HTML.

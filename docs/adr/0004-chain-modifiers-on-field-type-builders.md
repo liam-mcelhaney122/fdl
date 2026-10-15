@@ -18,17 +18,18 @@ without changing other definitions.
 
 ## Decision
 
-- Export immutable `FieldTypeBuilder` primitives and the builder class.
+- Export an immutable `field` instance and typed primitives. Keep the
+  `FieldTypeBuilder` class internal to the implementation.
 - Keep modifiers on builders. Each modifier returns a new builder, allowing
   chains such as `string.required().maxLength(100)`.
-- Finalize a builder explicitly with `valueOf()` to obtain a runtime
-  `FieldType`. Each finalization has independent option caches and result text.
+- Keep finalization internal to model input boundaries. Each finalization
+  creates a runtime `FieldType` with independent option caches and result text.
 - Give `FieldType` an identity `valueOf()` method.
 - Let `Record`, `Recordset`, and `Record#addField()` accept either kind of
   definition and call `valueOf()` at their input boundary. Runtime consumers
   receive finalized field types.
-- Remove sentence-style aliases. Use `FieldTypeBuilder.from(type)` when a
-  finalized type needs further specialization.
+- Remove sentence-style aliases. Specialize reusable definitions directly
+  instead of converting runtime types back into definitions.
 
 ## Options considered
 
@@ -41,9 +42,10 @@ leave the original alternating return types in place.
 ## Consequences and advice
 
 This is a breaking API change. Definition authors remove aliases and use
-`FieldTypeBuilder` rather than `FieldType` for construction. Direct users of
-runtime operations finalize their definition first. Record and recordset
-callers can pass builder chains directly.
+`field` rather than a constructor for custom definitions. Pass chains directly
+to records and recordsets. Obtain runtime behavior through
+`Record#fieldTypeForField()` or `Recordset#getFieldType()`; consumers do not need
+to know the builder class or call `valueOf()`.
 
 Keep reusable definitions as builders. Keep a finalized type when repeatedly
 loading options so its runtime cache remains useful. A recordset finalizes its

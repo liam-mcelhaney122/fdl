@@ -1,4 +1,4 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import { validatorExamples } from './validator-examples';
 import { inputTypeChoices, inputTypeField, inputTypeInitialValue, inputTypeNote } from './input-type-example';
 import type { inputType } from '../../types/input-types.types';
@@ -49,7 +49,7 @@ export const modifierEntries: CatalogEntry[] = [
     live('cellClass', 'Adds cell classes directly or computes them from the value and record.', 'cellClass', `.cellClass('amount-cell').cellClass(value => value > limit ? ['high-value', 'over-limit'] : [])`),
     live('compareFunction', 'Defines how two field values are ordered.', 'compareFunction', `${compareShirtSizesSource}
 
-new FieldTypeBuilder()
+field
   .label('T-shirt size')
   .compareFunction(compareShirtSizes)`),
     live('defaultValue', 'Defines the value Record.clear() restores for this field.', 'defaultValue', `.defaultValue('Untitled document')`),
@@ -110,59 +110,59 @@ export class FdlModifierCatalog extends LitElement {
     private optionsLoading = false;
 
     private defaultRecord = new Record(
-        { documentTitle: new FieldTypeBuilder().label('Document title').defaultValue('Untitled document') },
+        { documentTitle: field.label('Document title').defaultValue('Untitled document') },
         { documentTitle: 'Quarterly plan' }
     );
 
     private record = new Record(
         {
-            extraProperty: new FieldTypeBuilder().label('Extra property example'),
-            lockedId: new FieldTypeBuilder().label('System ID').disabled(),
-            approvalStatus: new FieldTypeBuilder().label('Approval status').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
-            budget: new FieldTypeBuilder().label('Budget').type('number').disabled((_value, record) => record.getField('approvalStatus') === 'approved'),
-            emptyCode: new FieldTypeBuilder().label('Reference').emptyWhen(value => value === 'N/A').required(),
-            optionalEmptyCode: new FieldTypeBuilder().label('Optional reference').emptyWhen(value => value === 'N/A'),
-            hiddenSearch: new FieldTypeBuilder().label('Search directory').placeholder('Search directory'),
-            expenseType: new FieldTypeBuilder().label('Expense type').tag('select').options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
-            dynamicAmount: new FieldTypeBuilder<any>().label((_value, record: any) => `Amount for ${record.getField('expenseType')}`).type('number'),
-            money: new FieldTypeBuilder<number>()
+            extraProperty: field.label('Extra property example'),
+            lockedId: field.label('System ID').disabled(),
+            approvalStatus: field.label('Approval status').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
+            budget: field.label('Budget').type('number').disabled((_value, record) => record.getField('approvalStatus') === 'approved'),
+            emptyCode: field.label('Reference').emptyWhen(value => value === 'N/A').required(),
+            optionalEmptyCode: field.label('Optional reference').emptyWhen(value => value === 'N/A'),
+            hiddenSearch: field.label('Search directory').placeholder('Search directory'),
+            expenseType: field.label('Expense type').tag('select').options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
+            dynamicAmount: field.label((_value, record: any) => `Amount for ${record.getField('expenseType')}`).type('number'),
+            money: field
                 .label('Money')
                 .formatter(value => currency.format(Number(value)))
                 .parser(value => Number(String(value).replace(/[$,]/g, ''))),
-            shortCode: new FieldTypeBuilder().label('Short code').maxLength(12),
-            longCode: new FieldTypeBuilder().label('Access code').minLength(4),
-            skills: new FieldTypeBuilder().label('Skills').tag('select').multipleValues().options([
+            shortCode: field.label('Short code').maxLength(12),
+            longCode: field.label('Access code').minLength(4),
+            skills: field.label('Skills').tag('select').multipleValues().options([
                 { text: 'Design', value: 'design' },
                 { text: 'Engineering', value: 'engineering' },
                 { text: 'Research', value: 'research' },
             ]),
-            quantity: new FieldTypeBuilder<any>().label('Quantity').tag('select').options([{ text: '1', value: 1 }, { text: '2', value: 2 }, { text: '4', value: 4 }]),
-            total: new FieldTypeBuilder().label('Total at $25 each').formatter(value => currency.format(Number(value))).readOnly(),
-            department: new FieldTypeBuilder().label('Department').tag('select').options([{ text: 'Engineering', value: 'engineering' }, { text: 'Finance', value: 'finance' }]),
-            assignee: new FieldTypeBuilder<any>().label('Assignee (function)').tag('select').options((record: any) => assigneeDirectory[record.getField('department')]),
-            asyncAssignee: new FieldTypeBuilder<any>().label('Assignee (async function)').tag('select').options(async (record: any) => {
+            quantity: field.label('Quantity').tag('select').options([{ text: '1', value: 1 }, { text: '2', value: 2 }, { text: '4', value: 4 }]),
+            total: field.label('Total at $25 each').formatter(value => currency.format(Number(value))).readOnly(),
+            department: field.label('Department').tag('select').options([{ text: 'Engineering', value: 'engineering' }, { text: 'Finance', value: 'finance' }]),
+            assignee: field.label('Assignee (function)').tag('select').options((record: any) => assigneeDirectory[record.getField('department')]),
+            asyncAssignee: field.label('Assignee (async function)').tag('select').options(async (record: any) => {
                 const choices = assigneeDirectory[record.getField('department')];
                 await new Promise(resolve => setTimeout(resolve, optionsDelay));
                 return choices;
             }),
-            projectName: new FieldTypeBuilder().label('Project name').placeholder('For example, Apollo migration'),
-            fixedOwner: new FieldTypeBuilder().label('Owner').readOnly(),
-            phase: new FieldTypeBuilder().label('Phase').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
-            conditionalOwner: new FieldTypeBuilder().label('Request owner').readOnlyWhen((_value, record) => record.getField('phase') === 'submitted'),
-            requiredName: new FieldTypeBuilder().label('Legal name').required(),
-            followUp: new FieldTypeBuilder().label('Follow-up needed?').tag('select').options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
-            followUpNotes: new FieldTypeBuilder().label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes'),
-            comments: new FieldTypeBuilder().label('Comments').tag('textarea').rowCount(4),
-            email: new FieldTypeBuilder().label('Email address').type('email')
+            projectName: field.label('Project name').placeholder('For example, Apollo migration'),
+            fixedOwner: field.label('Owner').readOnly(),
+            phase: field.label('Phase').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
+            conditionalOwner: field.label('Request owner').readOnlyWhen((_value, record) => record.getField('phase') === 'submitted'),
+            requiredName: field.label('Legal name').required(),
+            followUp: field.label('Follow-up needed?').tag('select').options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
+            followUpNotes: field.label('Follow-up notes').tag('textarea').rowCount(2).required((_value, record) => record.getField('followUp') === 'yes'),
+            comments: field.label('Comments').tag('textarea').rowCount(4),
+            email: field.label('Email address').type('email')
                 .validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
-            orderQuantity: new FieldTypeBuilder().label('Order quantity').type('number').parser(Number)
+            orderQuantity: field.label('Order quantity').type('number').parser(Number)
                 .validator({name:'must be a whole number', validate:value => Number.isInteger(value)})
                 .validator({name:'must be between 1 and 12', validate:value => Number(value) >= 1 && Number(value) <= 12}),
-            username: new FieldTypeBuilder().label('Username')
+            username: field.label('Username')
                 .validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
                 .validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
-            fulfillment: new FieldTypeBuilder().label('Fulfillment').tag('select').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
-            address: new FieldTypeBuilder().label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
+            fulfillment: field.label('Fulfillment').tag('select').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
+            address: field.label('Shipping address').visibleWhen((_value, record) => record.getField('fulfillment') === 'ship'),
         },
         {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
@@ -177,10 +177,10 @@ export class FdlModifierCatalog extends LitElement {
 
     private filterRecordset = new Recordset(
         {
-            name: new FieldTypeBuilder<string>()
+            name: field
                 .label('Name')
                 .filter((text, value) => (this.probes.getField('matchRule') === 'contains' ? substringFilter : prefixFilter).valueOf().match(text, value)),
-            team: new FieldTypeBuilder().label('Team'),
+            team: field.label('Team'),
         },
         [
             { name: 'Ada', team: 'Research' },
@@ -188,11 +188,11 @@ export class FdlModifierCatalog extends LitElement {
             { name: 'Margaret', team: 'Research' },
         ]
     );
-    private hashType = new FieldTypeBuilder().hashFunction((employee: { id: string }) => employee.id);
+    private hashType = field.hashFunction((employee: { id: string }) => employee.id);
     private cellClassRecordset = new Recordset(
         {
-            day: new FieldTypeBuilder().label('Day').sortable(false),
-            amount: new FieldTypeBuilder<number>().label('Expenses')
+            day: field.label('Day').sortable(false),
+            amount: field.label('Expenses')
                 .textAlign('right')
                 .formatter(value => currency.format(Number(value)))
                 .cellClass('amount-cell')
@@ -201,49 +201,49 @@ export class FdlModifierCatalog extends LitElement {
         weeklyExpenses.map(expense => ({...expense}))
     );
     private compareRecordset = new Recordset({
-        firstName: new FieldTypeBuilder<string>().label('First name')
+        firstName: field.label('First name')
             .compareFunction((left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1),
-        lastName: new FieldTypeBuilder<string>().label('Last name')
+        lastName: field.label('Last name')
             .compareFunction((left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1),
-        shirtSize: new FieldTypeBuilder<string>().label('T-shirt size').compareFunction(compareShirtSizes),
+        shirtSize: field.label('T-shirt size').compareFunction(compareShirtSizes),
     }, shirtOrders.map(order => ({...order})));
     private sortableRecordset = new Recordset(
         {
-            firstName: new FieldTypeBuilder<string>()
+            firstName: field
                 .label('First name')
                 .compareFunction((left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1),
-            lastName: new FieldTypeBuilder<string>()
+            lastName: field
                 .label('Last name')
                 .compareFunction((left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1),
-            shirtSize: new FieldTypeBuilder().label('T-shirt size').sortable(false),
+            shirtSize: field.label('T-shirt size').sortable(false),
         },
         shirtOrders.map(order => ({...order}))
     );
-    private reducerType = new FieldTypeBuilder().reducer('sum');
+    private reducerType = field.reducer('sum');
     private formatterRecordset = new Recordset(
         {
-            amount: new FieldTypeBuilder()
+            amount: field
                 .label('Amount')
                 .textAlign('right')
                 .formatter(value => currency.format(Number(value))),
-            invoice: new FieldTypeBuilder().label('Invoice'),
+            invoice: field.label('Invoice'),
         },
         [{ amount: 1250, invoice: '1048' }, { amount: 875, invoice: '1049' }]
     );
     private rowClassRecordset = new Recordset(
         {
-            status: new FieldTypeBuilder<string>()
+            status: field
                 .label('Status')
                 .rowClass('invoice-row')
                 .rowClass((value: string) => value === 'Disputed' ? ['disputed-row', 'needs-review'] : []),
-            owner: new FieldTypeBuilder().label('Owner'),
+            owner: field.label('Owner'),
         },
         [{ status: 'Disputed', owner: 'Ada' }, { status: 'Paid', owner: 'Grace' }]
     );
     private templateRecordset = new Recordset(
         {
-            invoice: new FieldTypeBuilder().label('Invoice'),
-            balance: new FieldTypeBuilder().label('Balance').type('number').parser(Number)
+            invoice: field.label('Invoice'),
+            balance: field.label('Balance').type('number').parser(Number)
                 .textAlign('right')
                 .formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : currency.format(Number(value)))
                 .template((formattedBalance, record) => record.getField('balance') === 0
@@ -254,47 +254,47 @@ export class FdlModifierCatalog extends LitElement {
     );
     private alignRecordset = new Recordset(
         {
-            left: new FieldTypeBuilder().label('Left').textAlign('left'),
-            center: new FieldTypeBuilder().label('Center').textAlign('center'),
-            right: new FieldTypeBuilder().label('Right').textAlign('right'),
+            left: field.label('Left').textAlign('left'),
+            center: field.label('Center').textAlign('center'),
+            right: field.label('Right').textAlign('right'),
         },
         [{ left: 'Ada', center: 'Ada', right: 'Ada' }, { left: 'Grace', center: 'Grace', right: 'Grace' }]
     );
     private widthRecordsets = {
         maxColumnWidth: new Recordset(
             {
-                constrained: new FieldTypeBuilder().label('Maximum (180px)').minColumnWidth(80).maxColumnWidth(180),
-                flexible: new FieldTypeBuilder().label('Flexible').minColumnWidth(80),
+                constrained: field.label('Maximum (180px)').minColumnWidth(80).maxColumnWidth(180),
+                flexible: field.label('Flexible').minColumnWidth(80),
             },
             [{ constrained: 'Stops growing at 180px', flexible: 'Makes up the difference' }]
         ),
         minColumnWidth: new Recordset(
             {
-                constrained: new FieldTypeBuilder().label('Minimum (110px)').minColumnWidth(110),
-                flexible: new FieldTypeBuilder().label('Flexible').minColumnWidth(80),
+                constrained: field.label('Minimum (110px)').minColumnWidth(110),
+                flexible: field.label('Flexible').minColumnWidth(80),
             },
             [{ constrained: 'Stops shrinking at 110px', flexible: 'Makes up the difference' }]
         ),
         targetColumnWidth: new Recordset(
             {
-                constrained: new FieldTypeBuilder().label('Preferred (140px)').minColumnWidth(80).targetColumnWidth(140).maxColumnWidth(220),
-                flexible: new FieldTypeBuilder().label('Flexible').minColumnWidth(80),
+                constrained: field.label('Preferred (140px)').minColumnWidth(80).targetColumnWidth(140).maxColumnWidth(220),
+                flexible: field.label('Flexible').minColumnWidth(80),
             },
             [{ constrained: 'Preferred width: 140px', flexible: 'Makes up the difference' }]
         ),
     };
     private probes = new Record({
-        inputType: new FieldTypeBuilder().label('Input type').tag('select').options(inputTypeChoices),
-        textareaRows: new FieldTypeBuilder<number>().label('Row count').tag('select').parser(Number).options([1, 4, 10].map(value => ({text: String(value), value}))),
-        classThreshold: new FieldTypeBuilder<number>().label('Daily Expense Limit').type('number').parser(Number),
-        input: new FieldTypeBuilder<string>().label('Digits and periods').inputMask(/[0-9.]/),
-        filterProbe: new FieldTypeBuilder<string>().label('Search names'),
-        matchRule: new FieldTypeBuilder<string>().label('Filter matching rule').tag('select').options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
-        firstId: new FieldTypeBuilder<string>().label('First employee ID'),
-        secondId: new FieldTypeBuilder<string>().label('Second employee ID'),
-        firstAmount: new FieldTypeBuilder<number>().label('First amount').type('number').parser(Number),
-        secondAmount: new FieldTypeBuilder<number>().label('Second amount').type('number').parser(Number),
-        thirdAmount: new FieldTypeBuilder<number>().label('Third amount').type('number').parser(Number),
+        inputType: field.label('Input type').tag('select').options(inputTypeChoices),
+        textareaRows: field.label('Row count').tag('select').parser(Number).options([1, 4, 10].map(value => ({text: String(value), value}))),
+        classThreshold: field.label('Daily Expense Limit').type('number').parser(Number),
+        input: field.label('Digits and periods').inputMask(/[0-9.]/),
+        filterProbe: field.label('Search names'),
+        matchRule: field.label('Filter matching rule').tag('select').options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
+        firstId: field.label('First employee ID'),
+        secondId: field.label('Second employee ID'),
+        firstAmount: field.label('First amount').type('number').parser(Number),
+        secondAmount: field.label('Second amount').type('number').parser(Number),
+        thirdAmount: field.label('Third amount').type('number').parser(Number),
     }, { inputType: 'text', textareaRows: 4, classThreshold:expenseHighlightThreshold, filterProbe: 'ar', matchRule: 'prefix', input: '7.5', firstId: 'ada', secondId: 'ada', firstAmount: 1200, secondAmount: 800, thirdAmount: 500 });
 
     private get tableRecordsets(): { [name: string]: Recordset<any> } {
@@ -341,7 +341,7 @@ export class FdlModifierCatalog extends LitElement {
 
         if (this.modifier === 'rowCount') {
             const rows = this.probes.getField('textareaRows');
-            this.record.addField('comments', new FieldTypeBuilder().label('Comments').tag('textarea').rowCount(rows), this.record.getField('comments'));
+            this.record.addField('comments', field.label('Comments').tag('textarea').rowCount(rows), this.record.getField('comments'));
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {rows}, bubbles: true, composed: true}));
         }
 
@@ -462,7 +462,7 @@ export class FdlModifierCatalog extends LitElement {
             case 'minColumnWidth': return this.renderWidth('minColumnWidth');
             case 'minLength': return html`<label>Minimum length <select class="minimum-rule" .value=${String(this.minimum)} @change=${(event: Event) => {
                 this.minimum = Number((event.target as HTMLSelectElement).value);
-                this.record.addField('longCode', new FieldTypeBuilder().label('Access code').minLength(this.minimum), this.record.getField('longCode'));
+                this.record.addField('longCode', field.label('Access code').minLength(this.minimum), this.record.getField('longCode'));
                 this.dispatchEvent(new CustomEvent('example-settings-change', { detail: {minimum: this.minimum}, bubbles: true, composed: true }));
                 this.requestUpdate();
             }}>${[2, 4, 8].map(value => html`<option value=${value}>${value} characters</option>`)}</select></label>${this.renderValidation('longCode')}`;

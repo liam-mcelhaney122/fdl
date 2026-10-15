@@ -87,11 +87,11 @@ function isExistingCustomerOrNewCustomerDay(value, _, record) {
 
 ## Docs
 
-In the example, `string`, `boolean`, and `date` are immutable `FieldTypeBuilder`
-instances. Modifiers chain directly and return new builders. `Record` and
-`Recordset` call `valueOf()` on definitions to obtain runtime `FieldType` objects.
-Call `valueOf()` yourself when you need direct parsing, formatting, or validation.
-See [field types](./docs/field-type.md) for custom builders and migration details. A
+Start custom definitions with the exported `field` instance, or specialize
+`string`, `number`, `boolean`, and `date`. Modifiers chain directly and return
+new definitions without changing the original. Pass definitions directly to
+`Record` and `Recordset`; they handle runtime behavior automatically.
+See [field types](./docs/field-type.md) for custom definitions and migration details. A
 [Record](./docs/record.md) connects those definitions to values. A
 [Recordset](./docs/recordset.md) manages a collection of records, including
 fetching, sorting, filtering, and pagination.

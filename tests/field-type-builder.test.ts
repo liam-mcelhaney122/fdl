@@ -1,5 +1,7 @@
-import { FieldType, FieldTypeBuilder, Record, Recordset, string, number, boolean, date } from '../index';
+import FieldTypeBuilder from '../field-type-builder';
+import { FieldType, field, Record, Recordset, string, number, boolean, date } from '../index';
 import type { FieldDefinition } from '../index';
+import * as publicApi from '../index';
 
 it('chains modifiers into builders and explicitly finalizes runtime behavior', () => {
     const definition = string.required().maxLength(5).label('Name');
@@ -133,3 +135,39 @@ function checkDefinitionTypes() {
     // @ts-expect-error Finalized field types have no sentence-style builder entry point.
     type.with.required();
 }
+
+
+it('exports a reusable field instance without exposing the builder constructor', () => {
+    expect(publicApi).not.toHaveProperty('FieldTypeBuilder');
+    expect(field).toBeInstanceOf(FieldTypeBuilder);
+    const name = field.label('Name');
+    const requiredName = name.required();
+    const nickname = name.label('Nickname');
+    const person = new Record({ plain: field, name: requiredName, nickname },
+        { plain: '', name: '', nickname: '' });
+
+    expect(person.isValid('plain')).toBe(true);
+    expect(person.isValid('name')).toBe(false);
+    expect(person.isValid('nickname')).toBe(true);
+    expect(person.fieldTypeForField('name').label()).toBe('Name');
+    expect(person.fieldTypeForField('nickname').label()).toBe('Nickname');
+    person.setField('name', 'Ada');
+    expect(person.isValid()).toBe(true);
+
+    const other = new Record({ name, plain: field }, { name: '', plain: '' });
+    expect(other.isValid()).toBe(true);
+    expect(other.fieldTypeForField('plain').label()).toBe('');
+});
+
+it('uses custom field chains directly in recordsets and added fields', async () => {
+    const amount: FieldDefinition<number> = field.parser(Number).defaultValue(0)
+        .validator({ name: 'positive', validate: value => value > 0 });
+    const table = new Recordset({ amount }, [{ amount: 2 }, { amount: -1 }]);
+    await table.requestUpdate();
+    expect(table.allRecords[0].isValid()).toBe(true);
+    expect(table.allRecords[1].isValid()).toBe(false);
+    const record = new Record({}, {});
+    record.addField('amount', amount, 3);
+    expect(record.isValid()).toBe(true);
+    expect(record.fieldTypeForField('amount').parse('4')).toBe(4);
+});

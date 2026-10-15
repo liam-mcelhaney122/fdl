@@ -1,4 +1,4 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import Record from '../../record.js';
 
 export type CompositionRules = {
@@ -16,7 +16,7 @@ export const hasStreetNumber = (value: string) => /^\d+\s+\S/.test(value.trim())
 export const addressCase = (value: string) => value === '' ? 'empty' : hasStreetNumber(value) ? 'numbered' : 'unnumbered';
 
 export function compositionFields(rules: CompositionRules) {
-    let address = new FieldTypeBuilder<string>().label('Shipping address');
+    let address = field.label('Shipping address');
     if (rules.visibility === 'shipping') address = address.visibleWhen((_value, record) => record.getField('fulfillment') === 'ship');
     if (rules.requiredness === 'always') address = address.required();
     if (rules.requiredness === 'shipping') address = address.required((_value, record) => record.getField('fulfillment') === 'ship');
@@ -25,7 +25,7 @@ export function compositionFields(rules: CompositionRules) {
         validate: value => value === '' || hasStreetNumber(value),
     });
     return {
-        fulfillment: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([
+        fulfillment: field.label('Delivery method').tag('select').options([
             {text: 'Ship to address', value: 'ship'}, {text: 'Pick up in person', value: 'pickup'},
         ]),
         address,
@@ -35,7 +35,7 @@ export function compositionRecord(rules: CompositionRules, fulfillment: string, 
     return new Record(compositionFields(rules), {fulfillment, address});
 }
 export function compositionDefinition(rules: CompositionRules) {
-    return `const address = new FieldTypeBuilder()\n  .label('Shipping address')${rules.visibility === 'shipping' ? `
+    return `const address = field\n  .label('Shipping address')${rules.visibility === 'shipping' ? `
   .visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')` : ''}${rules.requiredness === 'always' ? '\n  .required()' : rules.requiredness === 'shipping' ? `
   .required((_value, record) => record.getField('fulfillment') === 'ship')` : ''}${rules.validation === 'on' ? `
   .validator({

@@ -2,7 +2,7 @@ import { inputTypes, type inputType } from '../types/input-types.types';
 import { html, render } from 'lit';
 import * as ts from 'typescript';
 import FieldType from '../field-type.js';
-import FieldTypeBuilder from '../field-type-builder';
+import { field } from '../index';
 import Record from '../record.js';
 import Recordset from '../recordset.js';
 import { explorerRecipes } from '../examples/fdl-input/fdl-modifier-explorer';
@@ -11,7 +11,7 @@ import { exampleSource, type ExampleSettings } from '../examples/fdl-input/modif
 function runExample(name: string, settings: ExampleSettings = {}) {
     const source = exampleSource(name, settings);
     const modules: {[path: string]: any} = {
-        'digital-fdl': {FieldTypeBuilder, Record, Recordset},
+        'digital-fdl': {field, Record, Recordset},
         lit: {html, render},
         './fdl-field': {}, './fdl-table': {},
     };
@@ -37,6 +37,8 @@ function runExample(name: string, settings: ExampleSettings = {}) {
 afterEach(() => { document.body.innerHTML = ''; });
 
 it.each(explorerRecipes.map(recipe => recipe.name))('runs the %s model and Lit UI as separate modules', async name => {
+    const source = exampleSource(name);
+    expect(source.definition).not.toMatch(/FieldTypeBuilder|valueOf\(/);
     const {model, container} = runExample(name);
     expect(model).toBeInstanceOf(exampleSource(name).kind === 'Recordset' ? Recordset : Record);
     expect(container.textContent!.trim().length + container.querySelectorAll('fdl-field, fdl-table').length).toBeGreaterThan(0);

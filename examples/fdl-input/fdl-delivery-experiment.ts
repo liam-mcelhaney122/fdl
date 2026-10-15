@@ -1,4 +1,4 @@
-import FieldTypeBuilder from '../../field-type-builder';
+import { field } from '../../index';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
@@ -6,10 +6,10 @@ import './fdl-field';
 
 export class FdlDeliveryExperiment extends LitElement {
     private delivery = new Record({
-        fulfillment: new FieldTypeBuilder<string>().label('Delivery method').tag('select').options([
+        fulfillment: field.label('Delivery method').tag('select').options([
             { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
         ]),
-        address: new FieldTypeBuilder<string>().label('Shipping address')
+        address: field.label('Shipping address')
             .visibleWhen((_value, record) => record.getField('fulfillment') === 'ship')
             .required((_value, record) => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
