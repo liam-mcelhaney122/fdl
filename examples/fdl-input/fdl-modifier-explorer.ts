@@ -90,7 +90,7 @@ export class FdlModifierExplorer extends LitElement {
         if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
     };
     private readLocation = () => {
-        const hash = window.location.hash.slice(1);
+        const hash = window.location.hash.slice(1).split('?')[0];
         const page = sitePages.find(page => page.id === hash);
         if (page || !hash) this.showPage(page?.id ?? 'home', false);
         else {

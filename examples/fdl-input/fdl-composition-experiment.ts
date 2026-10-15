@@ -1,3 +1,4 @@
+import { learningContinuation } from './learning-continuation';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import FieldType from '../../field-type.js';
@@ -8,13 +9,14 @@ import { addressCases, addressCase, compositionFields, compositionRecord, compos
 import './fdl-field';
 
 export class FdlCompositionExperiment extends LitElement {
+    private continuation = learningContinuation(window.location.hash);
     private configuration = new Record({
         visibility: new FieldType<string>().with.label('Show the address').and.tag('select').and.options([{text: 'For shipping only', value: 'shipping'}, {text: 'For both delivery methods', value: 'all'}]),
         requiredness: new FieldType<string>().with.label('Require an address').and.tag('select').and.options([{text: 'For shipping only', value: 'shipping'}, {text: 'Always', value: 'always'}, {text: 'Never', value: 'never'}]),
         validation: new FieldType<string>().with.label('Check the address format').and.tag('select').and.options([{text: 'Street number and name', value: 'on'}, {text: 'No format check', value: 'off'}]),
     }, {...defaultCompositionRules});
     private get rules(): CompositionRules { return this.configuration.values as CompositionRules; }
-    private record = compositionRecord(this.rules, 'ship', '42 Orchard Street');
+    private record = compositionRecord(this.rules, this.continuation?.method ?? 'ship', '42 Orchard Street');
     private appliedRules = JSON.stringify(this.rules);
     private refresh = () => this.requestUpdate();
     private changeRules = () => {
@@ -78,6 +80,7 @@ export class FdlCompositionExperiment extends LitElement {
     }
     render() {
         return html`<section aria-labelledby="composition-title"><div class="title-row"><h2 id="composition-title">How do independent rules combine?</h2><button class="reset" @click=${this.reset}>Reset experiment</button></div>
+            ${this.continuation ? html`<section class="continuation"><h3>Your delivery continues here</h3><p>You chose <strong>${this.continuation.method === 'ship' ? 'Shipping' : 'Pickup'}</strong> and stored charge <code>${this.continuation.charge}</code>. We keep the delivery method and carry this charge snapshot forward. Now add a shipping address.</p><p>The form and six outcomes below evaluate the address rules independently of the charge. This is a new record using the same delivery scenario.</p></section>` : ''}
             <p>Change one rule and compare all six outcomes. Visibility, requiredness, and validity are independent decisions.</p>
             <section class="rule-controls" aria-label="Choose the rules"><h3>1. Choose the rules</h3><div class="rule-workspace">${['visibility','requiredness','validation'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</div></section>
             <section aria-label="Compare all outcomes"><h3>2. Compare the possibilities</h3><p>Each cell runs a real FDL record with the rules above. Select a cell to inspect its exact example. When you edit the form, the grid highlights the matching kind of case.</p>${this.outcomes()}</section>
@@ -115,6 +118,8 @@ export class FdlCompositionExperiment extends LitElement {
         .state ol { margin:0; padding-left:20px; font-size:1rem; } .state li { margin-bottom:12px; }
         .state p { font-size:1rem; } .state p:last-child { margin-bottom:0; } .verdict { margin:20px 0 12px; }
         .errors { color:#9f2920; padding-left:20px; } .surprise { padding-top:12px; border-top:1px solid var(--example-border); }
+        .continuation { padding:16px; margin-bottom:20px; border-left:3px solid #2563eb; background:#eff6ff; }
+        .continuation p:last-child { margin:0; }
         .questions { border-top:1px solid var(--example-border); padding-top:12px; } summary { cursor:pointer; min-height:44px; padding:8px 0; }
         button:focus-visible,summary:focus-visible,.outcomes:focus-visible,#selected-case-title:focus { outline:3px solid #2563eb; outline-offset:3px; } #selected-case-title { scroll-margin-top:20px; }
         .syntax-string,.syntax-regex { color:#a7f3d0; } .syntax-keyword { color:#c4b5fd; } .syntax-builtin { color:#7dd3fc; } .syntax-number { color:#fdba74; }

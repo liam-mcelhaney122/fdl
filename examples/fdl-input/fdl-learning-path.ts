@@ -1,3 +1,4 @@
+import { compositionLink } from './learning-continuation';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
@@ -83,7 +84,7 @@ const deliveries = new Recordset({ method, charge }, data);` : ''}`;
                 <details open><summary>Rules built so far</summary><ol>${lessons.slice(0, this.step + 1).map(item => html`<li>${item.rule}</li>`)}</ol></details>
                 <h3>The current definition</h3><pre><code>${highlightJavaScript(this.code())}</code></pre>
                 <p><a href=${`#${lesson.reference}`}>Explore ${lesson.reference} in the modifier reference</a></p>
-                ${this.step === lessons.length - 1 ? html`<section class="capabilities"><h3>Check what you can now do</h3><ul><li><a href="#parser">Predict stored numbers versus display text</a> by editing a currency value.</li><li><a href="#composition">Explain why a hidden field can remain invalid</a> by changing one independent rule.</li><li><a href="#how-it-works">Reuse definitions across a form and table</a> while distinguishing shared rules from shared record identity.</li></ul></section><p><a href="#composition">Next: combine the rules and investigate their outcomes →</a></p>` : ''}
+                ${this.step === lessons.length - 1 ? html`<section class="capabilities"><h3>Check what you can now do</h3><ul><li><a href="#parser">Predict stored numbers versus display text</a> by editing a currency value.</li><li><a href="#composition">Explain why a hidden field can remain invalid</a> by changing one independent rule.</li><li><a href="#how-it-works">Reuse definitions across a form and table</a> while distinguishing shared rules from shared record identity.</li></ul></section><p><a class="continue-delivery" href=${compositionLink(this.record.values)}>Next: combine the rules and investigate their outcomes →</a></p>` : ''}
                 <div class="lesson-navigation"><button class="previous-lesson" ?disabled=${this.step === 0} @click=${() => this.go(this.step - 1)}>Previous question</button><button class="next-lesson" ?disabled=${this.step === lessons.length - 1} @click=${() => this.go(this.step + 1)}>Next question</button></div>
             </section>`;
     }
