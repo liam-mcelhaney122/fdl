@@ -1,6 +1,6 @@
 /* eslint-disable import/extensions */
 import FieldTypeBuilder, { defaultProperties } from './field-type-builder';
-import { resolveSetting } from './field-setting';
+import { resolveSetting, resolveColumnSetting, resolveDefaultSetting } from './field-setting';
 import { inputTypes } from './types/input-types.types';
 
 function functionHasNoArguments(f) {
@@ -163,7 +163,7 @@ export default class FieldType {
 
     defaultValue(value, record, context = 'model') {
         const configured = value !== null && value !== undefined
-            ? value : resolveSetting(this.properties.defaultValue, value, record, context);
+            ? value : resolveDefaultSetting(this.properties.defaultValue, record, context);
         if (this.hasMultipleValues()) {
             return configured ?? 'all';
         }
@@ -426,19 +426,19 @@ export default class FieldType {
     }
 
     sortable(context = 'table') {
-        return resolveSetting(this.properties.sortable, undefined, undefined, context);
+        return resolveColumnSetting(this.properties.sortable, context);
     }
 
     minColumnWidth(context = 'table') {
-        return resolveSetting(this.properties.minColumnWidth, undefined, undefined, context);
+        return resolveColumnSetting(this.properties.minColumnWidth, context);
     }
 
     maxColumnWidth(context = 'table') {
-        return resolveSetting(this.properties.maxColumnWidth, undefined, undefined, context);
+        return resolveColumnSetting(this.properties.maxColumnWidth, context);
     }
 
     targetColumnWidth(context = 'table') {
-        return resolveSetting(this.properties.targetColumnWidth, undefined, undefined, context);
+        return resolveColumnSetting(this.properties.targetColumnWidth, context);
     }
 
     field() {

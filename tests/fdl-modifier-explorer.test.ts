@@ -639,3 +639,20 @@ it.each([['requiredWhen','required'],['disabledWhen','disabled']])('opens retire
     expect(page.shadowRoot!.querySelector('h1')!.textContent).toBe(`.${name}(predicate?)`);
     expect(page.shadowRoot!.querySelector(`.modifier-list a[href="#${oldName}"]`)).toBeNull();
 });
+
+it.each(['minColumnWidth', 'maxColumnWidth', 'targetColumnWidth', 'sortable'])('%s documents a context-only callback', async name => {
+    const page = await openPage(`#${name}`);
+    const section = page.shadowRoot!.getElementById(name)!;
+    const signature = section.querySelector('.modifier-signature')!.textContent!;
+    expect(signature).toContain('(context: string) =>');
+    expect(signature).not.toContain('record:');
+    expect(signature).not.toContain('value:');
+    expect(section.querySelector('.setting-contract')!.textContent).toContain('(context)');
+});
+
+it('documents default factories with record and context instead of a missing value argument', async () => {
+    const page = await openPage('#defaultValue');
+    const section = page.shadowRoot!.getElementById('defaultValue')!;
+    expect(section.querySelector('.modifier-signature')!.textContent).toContain('factory: (record: Record<any>, context: string) => T | null');
+    expect(section.querySelector('.setting-contract')!.textContent).toContain('(record, context)');
+});

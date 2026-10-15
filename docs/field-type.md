@@ -33,7 +33,7 @@ A field setting accepts its result directly or a synchronous callback with the
 same three arguments:
 
 ```ts
-import type { FieldSetting, ColumnSetting } from 'digital-fdl';
+import type { FieldSetting, ColumnSetting, DefaultSetting } from 'digital-fdl';
 
 // T is the stored field type; R is the record's backing-data type.
 type Setting<T, Result, R = any> =
@@ -55,7 +55,6 @@ read. Callbacks should be pure; they must not mutate the record or render UI.
 | `type` | A supported input type |
 | `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `emptyWhen` | `boolean` |
 | `minLength`, `maxLength` | `number` |
-| `defaultValue` | The model type `T` or `null` |
 
 ```ts
 const amount = new FieldType<number>()
@@ -96,25 +95,42 @@ order. Labels and other scalar settings use the last declaration. Length
 validators accumulate, so every declared length constraint remains enforced.
 Specialization never changes the source field definition.
 
-A default callback receives `undefined` (or `null`) for a missing value and
-returns the default; its input type is therefore `T | null | undefined`. Existing
-non-null values are preserved without invoking the callback. Clearing a record
-evaluates all defaults against the same pre-clear record, then replaces its
-values. Appending creates a record with undefined fields before resolving its
-defaults. Default callbacks should not depend on another default having already
-run. Partial clones resolve defaults for omitted fields against the source
-record before constructing the clone.
+### Default factories
+
+`defaultValue` accepts a fixed value or `DefaultSetting<T, R>`:
+
+```ts
+defaultValue(value: T | null)
+defaultValue(factory: (record: Record<R>, context: string) => T | null)
+```
+
+A factory receives the owning record and context, without a meaningless missing
+value argument. Existing non-null values are preserved without invoking it.
+The model supplies `"model"` as context. For example:
+
+```ts
+const reference = new FieldType<string>()
+  .with.defaultValue((record, context) =>
+    `${record.getField('prefix')}-${context}`);
+```
+
+Clearing a record evaluates all defaults against the same pre-clear record,
+then replaces its values. Appending creates a record with undefined fields
+before resolving its defaults. Factories should not depend on another default
+having already run. Partial clones resolve defaults for omitted fields against
+the source record before constructing the clone.
 
 ### Column settings
 
 `sortable`, `minColumnWidth`, `maxColumnWidth`, and `targetColumnWidth` accept a
-fixed result or `ColumnSetting<Result>`. A column has no single owning record:
-its callback receives `(undefined, undefined, context)`. The table supplies
-`"table"`; direct column getters accept a context string.
+fixed result or `ColumnSetting<Result>`, a function of `(context: string)`
+returning that result. The table supplies `"table"`; direct column getters
+accept a context string. A column has no single field value or owning record,
+so the callback has no value or record parameters.
 
 ```ts
 const amount = new FieldType<number>()
-  .with.minColumnWidth((_value, _record, context) =>
+  .with.minColumnWidth(context =>
     context === 'table' ? 100 : 60)
   .and.sortable(true);
 ```
@@ -148,6 +164,12 @@ Record-first callbacks now receive the value first:
 .label((_value, record) => record.getField('title'))
 .required((_value, record) => record.getField('submitted'))
 ```
+
+Column callbacks previously used `(_value, _record, context) => result`; change
+them to `context => result`. Default factories previously used
+`(_value, record, context) => value`; change them to
+`(record, context) => value`. The old three-argument forms are no longer part of
+these five modifiers' contracts.
 
 Label callbacks no longer receive a previous-label argument. Compute the full
 label from `(value, record, context)`; the last label declaration wins.

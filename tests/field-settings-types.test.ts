@@ -1,5 +1,5 @@
 import { FieldType, Record } from '../index';
-import type { FieldSetting, ColumnSetting } from '../index';
+import type { FieldSetting, ColumnSetting, DefaultSetting } from '../index';
 
 function checkSettings() {
     const label: FieldSetting<number, string, { unit: string }> = (value, record, context) =>
@@ -10,15 +10,13 @@ function checkSettings() {
     field.with.required(true).and.disabled(false).and.readOnly(false).and.visibleWhen(true).and.emptyWhen(false);
     field.with.textAlign((value, _record, context) => value < 0 && context === 'table' ? 'right' : 'left');
     field.with.minLength((_value, record) => record.getField('minimum')).and.maxLength(10);
-    field.with.defaultValue((value, record) => value ?? record.getField('default'));
+    const factory: DefaultSetting<number, { default: number }> = (record, context) =>
+        context === 'model' ? record.values.default : 0;
+    field.with.defaultValue(factory);
     field.with.type((_value, _record, context) => context === 'form' ? 'number' : 'text');
-    const column: ColumnSetting<number> = (value, record, context) => {
-        const noValue: undefined = value;
-        const noRecord: undefined = record;
-        return context === 'table' && noValue === noRecord ? 100 : 200;
-    };
+    const column: ColumnSetting<number> = context => context === 'table' ? 100 : 200;
     field.with.minColumnWidth(column).and.maxColumnWidth(column).and.targetColumnWidth(column);
-    field.with.sortable((_value, _record, context) => context === 'table');
+    field.with.sortable(context => context === 'table');
     field.with.compareFunction((a, b) => a - b);
     field.with.filter((query, value) => value === Number(query));
     field.with.reducer(values => values.reduce((a, b) => a + b, 0));
@@ -34,8 +32,12 @@ function checkSettings() {
     field.with.minLength(() => 'three');
     // @ts-expect-error Default callbacks return the field's model type.
     field.with.defaultValue(() => 'zero');
-    // @ts-expect-error Column callbacks cannot assume an owning record.
-    field.with.sortable((_value, record: Record<any>) => true);
+    // @ts-expect-error Column callbacks accept only context, without placeholder arguments.
+    field.with.sortable((_value: undefined, _record: undefined, context: string) => true);
+    // @ts-expect-error Default factories accept record and context, without a value argument.
+    field.with.defaultValue((_value: number, record: Record<any>, context: string) => 0);
+    // @ts-expect-error The first column callback argument is the context string.
+    field.with.minColumnWidth((record: Record<any>) => 100);
     // @ts-expect-error Parsers produce the declared model type.
     field.with.parser(() => 'one');
     // @ts-expect-error Comparator operands retain the numeric field type.

@@ -8,4 +8,4 @@ export { Field, FieldType, Record, Recordset, boolean, number, string, date };
 
 export * from './recordset.events';
 
-export type { FieldSetting, ColumnSetting } from './field-setting';
+export type { FieldSetting, ColumnSetting, DefaultSetting } from './field-setting';

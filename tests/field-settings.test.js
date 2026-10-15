@@ -77,30 +77,30 @@ it('enforces calculated length bounds in synchronous and asynchronous model vali
 
 it.each(['sortable', 'minColumnWidth', 'maxColumnWidth', 'targetColumnWidth'])('%s resolves without choosing a row', modifier => {
     const result = modifier === 'sortable' ? false : 100;
-    const callback = jest.fn((_value, _record, context) => context === 'export' ? result : undefined);
+    const callback = jest.fn(context => context === 'export' ? result : undefined);
     const field = new FieldType().with[modifier](callback);
     expect(field[modifier]('export')).toBe(result);
-    expect(callback).toHaveBeenCalledWith(undefined, undefined, 'export');
+    expect(callback).toHaveBeenCalledWith('export');
 });
 
-it('supplies a missing value, owning record, and model context for calculated defaults', () => {
-    const callback = jest.fn((_value, record, context) => `${context}:${record.getField('prefix')}`);
+it('supplies the owning record and model context to default factories', () => {
+    const callback = jest.fn((record, context) => `${context}:${record.getField('prefix')}`);
     const reference = new FieldType().with.defaultValue(callback);
     const record = new Record({ reference, prefix: new FieldType() }, { reference: 'old', prefix: 'INV' });
     expect(reference.defaultValue('existing', record)).toBe('existing');
     expect(callback).not.toHaveBeenCalled();
     record.clear();
     expect(record.getField('reference')).toBe('model:INV');
-    expect(callback).toHaveBeenCalledWith(undefined, record, 'model');
+    expect(callback).toHaveBeenCalledWith(record, 'model');
 });
 
 it('evaluates defaults against an owning record when appending to an empty recordset', async () => {
-    const callback = jest.fn((_value, record, context) => record && context === 'model' ? 'new' : 'missing record');
+    const callback = jest.fn((record, context) => record && context === 'model' ? 'new' : 'missing record');
     const recordset = new Recordset({ name: new FieldType().with.defaultValue(callback) }, []);
     await recordset.loaded;
     recordset.appendRecord();
     expect(recordset.allRecords[0].getField('name')).toBe('new');
-    expect(callback.mock.calls[0][1]).toBe(recordset.allRecords[0]);
+    expect(callback.mock.calls[0][0]).toBe(recordset.allRecords[0]);
     expect(recordset.allRecords[0].hasChanged).toBe(false);
 });
 

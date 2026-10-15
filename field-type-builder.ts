@@ -5,7 +5,7 @@
 /* eslint-disable max-classes-per-file */
 import { TemplateResult } from 'lit';
 import { Record, FieldType as _FieldType } from '.';
-import { FieldSetting, ColumnSetting, resolveSetting } from './field-setting';
+import { FieldSetting, ColumnSetting, DefaultSetting, resolveSetting } from './field-setting';
 import { inputType } from './types/input-types.types';
 
 function caseInsensitiveTextMatch(searchText: string, value: any) {
@@ -101,7 +101,7 @@ export interface Properties<T = unknown> {
     autofocus: boolean;
     cellClassFunctions: Array<Function>;
     compareFunction: (a: any, b: any) => number;
-    defaultValue?: FieldSetting<any, any>;
+    defaultValue?: DefaultSetting<any>;
     descriptions: Array<string>;
     disableFunctions: Array<FieldSetting<any, boolean>>;
     emptyFunctions: Array<FieldSetting<any, boolean>>;
@@ -494,7 +494,7 @@ export default class FieldTypeBuilder<T> {
         return copy;
     }
 
-    defaultValue(value: FieldSetting<T | null | undefined, T | null>) {
+    defaultValue(value: DefaultSetting<T>) {
         const copy = this.copy();
         copy.properties.defaultValue = value;
         copy.properties.descriptions = [...copy.properties.descriptions, `default value: ${value}`];

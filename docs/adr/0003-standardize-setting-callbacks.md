@@ -19,8 +19,8 @@ composition rule. Labels use the last declaration and receive the current field
 value rather than a previous label.
 
 Use `ColumnSetting<Result>` for sortability and column widths. Its callback
-receives `(undefined, undefined, context)`, because an entire column has no
-single field value or record. Keep the table's existing first-visible-record
+receives only `(context)`, because an entire column has no single field value
+or record. Keep the table's existing first-visible-record
 policy for calculated heading labels/alignment; skip those callbacks on empty
 tables and use fixed metadata or fallbacks.
 
@@ -30,7 +30,8 @@ column reads default to `table`. Callbacks should be pure. Model validation
 resolves settings against its candidate value, including custom emptiness rules
 added after requiredness.
 
-Default callbacks accept a missing value and an owning record. Clearing resolves
+Use `DefaultSetting<T, R>` for fixed defaults or factories of `(record, context)`;
+a default factory has no existing value to receive. Clearing resolves
 all defaults against the pre-clear snapshot before replacing values. Appending
 first creates a record with undefined fields; defaults cannot depend on another
 default having run.
@@ -58,3 +59,6 @@ and calculated call forms together, and test the actual consumer and model
 validation in addition to stored metadata. Return a complete label instead of
 using the former previous-label argument. Keep business decisions in model
 rules and visual variation in display settings.
+
+Column callbacks use context only, and default factories use record and context.
+Migrate the former three-argument forms by removing unused value/record slots.

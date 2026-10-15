@@ -5,7 +5,7 @@ export const modifierSignatures: {[name: string]: string} = {
     "visibleWhen": "visibleWhen(predicate: FieldSetting<T, boolean>)",
     "cellClass": "cellClass(classes: FieldSetting<T, string | string[]>)",
     "compareFunction": "compareFunction(fn: (a: T, b: T) => number)",
-    "defaultValue": "defaultValue(value: FieldSetting<T | null | undefined, T | null>)",
+    "defaultValue": "defaultValue(value: DefaultSetting<T>)",
     "disabled": "disabled(predicate?: FieldSetting<T, boolean>)",
     "emptyWhen": "emptyWhen(predicate: FieldSetting<T, boolean>)",
     "filter": "filter(predicate?: ((searchText: string, value: T) => boolean) | undefined)",
@@ -50,8 +50,7 @@ export const fieldSettingResults: {[name: string]: string} = {
     "maxLength": "number",
     "placeholder": "string",
     "textAlign": "'left' | 'center' | 'right'",
-    "type": "inputType",
-    "defaultValue": "T | null"
+    "type": "inputType"
 };
 
 export const columnSettingResults: {[name: string]: string} = {
@@ -63,15 +62,16 @@ export const columnSettingResults: {[name: string]: string} = {
 
 export const displayedModifierSignatures: {[name: string]: string} = { ...modifierSignatures };
 for (const [name, result] of Object.entries(fieldSettingResults)) {
-    const input = name === 'defaultValue' ? 'T | null | undefined' : 'T';
     displayedModifierSignatures[name] = [
         ...(['required', 'disabled', 'readOnly'].includes(name) ? [`.${name}()`] : []),
         ...(result === 'string | string[]'
             ? [`.${name}(className: string)`, `.${name}(classNames: string[])`]
             : [`.${name}(setting: ${result})`]),
-        `.${name}(setting: (value: ${input}, record: Record<any>, context: string) => ${result})`,
+        `.${name}(setting: (value: T, record: Record<any>, context: string) => ${result})`,
     ].join('\n');
 }
 for (const [name, result] of Object.entries(columnSettingResults)) {
-    displayedModifierSignatures[name] = `.${name}(setting: ${result})\n.${name}(setting: (value: undefined, record: undefined, context: string) => ${result})`;
+    displayedModifierSignatures[name] = `.${name}(setting: ${result})\n.${name}(setting: (context: string) => ${result})`;
 }
+
+displayedModifierSignatures.defaultValue = '.defaultValue(value: T | null)\n.defaultValue(factory: (record: Record<any>, context: string) => T | null)';
