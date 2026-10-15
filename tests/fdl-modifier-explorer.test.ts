@@ -1,3 +1,4 @@
+import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
 import FieldType from '../field-type.js';
 import { exampleSource } from '../examples/fdl-input/modifier-example-source';
 import '../examples/fdl-input/fdl-modifier-explorer';
@@ -132,7 +133,7 @@ describe('complete explorer', () => {
         expect(link.getAttribute('aria-label')).toBe(`${name} — ${recipe.category}`);
         link.dispatchEvent(new MouseEvent('mouseenter'));
         await settle(page);
-        expect(page.shadowRoot!.querySelector('[role=tooltip]')!.textContent).toContain(`.${name}${recipe.signature}`);
+        expect(page.shadowRoot!.querySelector('[role=tooltip]')!.textContent).toContain(modifierSignatures[name]);
         expect(page.shadowRoot!.querySelector('[role=tooltip]')!.textContent).toContain(recipe.title);
         link.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
         await settle(page);

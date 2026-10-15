@@ -1,3 +1,4 @@
+import { modifierSignatures } from './modifier-signatures';
 import { categoryIcon } from './category-icon';
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
@@ -58,7 +59,7 @@ export class FdlModifierExplorer extends LitElement {
     private showTooltip(event: Event, recipe: ExplorerRecipe) {
         clearTimeout(this.tooltipTimer);
         const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
-        this.tooltip = {recipe, left: Math.max(8, Math.min(bounds.right + 8, window.innerWidth - 296)), top: Math.max(8, Math.min(bounds.top, window.innerHeight - 140))};
+        this.tooltip = {recipe, left: Math.max(8, Math.min(bounds.right + 8, window.innerWidth - 436)), top: Math.max(8, Math.min(bounds.top, window.innerHeight - 240))};
         this.requestUpdate();
     }
     private hideTooltip = () => {
@@ -244,11 +245,11 @@ export class FdlModifierExplorer extends LitElement {
                 `}
             </main>
         </div>
-        ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><strong>.${this.tooltip.recipe.name}${this.tooltip.recipe.signature}</strong><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
+        ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
     }
     static styles = css`
-        #modifier-tooltip { position:fixed; z-index:100; width:280px; max-width:calc(100vw - 16px); padding:14px 16px; border:1px solid #334155; border-radius:6px; background:#0f172a; color:#f8fafc; box-shadow:0 6px 20px #0f172a33; font-size:.9375rem; line-height:1.5; }
-        #modifier-tooltip strong { font-family:monospace; overflow-wrap:anywhere; }
+        #modifier-tooltip { position:fixed; z-index:100; width:420px; max-width:calc(100vw - 16px); padding:14px 16px; border:1px solid #334155; border-radius:6px; background:#0f172a; color:#f8fafc; box-shadow:0 6px 20px #0f172a33; font-size:.9375rem; line-height:1.5; }
+        #modifier-tooltip pre { margin:0; font: .875rem/1.6 monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
         #modifier-tooltip p { margin:8px 0 0; }
         :host { display:block; min-height:100vh; background:#ffffff; color:#0f172a; font:1.125rem/1.65 Arial,Helvetica,sans-serif; --accent:#2563eb; --muted:#475569; }
         * { box-sizing:border-box; }
