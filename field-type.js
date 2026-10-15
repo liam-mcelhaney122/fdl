@@ -46,9 +46,9 @@ export default class FieldType {
         return this.properties.autofocus;
     }
 
-    cellClasses(value, record, context = 'model') {
+    cellClasses(value, record) {
         return this.properties.cellClassFunctions
-            .flatMap(getClasses => getClasses(value, record, context));
+            .flatMap(getClasses => getClasses(value, record));
     }
 
     /**
@@ -60,6 +60,11 @@ export default class FieldType {
         return this.properties.rowClassFunctions
             .map(getClasses => getClasses(record))
             .reduce((classesThusFar, classes) => classesThusFar.concat(classes), []);
+    }
+
+    /** Resolve column classes without selecting an owning record. */
+    columnClasses() {
+        return this.properties.columnClassFunctions.flatMap(getClasses => getClasses());
     }
 
     compare(a, b) {

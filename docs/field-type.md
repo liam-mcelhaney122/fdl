@@ -73,16 +73,17 @@ inputs follow the scope of the setting:
 | --- | --- | --- |
 | `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `minLength`, `maxLength` | `(record) => result` | `RecordSetting<Result, R>` |
 | `defaultValue` | `(record) => value` | `DefaultSetting<T, R>` |
-| `emptyWhen` | `(value, record) => boolean` | `ValueSetting<T, boolean, R>` |
-| `cellClass`, `textAlign` | `(value, record, context) => result` | `FieldSetting<T, Result, R>` |
+| `emptyWhen`, `cellClass` | `(value, record) => result` | `ValueSetting<T, Result, R>` |
+| `columnClass` | `() => string or string[]` | Fixed classes or a callback with no arguments |
+| `textAlign` | `(value, record, context) => result` | `FieldSetting<T, Result, R>` |
 | `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth` | `(context) => result` | `ColumnSetting<Result>` |
 
 `T` is the stored field type and `R` is the record's backing-data type. Import
 these types from `digital-fdl`. Record settings describe the record's state or
 metadata. They can read a particular field with `record.getField(name)`.
 `emptyWhen` needs the candidate value because validation can check a value
-before storing it. Display callbacks for cells can use both their value and
-consumer context. A row has no single field value; its callback receives only
+before storing it. Cell classes use their value and owning record. Alignment callbacks can also
+use consumer context. A row has no single field value; its callback receives only
 the record, even when the modifier is attached to a particular field.
 
 ```ts
@@ -100,23 +101,24 @@ read. They must not mutate the record or render UI. State and length callbacks
 have no rendering context; model validation uses the same record rules as the
 form. Emptiness checks additionally receive the candidate being validated.
 
-The table passes `"table"` for cell classes and alignment and `"table-header"`
+The table passes `"table"` for cell alignment and `"table-header"`
 for heading alignment. For a calculated heading label or alignment, a non-empty
 table uses its first visible record. On an empty table, it uses an explicit
 column label or the last fixed field label (then the field name), and fixed
 alignment or left alignment; per-record callbacks are not invoked.
 
-Existing field-binding getters retain `(value, record, context?)`, for example
+Most existing field-binding getters retain `(value, record, context?)`, for example
 `fieldType.label(record.getField('amount'), record, 'form')` and
 `fieldType.required(record.getField('amount'), record)`. Record-setting getters
 forward only the record to their callbacks. `fieldType.rowClasses(record)`
-takes only the record. `empty(record, field)` delegates to
+takes only the record. `fieldType.cellClasses(value, record)` takes no context,
+and `fieldType.columnClasses()` takes no arguments. `empty(record, field)` delegates to
 `isEmpty(value, record, context?)`, whose callback receives only value and record.
 
 `required()`, `disabled()`, and `readOnly()` mean `true`. Repeated state settings
 keep their composition rules: required, disabled, read-only, and empty rules use
 any-true semantics; visibility uses all-true semantics. A later `false` does not
-cancel an earlier unconditional `true`. Cell and row classes accumulate in
+cancel an earlier unconditional `true`. Cell, column, and row classes accumulate in
 order. Labels and other scalar settings use the last declaration. Length
 validators accumulate, so every declared length constraint remains enforced.
 Specialization never changes the source field definition.
@@ -359,7 +361,8 @@ await people.updating;
 // A table bound to people renders: Alpha, Mike, Zulu
 ```
 
-Use `cellClass(classes)` for cell CSS classes and `rowClass(classes)` for
+Use `columnClass(classes)` for shared column classes, `cellClass(classes)` for
+value-specific cell classes, and `rowClass(classes)` for
 classes on the containing row. Both accept a string, an array, or a function
 returning either. The column-width modifiers shown in the first example
 provide sizing guidance.
@@ -431,17 +434,18 @@ row-count configuration needs to move into `fdl-field`, separate from the field
 model. The existing modifier and adapter behavior remain available for
 compatibility while that component configuration is introduced.
 
-## Consolidated cell classes
+## Cell, column, and row classes
 
-`cellClass(classes)` and `rowClass(classes)` each add classes, one declaration
+`cellClass(classes)`, `columnClass(classes)`, and `rowClass(classes)` add classes, one declaration
 at a time. Supply a class name, an array of class names, or a function returning
-either. Cell callbacks receive the field value, owning FDL record, and display
-context. Row callbacks receive only the record.
+either. Cell callbacks receive `(value, record)`. Column callbacks take no
+arguments; row callbacks receive only the record.
 Return `[]` when no classes apply. Repeated calls accumulate in declaration
 order without changing the source definition.
 
 ```ts
 const status = field
+  .columnClass('status-column')
   .cellClass('status-cell')
   .cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
   .rowClass('invoice-row')
@@ -453,12 +457,45 @@ The supported cell and row class signatures are:
 ```ts
 cellClass(className: string)
 cellClass(classNames: string[])
-cellClass(classes: (value: T, record: Record<any>, context: string) => string | string[])
+cellClass(classes: (value: T, record: Record<any>) => string | string[])
+
+columnClass(className: string)
+columnClass(classNames: string[])
+columnClass(classes: () => string | string[])
 
 rowClass(className: string)
 rowClass(classNames: string[])
 rowClass(classes: (record: Record<any>) => string | string[])
 ```
+
+The table resolves column classes once per column on each render and applies
+them to its `<col>`, `<th>`, and every `<td>`. Each data cell combines column
+classes with its own `cellClass` results. Neither a value nor an owning record
+exists for a whole column, so a column callback takes no arguments. Column
+classes apply to `<col>` and `<th>` even on an empty table. The spanning
+empty-state cell has no individual column and keeps its own classes.
+
+Use column classes for shared presentation and cell classes for value-specific
+exceptions:
+
+```ts
+const amount = field
+  .textAlign('right')
+  .columnClass('amount-column')
+  .columnClass(['numeric', 'currency'])
+  .cellClass((value, record) =>
+    value > record.getField('limit') ? 'over-limit' : []);
+```
+
+Column classes do not propagate to individual cells through HTML automatically;
+the table explicitly assigns them to each element. CSS still determines which
+properties apply to each element. Column callbacks are re-evaluated on render;
+a change in closed-over application state needs a consumer update.
+
+Migrate a context-dependent `cellClass((value, record, context) => ...)` to
+`columnClass(...)` for the shared classes and `cellClass((value, record) => ...)`
+for the per-cell rule. The cell callback and `cellClasses` getter no longer
+receive a context argument.
 
 The value type `T` comes from the field type. The callback can read other
 fields through `record.getField(name)`, for example:

@@ -13,6 +13,7 @@ export const exampleFields: { [name: string]: [record: string, fields: string[]]
     reducer: ['probes', ['firstAmount', 'secondAmount', 'thirdAmount']],
 };
 export const exampleTables: { [name: string]: [recordset: string, columns: string[]] } = {
+    columnClass: ['columnClassRecordset', ['day', 'amount']],
     cellClass: ['cellClassRecordset', ['day', 'amount']],
     compareFunction: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
     sortable: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],

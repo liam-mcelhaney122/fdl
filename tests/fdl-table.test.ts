@@ -41,8 +41,8 @@ describe('<fdl-table>', () => {
 
         const targets = () => [...table.shadowRoot!.querySelectorAll(modifier === 'cellClass' ? 'tbody td' : 'tbody tr')];
         expect(targets().map(target => target.className)).toEqual(['amount numeric warning over-limit', 'amount numeric']);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0], ...(modifier === 'cellClass' ? ['table'] : []));
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1], ...(modifier === 'cellClass' ? ['table'] : []));
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0]);
+        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1]);
 
         recordset.currentPage[0].setField('limit', 200);
         await settle(table);

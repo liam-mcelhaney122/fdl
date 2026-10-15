@@ -111,7 +111,8 @@ export interface Properties<T = unknown> {
     allowInputChar?: (char: string) => boolean;
     autocomplete?: AutoComplete;
     autofocus: boolean;
-    cellClassFunctions: Array<Function>;
+    cellClassFunctions: Array<(value: T, record: Record<any>) => string | string[]>;
+    columnClassFunctions: Array<() => string | string[]>;
     compareFunction: (a: any, b: any) => number;
     defaultValue?: DefaultSetting<any>;
     descriptions: Array<string>;
@@ -185,6 +186,7 @@ export const defaultProperties: Properties = {
     autocomplete: 'off',
     autofocus: false,
     cellClassFunctions: [],
+    columnClassFunctions: [],
     compareFunction: defaultCompareFunction,
     descriptions: [],
     disableFunctions: [() => false],
@@ -397,10 +399,17 @@ export default class FieldTypeBuilder<T = unknown> {
     }
 
     /** Add cell classes directly or compute them from the field value and record. */
-    cellClass(classes: FieldSetting<T, string | string[]>) {
+    cellClass(classes: ValueSetting<T, string | string[]>) {
         const copy = this.copy();
         const getClasses = classCallback(classes);
         copy.properties.cellClassFunctions = [...copy.properties.cellClassFunctions, getClasses];
+        return copy;
+    }
+
+    /** Add classes shared by the entire column, without a row or cell context. */
+    columnClass(classes: string | string[] | (() => string | string[])) {
+        const copy = this.copy();
+        copy.properties.columnClassFunctions = [...copy.properties.columnClassFunctions, classCallback(classes)];
         return copy;
     }
 

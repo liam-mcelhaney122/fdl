@@ -35,7 +35,7 @@ describe('modifier explorer', () => {
         expect(root.querySelector<HTMLButtonElement>('.pager')!.disabled).toBe(true);
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('.compareFunction(compare)');
+        expect(root.querySelector('h1')!.textContent).toContain('.columnClass(classes)');
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes)');
@@ -202,7 +202,7 @@ describe('complete explorer', () => {
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
-        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe('(3 of 33 shown)');
+        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe(`(3 of ${explorerRecipes.length} shown)`);
         expect(root.querySelector('h1')!.textContent).toBe('.required(predicate?)');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);
@@ -462,7 +462,7 @@ it.each(modifierPageGroups)('groups $title on one page with stable sections and 
     expect(window.location.hash).toBe(`#${target}`);
     expect(root.activeElement).toBe(root.getElementById(target)!.querySelector('.modifier-signature'));
     expect([...root.querySelectorAll('fdl-modifier-catalog')]).toEqual([...original]);
-    expect(root.querySelector('.page-count')!.textContent).toContain('of 29');
+    expect(root.querySelector('.page-count')!.textContent).toContain(`of ${explorerRecipes.length - modifierPageGroups.reduce((total, group) => total + group.names.length - 1, 0)}`);
 });
 
 it('resets one grouped example without resetting its neighbor', async () => {

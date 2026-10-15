@@ -106,7 +106,7 @@ Good modifiers describe concepts such as:
   of a record;
 - how values relate to available options or other fields;
 - stable presentation intent that multiple consumers can interpret, such as
-  text alignment, column-width guidance, or semantic cell classes.
+  text alignment, column-width guidance, or semantic cell and column classes.
 
 For example, `formatter(currency)`, `required(isInternational)`, and
 `compareFunction(compareDates)` describe field behavior. They do not need to
@@ -215,9 +215,10 @@ When a new modifier is justified:
 - return a new field definition; never mutate the source definition;
 - clone and extend collection properties rather than sharing mutable arrays;
 - give callbacks precise inputs for their scope: `RecordSetting` for record
-  state and metadata, `ValueSetting` for candidate-value rules, `FieldSetting`
-  for cell presentation, `ColumnSetting` for column-wide settings, and
-  `DefaultSetting` for record-based factories;
+  state and metadata, `ValueSetting` for candidate-value rules and cell classes, `FieldSetting`
+  for context-sensitive alignment, `ColumnSetting` for column-wide settings, and
+  `DefaultSetting` for record-based factories; column class callbacks need
+  no arguments because they have no owning record or field value;
 - document ordering, accumulation, and override behavior;
 - expose behavior through `FieldType`, `Record`, or `Recordset` as appropriate;
 - add focused tests for behavior, immutability, and composition;

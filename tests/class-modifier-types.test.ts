@@ -6,6 +6,17 @@ function checkClassModifierTypes() {
     field.cellClass((value, record) => value > record.getField('limit') ? 'warning' : []);
     field.rowClass((record: Record<{ limit: number }>) => record.values.limit > 100 ? 'warning' : []);
     field.rowClass('amount').rowClass(['numeric']);
+    field.columnClass('amount').columnClass(['numeric']).columnClass(() => ['currency']);
+    // @ts-expect-error Column callbacks take no context.
+    field.columnClass((context: string) => context);
+    // @ts-expect-error Column callbacks have no owning record.
+    field.columnClass((record: Record<any>) => 'amount');
+    // @ts-expect-error Column class arrays contain only strings.
+    field.columnClass(['amount', 123]);
+    // @ts-expect-error Column callbacks return class names.
+    field.columnClass(() => false);
+    // @ts-expect-error Cell callbacks receive value and record without context.
+    field.cellClass((value: number, record: Record<any>, context: string) => 'amount');
     // @ts-expect-error Row callbacks receive only a record.
     field.rowClass((value: number, record: Record<any>) => 'warning');
     // @ts-expect-error Row callbacks receive a record, not a field value.

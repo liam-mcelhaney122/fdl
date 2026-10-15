@@ -1,6 +1,6 @@
 import type Record from './record.js';
 
-/** A fixed display setting or a calculation for one cell and consumer context. */
+/** A fixed display setting or a calculation for one field and consumer context. */
 export type FieldSetting<T, Result, R = any> =
     | Result
     | ((value: T, record: Record<R>, context: string) => Result);
@@ -8,7 +8,7 @@ export type FieldSetting<T, Result, R = any> =
 /** A fixed setting or a calculation from the owning record. */
 export type RecordSetting<Result, R = any> = Result | ((record: Record<R>) => Result);
 
-/** A value rule also sees an unstored validation candidate. */
+/** A calculation from a field value and record; validation may supply an unstored candidate. */
 export type ValueSetting<T, Result, R = any> = Result | ((value: T, record: Record<R>) => Result);
 
 export function resolveRecordSetting<Result, R>(

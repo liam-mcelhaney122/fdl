@@ -80,6 +80,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     };
     if (records[name]) return records[name];
     const tables: {[key: string]: Model} = {
+        columnClass: {name:'columnClassRecordset',fields:{day:type("label('Day')"),amount:type("label('Expenses').textAlign('right').columnClass('expense-column').columnClass(['numeric-column']).cellClass(value => value > 100 ? 'high-value' : [])")},values:[{day:'Monday',amount:85.5},{day:'Tuesday',amount:142.75}]},
         cellClass: {name:'cellClassRecordset',prefix:currency,fields:{day:type("label('Day').sortable(false)"),amount:type(`label('Expenses').textAlign('right').formatter(value => currency.format(Number(value))).cellClass('amount-cell').cellClass(value => value > ${settings.threshold ?? expenseHighlightThreshold} ? ['high-value', 'over-limit'] : [])`)},values:weeklyExpenses},
         compareFunction: {name:'compareRecordset',prefix:compareShirtSizesSource,fields:{firstName:peopleFields.firstName,lastName:peopleFields.lastName,shirtSize:type("label('T-shirt size').compareFunction(compareShirtSizes)")},values:shirtOrders},
         sortable: {name:'compareRecordset',fields:{...peopleFields,shirtSize:type("label('T-shirt size').sortable(false)")},values:shirtOrders},

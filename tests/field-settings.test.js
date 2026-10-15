@@ -28,8 +28,8 @@ describe.each(settings)('%s field setting', (modifier, getter, result) => {
         const args = modifier === 'rowClass' ? [record] : [150, record, 'export'];
         expect(fixed.valueOf()[getter](...args)).toEqual(result);
         expect(calculated.valueOf()[getter](...args)).toEqual(result);
-        const callbackArgs = ['cellClass', 'textAlign'].includes(modifier) ? [150, record, 'export']
-            : modifier === 'emptyWhen' ? [150, record] : [record];
+        const callbackArgs = modifier === 'textAlign' ? [150, record, 'export']
+            : ['emptyWhen', 'cellClass'].includes(modifier) ? [150, record] : [record];
         expect(callback).toHaveBeenLastCalledWith(...callbackArgs);
         expect(base.valueOf()[getter](150, record)).not.toEqual(result);
     });

@@ -308,7 +308,7 @@ describe('FieldType', () => {
         const callback = jest.fn((value, owner) => value > owner.getField('limit') ? ['warning', 'review'] : []);
         const field = new FieldTypeBuilder().cellClass('amount').cellClass(callback);
         expect(field.valueOf().cellClasses(record.getField('amount'), record)).toEqual(['amount', 'warning', 'review']);
-        expect(callback).toHaveBeenLastCalledWith(150, record, 'model');
+        expect(callback).toHaveBeenLastCalledWith(150, record);
         record.setField('limit', 200);
         expect(field.valueOf().cellClasses(record.getField('amount'), record)).toEqual(['amount']);
     });

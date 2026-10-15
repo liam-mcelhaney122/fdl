@@ -3,7 +3,8 @@ export const modifierSignatures: {[name: string]: string} = {
     "required": "required(predicate?: RecordSetting<boolean>)",
     "formatter": "formatter(fn: (value: T, record: Record<any>, context: string) => any)",
     "visibleWhen": "visibleWhen(predicate: RecordSetting<boolean>)",
-    "cellClass": "cellClass(classes: FieldSetting<T, string | string[]>)",
+    "cellClass": "cellClass(classes: ValueSetting<T, string | string[]>)",
+    "columnClass": "columnClass(classes: string | string[] | (() => string | string[]))",
     "compareFunction": "compareFunction(fn: (a: T, b: T) => number)",
     "defaultValue": "defaultValue(value: DefaultSetting<T>)",
     "disabled": "disabled(predicate?: RecordSetting<boolean>)",
@@ -38,6 +39,7 @@ export const modifierSignatures: {[name: string]: string} = {
 /** Result types for settings shown as fixed and calculated call forms. */
 export const fieldSettingResults: {[name: string]: string} = {
     "cellClass": "string | string[]",
+    "columnClass": "string | string[]",
     "rowClass": "string | string[]",
     "label": "string",
     "required": "boolean",
@@ -69,7 +71,7 @@ for (const [name, result] of Object.entries(fieldSettingResults)) {
         ...(result === 'string | string[]'
             ? [`.${name}(className: string)`, `.${name}(classNames: string[])`]
             : [`.${name}(setting: ${result})`]),
-        `.${name}(setting: (${recordSettingNames.has(name) ? 'record: Record<any>' : name === 'emptyWhen' ? 'value: T, record: Record<any>' : 'value: T, record: Record<any>, context: string'}) => ${result})`,
+        `.${name}(setting: (${name === 'columnClass' ? '' : recordSettingNames.has(name) ? 'record: Record<any>' : ['emptyWhen', 'cellClass'].includes(name) ? 'value: T, record: Record<any>' : 'value: T, record: Record<any>, context: string'}) => ${result})`,
     ].join('\n');
 }
 for (const [name, result] of Object.entries(columnSettingResults)) {

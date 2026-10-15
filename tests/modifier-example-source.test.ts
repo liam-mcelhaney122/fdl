@@ -227,3 +227,17 @@ it('exports unconditional and conditional disabled rules together', () => {
     expect(model.fieldTypeForField('budget').isDisabled(undefined, model)).toBe(true);
     expect(model.getField('budget')).toBe(5000);
 });
+
+it('exports column classes that reach the col, heading, and cells alongside cell-specific classes', async () => {
+    const {model, container} = runExample('columnClass');
+    await model.requestUpdate();
+    const table = container.querySelector('fdl-table') as any;
+    await table.updateComplete;
+    const root = table.shadowRoot;
+    expect(root.querySelector('col:nth-child(2)').className).toBe('expense-column numeric-column');
+    expect(root.querySelector('th:nth-child(2)').className).toBe('expense-column numeric-column');
+    expect([...root.querySelectorAll('tbody td:nth-child(2)')].map((cell: any) => cell.className)).toEqual([
+        'expense-column numeric-column', 'expense-column numeric-column high-value',
+    ]);
+    expect(exampleSource('columnClass').styles).toContain('td.expense-column.high-value');
+});

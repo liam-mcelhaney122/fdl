@@ -2,6 +2,18 @@ import { css } from 'lit';
 
 // Shared by the live table and its documentation so the examples show the exact rules.
 export const tableExampleStyles = {
+    columnClass: css`
+.expense-column {
+    background: #e9edff;
+    color: #34308f;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+td.expense-column.high-value {
+    background: #fff4d6;
+    color: #8a4b00;
+}
+`,
     cellClass: css`
 .amount-cell {
     border-left: 0.3rem solid #5b52d6;

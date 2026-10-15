@@ -510,7 +510,7 @@ export class FdlTable extends LitElement {
             .join(' ');
     }
 
-    private renderHeading(column: FdlColumn, index: number) {
+    private renderHeading(column: FdlColumn, index: number, classes: string) {
         const activeSort = this.sortFor(column.field);
         const priority = this.sortPriority(column.field);
         const indicator =
@@ -529,7 +529,7 @@ export class FdlTable extends LitElement {
         const filterOpen = this.activeFilterField === column.field;
         const resizeRange = this.resizeRange(this.resizeWidths(), index);
 
-        return html`<th aria-sort=${ariaSort} style=${`text-align:${this.columnAlignment(column)}`}>
+        return html`<th class=${classes} aria-sort=${ariaSort} style=${`text-align:${this.columnAlignment(column)}`}>
             <div class="heading-actions">
                 ${this.isSortable(column)
                     ? html`<button
@@ -624,11 +624,11 @@ export class FdlTable extends LitElement {
         </th>`;
     }
 
-    private renderCell(record: Record<any>, column: FdlColumn) {
+    private renderCell(record: Record<any>, column: FdlColumn, classes: string) {
         const value = record.getField(column.field);
         const fieldType = record.fieldTypeForField(column.field);
         return html`<td
-            class=${fieldType.cellClasses(value, record, 'table').join(' ')}
+            class=${[classes, ...fieldType.cellClasses(value, record)].filter(Boolean).join(' ')}
             style=${`text-align:${fieldType.textAlign(value, record, 'table')}`}
         >
             ${record.print(column.field)}
@@ -638,6 +638,8 @@ export class FdlTable extends LitElement {
     render() {
         const columns = this.columns;
         const records = this.recordset?.currentPage ?? [];
+        const columnClasses = columns.map(column =>
+            this.recordset?.getFieldType(column.field).columnClasses().join(' ') ?? '');
         const activeFilters = [...this.columnFilters].map(([field, value]) => ({
             field,
             value,
@@ -664,16 +666,16 @@ export class FdlTable extends LitElement {
             <div class=${`table-frame ${this.activeFilterField ? 'filter-open' : ''}`}>
                 <table style=${this.columnWidths ? `width:${this.columnWidths.reduce((total, width) => total + width, 0)}px` : ''}>
                     <colgroup>
-                        ${columns.map((column, index) => html`<col style=${this.columnStyle(column, index)} />`)}
+                        ${columns.map((column, index) => html`<col class=${columnClasses[index]} style=${this.columnStyle(column, index)} />`)}
                     </colgroup>
                     <thead>
-                        <tr>${columns.map((column, index) => this.renderHeading(column, index))}</tr>
+                        <tr>${columns.map((column, index) => this.renderHeading(column, index, columnClasses[index]))}</tr>
                     </thead>
                     <tbody>
                         ${records.length
                             ? records.map(
                                   record => html`<tr class=${this.rowClasses(record)}>
-                                      ${columns.map(column => this.renderCell(record, column))}
+                                      ${columns.map((column, index) => this.renderCell(record, column, columnClasses[index]))}
                                   </tr>`
                               )
                             : html`<tr><td class="empty-state" colspan=${columns.length}
@@ -752,6 +754,7 @@ export class FdlTable extends LitElement {
         }
 
         ${tableExampleStyles.cellClass}
+        ${tableExampleStyles.columnClass}
         ${tableExampleStyles.rowClass}
         ${tableExampleStyles.template}
 
