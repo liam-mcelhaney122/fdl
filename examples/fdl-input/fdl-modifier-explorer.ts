@@ -47,6 +47,7 @@ const recipes = explorerRecipes;
 
 export class FdlModifierExplorer extends LitElement {
     private selected = 0;
+    private navigationOpen = false;
     private get modifierName() { return recipes[this.selected].name; }
     private page: SitePage | 'modifier' = 'home';
     private checked = false;
@@ -99,6 +100,7 @@ export class FdlModifierExplorer extends LitElement {
     };
     private showPage(page: SitePage, updateUrl = true) {
         this.page = page;
+        this.navigationOpen = false;
         this.requestUpdate();
         document.title = `${sitePages.find(entry => entry.id === page)!.title} — FDL`;
         if (updateUrl) {
@@ -132,6 +134,7 @@ export class FdlModifierExplorer extends LitElement {
         if (index < 0 || index >= recipes.length) return;
         const changed = this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
+        this.navigationOpen = false;
         this.selected = index;
         if (changed) { this.exampleSettings = {}; this.categoryTooltip = false; }
         this.requestUpdate();
@@ -191,8 +194,9 @@ export class FdlModifierExplorer extends LitElement {
         const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
         return html`
         <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LANGUAGE</span></header>
-        <div class="shell">
-            <aside>
+        <div class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}>
+            <button class="mobile-browse" aria-expanded=${this.navigationOpen} aria-controls="site-navigation" @click=${() => { this.navigationOpen = !this.navigationOpen; this.requestUpdate(); }}><span>Browse modifiers</span><small>${this.page === 'modifier' ? `.${recipe.name}()` : sitePages.find(entry => entry.id === this.page)?.title}</small><span aria-hidden="true">${this.navigationOpen ? '−' : '+'}</span></button>
+            <aside id="site-navigation">
             <nav class="site-nav" aria-label="Site pages">${sitePages.map(entry => html`<a href=${`#${entry.id}`} aria-current=${this.page === entry.id ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.showPage(entry.id); }}>${entry.title}</a>`)}</nav>
             <section class="modifier-navigation" aria-labelledby="modifier-navigation-title">
             <div class="modifier-tools"><div class="modifier-heading"><h2 id="modifier-navigation-title" class="eyebrow">Modifiers</h2></div>
@@ -271,6 +275,7 @@ export class FdlModifierExplorer extends LitElement {
         button:disabled { cursor:default; opacity:.45; }
         a:focus-visible,button:focus-visible,input:focus-visible { outline:3px solid #2563eb; outline-offset:4px; }
         h1:focus { outline:none; }
+        .mobile-browse { display:none; }
         .masthead { max-width:1480px; margin:auto; padding:16px 32px; display:flex; align-items:center; gap:24px; border-bottom:1px solid #e2e8f0; }
         .brand { font-size:46px; font-weight:800; letter-spacing:-6px; text-decoration:none; line-height:1.2; }
         .brand span:first-child { color:var(--accent); }
@@ -405,8 +410,11 @@ export class FdlModifierExplorer extends LitElement {
             .masthead { padding:16px 20px; }
             .mast-label { display:none; }
             .shell { display:block; padding:0 20px; }
-            aside { position:static; height:auto; max-height:none; overflow:visible; padding:24px 0; border-right:0; border-bottom:1px solid #e2e8f0; }
-            .category-options { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; }
+            .mobile-browse { display:flex; align-items:center; gap:12px; width:100%; min-height:48px; margin-top:16px; padding:10px 12px; border:1px solid #94a3b8; border-radius:6px; background:white; text-align:left; font-size:1rem; }
+            .mobile-browse small { margin-left:auto; color:var(--muted); }
+            aside { display:none; position:static; height:auto; max-height:none; overflow:visible; padding:24px 0; border-right:0; border-bottom:1px solid #e2e8f0; }
+            .navigation-open aside { display:flex; }
+            .category-options { grid-template-columns:1fr; gap:4px; }
             .category-options label { min-height:44px; }
             .modifier-list { flex:none; max-height:320px; min-height:0; }
             .modifier-navigation > .modifier-tools { flex:none; overflow:visible; }
