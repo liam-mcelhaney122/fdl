@@ -283,7 +283,7 @@ export class FdlModifierCatalog extends LitElement {
         ),
     };
     private probes = new Record({
-        classThreshold: new FieldType<number>().with.label('Highlight above').and.type('number').and.parser(Number),
+        classThreshold: new FieldType<number>().with.label('Daily Expense Limit').and.type('number').and.parser(Number),
         input: new FieldType<string>().with.label('Characters to test'),
         filterProbe: new FieldType<string>().with.label('Search names'),
         matchRule: new FieldType<string>().with.label('Filter matching rule').and.tag('select').and.options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
