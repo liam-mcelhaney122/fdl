@@ -1,3 +1,4 @@
+import './fdl-prediction';
 import { learningContinuation } from './learning-continuation';
 import { LitElement, css, html } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
@@ -83,6 +84,7 @@ export class FdlCompositionExperiment extends LitElement {
             ${this.continuation ? html`<section class="continuation"><h3>Your delivery continues here</h3><p>You chose <strong>${this.continuation.method === 'ship' ? 'Shipping' : 'Pickup'}</strong> and stored charge <code>${this.continuation.charge}</code>. We keep the delivery method and carry this charge snapshot forward. Now add a shipping address.</p><p>The form and six outcomes below evaluate the address rules independently of the charge. This is a new record using the same delivery scenario.</p></section>` : ''}
             <p>Change one rule and compare all six outcomes. Visibility, requiredness, and validity are independent decisions.</p>
             <section class="rule-controls" aria-label="Choose the rules"><h3>1. Choose the rules</h3><div class="rule-workspace">${['visibility','requiredness','validation'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</div></section>
+            <details class="prediction"><summary>Predict a case before inspecting it (optional)</summary><fdl-prediction .rules=${{...this.rules}}></fdl-prediction></details>
             <section aria-label="Compare all outcomes"><h3>2. Compare the possibilities</h3><p>Each cell runs a real FDL record with the rules above. Select a cell to inspect its exact example. When you edit the form, the grid highlights the matching kind of case.</p>${this.outcomes()}</section>
             <section class="selected-case" aria-labelledby="selected-case-title"><h3 id="selected-case-title" tabindex="-1">3. Inspect the selected case</h3><div class="case-workspace"><div class="editor">
                 <fdl-field .record=${this.record} field="fulfillment"></fdl-field>
