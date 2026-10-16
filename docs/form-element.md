@@ -67,7 +67,7 @@ Always use that component as the outer form control and pass the record and
 field. Fields with options render as native selects:
 
 ```ts
-import { field, Record } from 'digital-fdl';
+import { field, Record } from '@pmcelhaney/fdl';
 
 const contactMethod = field.label('Preferred contact method').options([
     { text: 'Choose a method', value: '' },

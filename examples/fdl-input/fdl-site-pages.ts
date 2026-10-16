@@ -31,7 +31,7 @@ export const sitePages = [
 ] as const;
 export type SitePage = (typeof sitePages)[number]['id'];
 
-const definition = `import { field, Record } from 'digital-fdl';
+const definition = `import { field, Record } from '@pmcelhaney/fdl';
 
 const fields = {
     name: field.label('Name').required(),
@@ -307,7 +307,7 @@ export function renderSitePage(
                 current example can demonstrate.</p
             >
             <p
-                >The package is <code>digital-fdl</code>. Source code and
+                >The package is <code>@pmcelhaney/fdl</code>. Source code and
                 development instructions are available on
                 <a href="https://github.com/pmcelhaney/FDL">GitHub</a>.</p
             >

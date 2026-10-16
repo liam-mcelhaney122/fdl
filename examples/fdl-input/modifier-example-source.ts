@@ -498,7 +498,7 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const compatibility = legacyAdapter
         ? '// Adapter compatibility: rowCount() configures textarea sizing in this legacy example renderer.\n// Choose control selection and textarea sizing in your adapter for new integrations.\n'
         : '';
-    const definition = `${name === 'template' ? `import { html } from 'lit';` : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}${compatibility}const ${model.name} = new ${kind}({\n${Object.entries(
+    const definition = `${name === 'template' ? `import { html } from 'lit';` : ''}import { field, ${kind} } from '@pmcelhaney/fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}${compatibility}const ${model.name} = new ${kind}({\n${Object.entries(
         model.fields
     )
         .map(

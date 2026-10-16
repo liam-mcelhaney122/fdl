@@ -11,7 +11,7 @@ recordset prepares their runtime behavior once and shares it across every row.
 Use the same definition map for every row:
 
 ```js
-import { boolean, Recordset, string } from 'digital-fdl';
+import { boolean, Recordset, string } from '@pmcelhaney/fdl';
 
 const fields = {
     id: string,

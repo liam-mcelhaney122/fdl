@@ -29,7 +29,7 @@ The modifier snippets require this repository's example adapters; copying just
 the displayed model and view does not supply those components.
 
 To use the current checkout in an application, install it with
-`npm install /absolute/path/to/FDL`. The published package name is `digital-fdl`;
+`npm install /absolute/path/to/FDL`. The package name is `@pmcelhaney/fdl`;
 check the selected version's API before using current-checkout examples.
 The model is independent of Lit. React integrations must connect Record changes
 and edits to their existing components and accessible semantics.
@@ -39,7 +39,7 @@ and edits to their existing components and accessible semantics.
 Use named exports or the `fieldDefinitions` collection as reusable starting points:
 
 ```js
-import { firstName, email, fieldDefinitions, Record } from 'digital-fdl';
+import { firstName, email, fieldDefinitions, Record } from '@pmcelhaney/fdl';
 
 const contact = new Record(
     {
@@ -84,7 +84,7 @@ handlers makes them difficult to reuse and maintain. With FDL, define the
 rules alongside each field type; the view only decides where to render fields.
 
 ```js
-import { string, boolean, date, Record } from 'digital-fdl';
+import { string, boolean, date, Record } from '@pmcelhaney/fdl';
 
 const existingCustomers = ['Ada', 'Grace'];
 const holidays = [new Date(2026, 11, 25).toDateString()];

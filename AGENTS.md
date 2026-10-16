@@ -5,7 +5,7 @@
 FDL (pronounced "fiddle") is a JavaScript/TypeScript library for modeling
 complex forms and tables. It defines field types, validation, dependencies,
 records, and recordsets declaratively so UI components can concentrate on
-rendering. The published package is `digital-fdl`.
+rendering. The npm package is `@pmcelhaney/fdl`.
 
 ## Layout
 

@@ -22,7 +22,7 @@ it('uses independent rules and exports the same current model and Lit bindings',
     expect(preview.isValid()).toBe(false);
     const source = builderSource(spec),
         modules: { [name: string]: any } = {
-            'digital-fdl': { field, Record },
+            '@pmcelhaney/fdl': { field, Record },
             lit: { html, render },
             './fdl-field': {},
         };

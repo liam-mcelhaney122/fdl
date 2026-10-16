@@ -55,7 +55,7 @@ export class FdlConditionalValidation extends LitElement {
 }
 customElements.define('fdl-conditional-validation', FdlConditionalValidation);
 
-export const conditionalRuleSource = `import { field, Record } from 'digital-fdl';
+export const conditionalRuleSource = `import { field, Record } from '@pmcelhaney/fdl';
 const isInternational = (record: Record<any>) =>
     record.getField('country') !== 'US';
 export const accountFields = {

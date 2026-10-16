@@ -1,10 +1,13 @@
 {
-    "name": "digital-fdl",
+    "name": "@pmcelhaney/fdl",
     "version": "1.0.0",
     "description": "Field Definition Library used to build field types",
     "main": "index.js",
     "license": "apache-2.0",
     "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
     "scripts": {
         "docs:dev": "vite --config examples/fdl-input/vite.config.mjs examples/fdl-input",
         "docs:build": "vite build --config examples/fdl-input/vite.config.mjs examples/fdl-input",

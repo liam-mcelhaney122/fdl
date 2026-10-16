@@ -6,7 +6,7 @@ source. The exported `string`, `number`, `boolean`, and `date` primitives are
 reusable starting points with type-specific defaults.
 
 ```js
-import { field } from 'digital-fdl';
+import { field } from '@pmcelhaney/fdl';
 
 const number = field
     .validator({
@@ -31,7 +31,7 @@ They prepare runtime behavior automatically. The exported `FieldDefinition<T>`
 type describes an accepted field definition.
 
 ```ts
-import { field, Record } from 'digital-fdl';
+import { field, Record } from '@pmcelhaney/fdl';
 
 const name = field.maxLength(100);
 const requiredName = name.required(); // name stays optional
@@ -79,7 +79,7 @@ inputs follow the scope of the setting:
 | `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth`                                                 | `() => result`                       | `ColumnSetting<Result>`                       |
 
 `T` is the stored field type and `R` is the record's backing-data type. Import
-these types from `digital-fdl`. Record settings describe the record's state or
+these types from `@pmcelhaney/fdl`. Record settings describe the record's state or
 metadata. They can read a particular field with `record.getField(name)`.
 `emptyWhen` needs the candidate value because validation can check a value
 before storing it. Cell classes use their value and owning record. Alignment callbacks can also
@@ -347,7 +347,7 @@ ordered. The table uses that comparator when its sort state includes the
 column:
 
 ```js
-import { field, Recordset } from 'digital-fdl';
+import { field, Recordset } from '@pmcelhaney/fdl';
 
 const fields = {
     name: field.compareFunction((a, b) => a.localeCompare(b)),

@@ -2,8 +2,8 @@ import { html } from 'lit';
 import { highlightJavaScript } from './highlight-javascript';
 
 export const firstFormSource = `import { html, render } from 'lit';
-import { field, Record } from 'digital-fdl';
-import FormElement from 'digital-fdl/form-element';
+import { field, Record } from '@pmcelhaney/fdl';
+import FormElement from '@pmcelhaney/fdl/form-element';
 
 // Register a local adapter. Its styles and control semantics belong here.
 class AccountField extends FormElement {}
@@ -67,7 +67,7 @@ export function renderQuickstart() {
         >
         <h2>Use FDL in an existing application</h2>
         <p
-            >The package is <code>digital-fdl</code>. These instructions use the
+            >The package is <code>@pmcelhaney/fdl</code>. These instructions use the
             source layout in this checkout and a TypeScript-capable bundler. For
             local evaluation, install this checkout by absolute path; published
             versions may expose a different API. Lit is needed only for this
@@ -77,7 +77,7 @@ export function renderQuickstart() {
 npm install --save-dev vite typescript</code></pre>
         <p
             >For a package version that provides these APIs, use
-            <code>npm install digital-fdl lit</code>. Create an
+            <code>npm install @pmcelhaney/fdl lit</code>. Create an
             <code>index.html</code> with the following body and save the
             complete script below as <code>main.ts</code> beside it. Add the
             <code>tsconfig.json</code> below, then run

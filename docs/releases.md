@@ -1,6 +1,6 @@
 # Releases and versioning
 
-FDL uses Semantic Versioning for the `digital-fdl` package. This document
+FDL uses Semantic Versioning for the `@pmcelhaney/fdl` package. This document
 defines the release discipline being established during the repository’s
 portfolio rehabilitation; it does not claim that automated publication is
 configured today.

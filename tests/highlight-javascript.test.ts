@@ -11,7 +11,7 @@ import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
 
 it('provides generic help for every supported modifier in actual source', () => {
     expect(Object.keys(modifierDescriptions).sort()).toEqual(Object.keys(modifierSignatures).sort());
-    const code = `import { field } from 'digital-fdl';
+    const code = `import { field } from '@pmcelhaney/fdl';
 const address = field.label('Shipping address')
     .visible(whenShipping)
     .required(whenShipping)

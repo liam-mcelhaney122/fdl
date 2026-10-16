@@ -7,7 +7,7 @@ rules to values and is the model passed to FDL form controls.
 Use `fieldTypeForField(name)` to inspect a field's runtime behavior.
 
 ```js
-import { Record, string } from 'digital-fdl';
+import { Record, string } from '@pmcelhaney/fdl';
 
 const account = new Record(
     {

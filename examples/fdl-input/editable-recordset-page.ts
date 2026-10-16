@@ -20,7 +20,7 @@ export function renderEditableRecordset() {
         <h2>Load once, edit the loaded Records</h2>
         <pre
             class="code"
-        ><code>${highlightJavaScript(`import { field, Recordset } from 'digital-fdl';
+        ><code>${highlightJavaScript(`import { field, Recordset } from '@pmcelhaney/fdl';
 const shipmentFields = {
     id: field.label('Shipment').readOnly(),
     quantity: field

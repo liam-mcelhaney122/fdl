@@ -16,7 +16,10 @@ it('type-checks the complete copied first-form script against the source package
         useDefineForClassFields: false,
         noEmit: true,
         baseUrl: process.cwd(),
-        paths: { 'digital-fdl': ['index.js'], 'digital-fdl/form-element': ['form-element.ts'] },
+        paths: {
+            '@pmcelhaney/fdl': ['index.js'],
+            '@pmcelhaney/fdl/form-element': ['form-element.ts'],
+        },
     };
     const host = ts.createCompilerHost(options);
     const getSourceFile = host.getSourceFile.bind(host);

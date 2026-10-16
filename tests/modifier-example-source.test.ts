@@ -11,7 +11,7 @@ import { exampleSource, type ExampleSettings } from '../examples/fdl-input/modif
 function runExample(name: string, settings: ExampleSettings = {}) {
     const source = exampleSource(name, settings);
     const modules: { [path: string]: any } = {
-        'digital-fdl': { field, Record, Recordset },
+        '@pmcelhaney/fdl': { field, Record, Recordset },
         lit: { html, render },
         './fdl-field': {},
         './fdl-table': {},
