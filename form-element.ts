@@ -32,6 +32,10 @@ class FormElement extends ListeningElement {
     @property({ type: Boolean, attribute: 'show-validation-errors' })
     public showValidationErrors: boolean;
 
+    /** Empty-choice text belongs to this control, not to the option data. */
+    @property({ type: String, attribute: 'select-prompt' })
+    public selectPrompt?: string;
+
     private readonly controlId = `form-element-control-${++nextFormElementId}`;
 
     private readonly labelId = `${this.controlId}-label`;
@@ -54,6 +58,7 @@ class FormElement extends ListeningElement {
               ? 'textarea'
               : 'input';
         this.element = document.createElement(controlTag);
+        this.syncSelectPrompt();
         this.addListenersToElement();
         this.addListenersToRecord();
         await this.destructureFieldType();
@@ -380,8 +385,18 @@ class FormElement extends ListeningElement {
         this.element.hideSelectAll = this.fieldType?.properties.options?.hideSelectAll;
         this.element.maxValueCount = this.fieldType?.maxValueCount();
 
-        if (this.fieldType?.hasOptions()) {
-            const request = this.fieldType.options(this.record);
+        if (
+            this.fieldType?.hasOptions() &&
+            this.fieldType.isDisabled(this.record?.getField(this.field), this.record)
+        ) {
+            // Invalidate pending UI work without fetching or erasing its options.
+            this.optionsRequestVersion++;
+            this.optionsRequest = undefined;
+            this.element.loading = false;
+            this.element.removeAttribute('aria-busy');
+            this.element.disabled = true;
+        } else if (this.fieldType?.hasOptions()) {
+            const request = this.record!.optionsForField(this.field);
             if (request !== this.optionsRequest) {
                 this.optionsRequest = request;
                 const version = ++this.optionsRequestVersion;
@@ -402,6 +417,7 @@ class FormElement extends ListeningElement {
                                 return nativeOption;
                             })
                         );
+                        this.syncSelectPrompt();
                         this.syncSelectValue();
                     } else {
                         this.element.options = options;
@@ -426,6 +442,28 @@ class FormElement extends ListeningElement {
         this.requestUpdate();
     }
 
+    private syncSelectPrompt() {
+        if (!(this.element instanceof HTMLSelectElement) || this.fieldType?.hasMultipleValues())
+            return;
+        let prompt = this.element.querySelector(
+            'option[data-select-prompt]'
+        ) as HTMLOptionElement | null;
+        const suppliedEmpty = [...this.element.options].some(
+            option => option !== prompt && option.value === ''
+        );
+        if (suppliedEmpty || this.selectPrompt === undefined) {
+            prompt?.remove();
+            return;
+        }
+        if (!prompt) {
+            prompt = document.createElement('option');
+            prompt.value = '';
+            prompt.setAttribute('data-select-prompt', '');
+            this.element.prepend(prompt);
+        }
+        prompt.textContent = this.selectPrompt;
+    }
+
     private syncSelectValue() {
         const select = this.element as HTMLSelectElement;
         const value = (this.record as any)?.getField(this.field);
@@ -440,6 +478,7 @@ class FormElement extends ListeningElement {
     }
 
     protected updated(changedProperties: PropertyValues<this>) {
+        if (changedProperties.has('selectPrompt')) this.syncSelectPrompt();
         if (changedProperties.has('showValidationErrors')) {
             this.updateValidationAccessibility();
         }

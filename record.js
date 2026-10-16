@@ -48,10 +48,14 @@ export default class Record extends EventTarget {
             if (revision !== this.optionsRevision) return;
             const results = await Promise.all(
                 Object.entries(this.fieldTypes)
-                    .filter(([, fieldType]) => fieldType.hasOptions())
+                    .filter(
+                        ([field, fieldType]) =>
+                            fieldType.hasOptions() &&
+                            !fieldType.isDisabled(this.getField(field), this)
+                    )
                     .map(async ([field, fieldType]) => {
                         try {
-                            return { field, fieldType, options: await fieldType.options(this) };
+                            return { field, fieldType, options: await this.optionsForField(field) };
                         } catch {
                             // A failed lookup is not an empty list of available choices.
                             return undefined;
@@ -76,6 +80,13 @@ export default class Record extends EventTarget {
             this.setFields(changes);
         });
         return this.optionsRefresh;
+    }
+
+    /** Load choices only when the field's declared state permits editing. */
+    optionsForField(field) {
+        const fieldType = this.fieldTypeForField(field);
+        if (fieldType.isDisabled(this.getField(field), this)) return Promise.resolve([]);
+        return fieldType.options(this);
     }
 
     /** Wait until option reconciliation and any resulting dependency changes settle. */

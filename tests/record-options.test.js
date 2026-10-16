@@ -141,3 +141,49 @@ it('settles cascaded dependent choices and rechecks reset and added fields', asy
     await record.whenOptionsReady();
     expect(record.getField('extra')).toBeUndefined();
 });
+
+it('defers disabled option providers and reconciles their latest dependencies on enable', async () => {
+    const fetch = jest.fn(record =>
+        record.getField('zip') === '10001' ? [choice('chelsea')] : [choice('uptown')]
+    );
+    const record = new Record(
+        {
+            enabled: new FieldTypeBuilder(),
+            zip: new FieldTypeBuilder(),
+            store: new FieldTypeBuilder()
+                .disabled(record => !record.getField('enabled'))
+                .options({ fields: ['zip'], fetch }),
+        },
+        { enabled: false, zip: '28202', store: 'uptown' }
+    );
+    await record.whenOptionsReady();
+    await expect(record.optionsForField('store')).resolves.toEqual([]);
+    expect(fetch).not.toHaveBeenCalled();
+    record.setField('zip', '10001');
+    await record.whenOptionsReady();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(record.getField('store')).toBe('uptown');
+    record.setField('enabled', true);
+    await record.whenOptionsReady();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(record.getField('store')).toBeUndefined();
+});
+
+it('does not apply an in-flight response after a field becomes disabled', async () => {
+    const lookup = deferred();
+    const record = new Record(
+        {
+            enabled: new FieldTypeBuilder(),
+            store: new FieldTypeBuilder()
+                .disabled(record => !record.getField('enabled'))
+                .options(() => lookup.promise),
+        },
+        { enabled: true, store: 'keep' }
+    );
+    await Promise.resolve();
+    record.setField('enabled', false);
+    await record.whenOptionsReady();
+    lookup.resolve([]);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(record.getField('store')).toBe('keep');
+});

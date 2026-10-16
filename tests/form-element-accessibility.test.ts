@@ -200,3 +200,33 @@ it('shows a spinner, busy state, and disabled select while options load, and ign
     expect(select.disabled).toBe(false);
     expect(select.value).toBe('chelsea');
 });
+
+it('renders a control-owned prompt and defers options for a disabled dropdown', async () => {
+    const fetch = jest.fn(() => [{ text: 'Uptown store', value: 'uptown' }]);
+    const record = new Record(
+        {
+            ready: new FieldTypeBuilder(),
+            store: new FieldTypeBuilder()
+                .disabled(record => !record.getField('ready'))
+                .options({ fetch }),
+        },
+        { ready: false, store: '' }
+    );
+    const element = await renderField(record, 'store');
+    element.selectPrompt = 'Select a store';
+    await element.updateComplete;
+    const select = element.shadowRoot!.querySelector('select')!;
+    expect(select.disabled).toBe(true);
+    expect(select.options[0].textContent).toBe('Select a store');
+    expect(fetch).not.toHaveBeenCalled();
+    expect(element.shadowRoot!.querySelector('.options-spinner')).toBeNull();
+    record.setField('ready', true);
+    await record.whenOptionsReady();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await element.updateComplete;
+    expect(select.disabled).toBe(false);
+    expect([...select.options].map(option => option.value)).toEqual(['', 'uptown']);
+    expect(await record.optionsForField('store')).toEqual([
+        { text: 'Uptown store', value: 'uptown' },
+    ]);
+});

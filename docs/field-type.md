@@ -321,7 +321,8 @@ const remoteAssignee = field.options(async record => {
 If the selected value exists in both the old and new option lists, it remains
 selected. `Record` clears an unavailable single selection to `undefined` after
 the latest choices resolve; multiple selections retain only available items.
-Pending or failed lookups retain the current value. Use
+Pending or failed lookups retain the current value. Disabled fields defer
+record-managed loading and reconciliation until enabled. Use
 `await record.whenOptionsReady()` before validating or submitting after changes.
 See [selection reconciliation](./record.md#selections-and-changing-options).
 

@@ -182,7 +182,7 @@ it('simulates two seconds of store lookup latency with a spinner', async () => {
     const store = root.querySelector('fdl-field[field="store"]') as any;
     jest.useFakeTimers();
     try {
-        store.record.setField('zip', '28202');
+        store.record.setField('zip', '10001');
         await store.updateComplete;
         const request = store.record.fieldTypeForField('store').options(store.record);
         expect(store.shadowRoot.querySelector('.options-spinner')).not.toBeNull();
@@ -195,7 +195,7 @@ it('simulates two seconds of store lookup latency with a spinner', async () => {
         await store.updateComplete;
         expect(store.shadowRoot.querySelector('.options-spinner')).toBeNull();
         expect(store.shadowRoot.querySelector('select').disabled).toBe(false);
-        expect(store.shadowRoot.querySelector('select').textContent).toContain('Uptown store');
+        expect(store.shadowRoot.querySelector('select').textContent).toContain('Chelsea store');
     } finally {
         jest.useRealTimers();
     }

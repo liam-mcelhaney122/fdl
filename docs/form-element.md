@@ -135,8 +135,16 @@ For a native `select`, `FormElement` converts the option objects returned by
 `value` (or use the documented `options({ data, text, value })` mapping).
 The native adapter converts option values to strings for the DOM. Use string
 identities for this adapter; object-valued option identities need a compatible
-custom control. Include an empty option when the field starts empty, and use
-`.required()` or `.required(...)` if choosing an option is part of validation.
+custom control. Configure a single-select's empty-choice prompt on the renderer
+with `select-prompt="Select a store"` (or its `selectPrompt` property). When
+configured, the control adds its own empty choice; the prompt is not added to the
+model's option data. An explicitly supplied empty option is still supported and takes precedence.
+Use `.required()` or `.required(...)` if choosing an option is part of validation.
+
+The adapter loads through `Record.optionsForField(name)` and defers fetching
+while the field's declared disabled state is true. Disabling during a lookup
+clears the loading indicator and prevents the pending result from updating the
+control. Once enabled, the field loads its current choices.
 
 While a native single-select's options are loading, the adapter disables the
 control, sets `aria-busy="true"`, and shows an inline spinner with a

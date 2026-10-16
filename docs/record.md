@@ -79,7 +79,7 @@ iterates keys in the values object, so an omitted field is not checked by
 
 ## Selections and changing options
 
-Records load option-backed fields on construction and after changes through
+Records load enabled option-backed fields on construction and after changes through
 `setField()`, `setFields()`, `addField()`, `reset()`, `clear()`, or
 `announceChange()`. Once the latest choices resolve, a single selection absent
 from those choices is cleared to `undefined`. Multiple selections keep only
@@ -90,8 +90,9 @@ Fields without options are unaffected.
 Valid selections remain selected. Pending or failed lookups preserve the current
 value, and obsolete responses cannot clear a value belonging to newer choices.
 Clearing a selection dispatches the usual field `change` event and refreshes any
-further dependent options. Visibility and disabled state do not exempt a field
-from its options constraint.
+further dependent options. Disabled fields defer loading and retain their values
+until enabled; enabling a field loads its current choices and reconciles its
+selection. Visibility alone does not defer loading.
 
 Reconciliation is asynchronous even for static options. Before submitting or
 validating a record after a change, await all current lookups and cascading clears:
@@ -102,6 +103,11 @@ await record.whenOptionsReady();
 record.getField('store'); // undefined if the previous store is no longer an option
 record.isValid(); // required fields still require a new selection
 ```
+
+Use `optionsForField(name)` to load choices through the same disabled-state gate
+as the native adapter. It returns an empty list without invoking the provider
+when the field is disabled. The lower-level `FieldType.options(record)` method
+remains an explicit provider call and does not apply this gate.
 
 Use `refreshOptions()` to request reconciliation explicitly; option-provider
 caching still applies. `whenOptionsReady()` waits for the latest pass and any

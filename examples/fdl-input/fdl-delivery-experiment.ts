@@ -26,24 +26,14 @@ function whenZipIsInvalid(record: Record<any>) {
     return !isValidZip(record.getField('zip'));
 }
 
-function whenReadyToChooseStore(record: Record<any>) {
-    return whenPickingUp(record) && isValidZip(record.getField('zip'));
-}
-
-function storesForZip(record: Record<any>) {
-    return storesByZip[record.getField('zip')] || [];
-}
-
-async function loadStoresForZip(record: Record<any>) {
-    const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
-    if (whenReadyToChooseStore(record))
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    return [{ text: 'Select a store', value: '' }, ...stores];
+async function loadStoresForZip(zip: string) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return storesByZip[zip] || [];
 }
 
 const pickupStoreOptions = {
-    fields: ['zip', 'fulfillment'],
-    fetch: loadStoresForZip,
+    fields: ['zip'],
+    fetch: (record: Record<any>) => loadStoresForZip(record.getField('zip')),
 };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -75,24 +65,14 @@ function whenZipIsInvalid(record) {
     return !isValidZip(record.getField('zip'));
 }
 
-function whenReadyToChooseStore(record) {
-    return whenPickingUp(record) && isValidZip(record.getField('zip'));
-}
-
-function storesForZip(record) {
-    return storesByZip[record.getField('zip')] || [];
-}
-
-async function loadStoresForZip(record) {
-    const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
-    if (whenReadyToChooseStore(record))
-        await new Promise(resolve => setTimeout(resolve, 2000));
-    return [{ text: 'Select a store', value: '' }, ...stores];
+async function loadStoresForZip(zip) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return storesByZip[zip] || [];
 }
 
 const pickupStoreOptions = {
-    fields: ['zip', 'fulfillment'],
-    fetch: loadStoresForZip,
+    fields: ['zip'],
+    fetch: record => loadStoresForZip(record.getField('zip')),
 };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -150,7 +130,11 @@ export class DeliveryForm extends LitElement {
             <fdl-field .record=\${delivery} field="city"></fdl-field>
             <fdl-field .record=\${delivery} field="state"></fdl-field>
             <fdl-field .record=\${delivery} field="zip"></fdl-field>
-            <fdl-field .record=\${delivery} field="store"></fdl-field>
+            <fdl-field
+                .record=\${delivery}
+                field="store"
+                select-prompt="Select a store"
+            ></fdl-field>
         \`;
     }
 }
@@ -288,11 +272,11 @@ export const shippingStateOptions = [
     render() {
         const address = this.delivery.fieldTypeForField('address');
         const pickup = whenPickingUp(this.delivery);
-        const ready = whenReadyToChooseStore(this.delivery);
+        const zip = this.delivery.getField('zip');
+        const ready = isValidZip(zip);
+        const stores = storesByZip[zip] || [];
         const store = this.delivery.getField('store');
-        const availableStore = storesForZip(this.delivery).find(
-            option => option.value === store
-        );
+        const availableStore = stores.find(option => option.value === store);
         const instruction =
             this.delivery.getField('fulfillment') === 'ship'
                 ? this.delivery.getField('address')
@@ -300,7 +284,7 @@ export const shippingStateOptions = [
                     : 'Switch to pickup.'
                 : !ready
                   ? 'Enter a five-digit ZIP code to choose a pickup store.'
-                  : !storesForZip(this.delivery).length
+                  : !stores.length
                     ? 'No sample stores for this ZIP code. Try 28202 or 10001.'
                     : availableStore
                       ? 'Pickup is ready. Change the ZIP code to see the available stores change.'
@@ -367,6 +351,7 @@ export const shippingStateOptions = [
                         <fdl-field
                             .record=${this.delivery}
                             field="store"
+                            select-prompt="Select a store"
                             .showValidationErrors=${true}
                         ></fdl-field>
                     </div>
