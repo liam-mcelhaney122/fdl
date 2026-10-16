@@ -51,7 +51,7 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
     if (page === 'home') return html`
         <article class="site-page">
             <h1 tabindex="-1">Field Definition Library</h1>
-            <p class="description">Define field rules once. Use them consistently in forms, tables, and validation.</p>
+            <p class="description">Define business rules once. Use them consistently in forms, tables, and validation.</p>
             <fdl-delivery-experiment></fdl-delivery-experiment><p><a href="#learn">Build this understanding one question at a time →</a></p>
             <section class="task-links" aria-labelledby="task-links-title"><h2 id="task-links-title">What are you trying to do?</h2><ul>
                 <li><a href="#required">Require an answer only when another answer needs it</a></li>
