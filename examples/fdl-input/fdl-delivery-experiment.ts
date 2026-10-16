@@ -3,30 +3,37 @@ import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import './fdl-field';
-import { highlightJavaScript } from './highlight-javascript';
+import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
 
-const delivery = new Record({
-  fulfillment: field.label('Delivery method')
+const deliveryMethod = field.label('Delivery method')
     .tag('select')
     .options([
       { text: 'Ship to address', value: 'ship' },
       { text: 'Pick up in person', value: 'pickup' },
-    ]),
-  address: field.label('Shipping address')
+    ]);
+const shippingAddress = field.label('Shipping address')
     .visibleWhen(record => record.getField('fulfillment') === 'ship')
-    .required(record => record.getField('fulfillment') === 'ship'),
+    .required(record => record.getField('fulfillment') === 'ship');
+
+const delivery = new Record({
+  fulfillment: deliveryMethod,
+  address: shippingAddress,
 }, { fulfillment: 'ship', address: '42 Orchard Street' });`;
+    private readonly litCode = `<fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
+<fdl-field .record=\${delivery} field="address"></fdl-field>`;
+    private deliveryMethod = field.label('Delivery method').tag('select').options([
+        { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
+    ]);
+    private shippingAddress = field.label('Shipping address')
+        .visibleWhen(record => record.getField('fulfillment') === 'ship')
+        .required(record => record.getField('fulfillment') === 'ship');
     private delivery = new Record({
-        fulfillment: field.label('Delivery method').tag('select').options([
-            { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
-        ]),
-        address: field.label('Shipping address')
-            .visibleWhen(record => record.getField('fulfillment') === 'ship')
-            .required(record => record.getField('fulfillment') === 'ship'),
+        fulfillment: this.deliveryMethod,
+        address: this.shippingAddress,
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
@@ -51,8 +58,11 @@ const delivery = new Record({
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
-                <p class="code-intro">The interactive example is driven by this FDL model:</p>
+                <p class="code-intro">The interactive example is driven by this FDL model and Lit view:</p>
+                <h3>FDL model</h3>
                 <pre class="code"><code>${highlightJavaScript(this.code)}</code></pre>
+                <h3>Lit template</h3>
+                <pre class="code"><code>${highlightMarkup(this.litCode)}</code></pre>
             </div>
             <p>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Pickup hides the address and makes it optional. The stored address is preserved; switch back to see it again.'}</p>
             <p><a href="#visibleWhen">Explore visibility</a> · <a href="#required">Explore requiredness</a></p>
@@ -69,7 +79,15 @@ const delivery = new Record({
         .tabs button:focus-visible { outline:3px solid #2563eb; outline-offset:2px; }
         .tab-panel { padding-top:20px; }
         .code-intro { margin-top:0; }
+        h3 { margin:24px 0 10px; font-size:1rem; }
         .code { margin:0; padding:20px; border-radius:var(--example-radius); background:#0f172a; color:#e2e8f0; font:0.875rem/1.7 monospace; overflow:auto; tab-size:2; }
+        .syntax-comment { color:#a5b4c8; font-style:italic; }
+        .syntax-string,.syntax-regex { color:#a7f3d0; }
+        .syntax-keyword { color:#c4b5fd; }
+        .syntax-builtin { color:#7dd3fc; }
+        .syntax-function { color:#93c5fd; }
+        .syntax-number,.syntax-literal { color:#fdba74; }
+        .syntax-punctuation { color:#cbd5e1; }
         .experiment { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:stretch; }
         .editor { padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
         .editor fdl-field:last-child { margin-bottom:0; }
