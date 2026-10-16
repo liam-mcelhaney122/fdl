@@ -6,6 +6,7 @@ import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
 import './fdl-table';
+import './fdl-recordset-inspector';
 
 export class FdlSpecializationExperiment extends LitElement {
     private base = field.label('Name');
@@ -101,6 +102,7 @@ export class FdlSpecializationExperiment extends LitElement {
                 ><fdl-column field="required" label="requiredName"></fdl-column
                 ><fdl-column field="sibling" label="shortName"></fdl-column
             ></fdl-table>
+            <fdl-recordset-inspector .recordset=${this.table}></fdl-recordset-inspector>
             <p role="status"
                 >The base is
                 ${this.base.valueOf().required(undefined, this.record) ? 'required' : 'optional'};

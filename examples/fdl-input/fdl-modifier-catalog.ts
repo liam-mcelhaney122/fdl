@@ -25,11 +25,12 @@ import {
     prefixFilter,
     substringFilter,
 } from './comparison-examples';
-import { describeValue, tableSummary } from './model-summary';
+import { describeValue } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
 import './fdl-table';
 import './fdl-record-inspector';
+import './fdl-recordset-inspector';
 
 type DemoName =
     | 'cellClass'
@@ -1292,14 +1293,7 @@ export class FdlModifierCatalog extends LitElement {
                         ).map(field => this.probes.getField(field))
                     ),
             };
-        const table = this.tableRecordsets[name];
-        return table
-            ? {
-                  visibleRows: table.currentPage.map(record => record.values),
-                  totalRecords: table.allRecords.length,
-                  sortColumns: table.sortColumns,
-              }
-            : undefined;
+        return undefined;
     }
 
     private inspectedRecord(name: string): Record<any> | undefined {
@@ -1312,8 +1306,6 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     private stateSummary(name: string) {
-        const table = this.tableRecordsets[name];
-        if (table) return tableSummary(table);
         const state = this.focusedState(name);
         if (name === 'reducer')
             return html`<p class="state-summary"
@@ -1329,6 +1321,7 @@ export class FdlModifierCatalog extends LitElement {
         );
         if (!entry) return nothing;
         const record = this.inspectedRecord(entry.name);
+        const recordset = this.tableRecordsets[entry.name];
         return html`<div
             class=${`focused ${['cellClass', 'columnClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClass', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`}
             data-modifier=${entry.name}
@@ -1342,9 +1335,13 @@ export class FdlModifierCatalog extends LitElement {
                                     .record=${record}
                                     .fields=${Object.keys(this.focusedState(entry.name) as object)}
                                 ></fdl-record-inspector>`
-                              : html`<div class="focused-state"
+                              : recordset
+                                ? html`<fdl-recordset-inspector
+                                      .recordset=${recordset}
+                                  ></fdl-recordset-inspector>`
+                                : html`<div class="focused-state"
                               ><p class="state-label"
-                                  >${this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'MODEL EXERCISE'}</p
+                                  >MODEL EXERCISE</p
                               >${this.stateSummary(entry.name)}<details
                                   ><summary>Inspect full JSON</summary
                                   ><pre>

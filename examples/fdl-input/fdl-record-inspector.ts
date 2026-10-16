@@ -10,7 +10,7 @@ const statusPaths = {
     Invalid: 'M12 3L2 21h20z M12 9v5 M12 17v1',
 };
 
-function statusIcon(status: keyof typeof statusPaths) {
+export function statusIcon(status: keyof typeof statusPaths) {
     return html`<span
         class="status-icon"
         role="img"
@@ -23,7 +23,7 @@ function statusIcon(status: keyof typeof statusPaths) {
     </span>`;
 }
 
-function storedValue(value: unknown): string {
+export function storedValue(value: unknown): string {
     if (value === '') return '(empty string)';
     if (value === undefined) return '(undefined)';
     if (typeof value === 'string') return value;
@@ -34,6 +34,25 @@ function storedValue(value: unknown): string {
     } catch {
         return String(value);
     }
+}
+
+export function fieldStatus(record: Record<any>, name: string) {
+    const type = record.fieldTypeForField(name);
+    const value = record.getField(name);
+    return html`<span class="field-status">
+        ${!type.visible(value, record) ? statusIcon('Hidden') : ''}
+        ${type.isDisabled(value, record) ? statusIcon('Disabled') : ''}
+        ${type.readonly(value, record) ? statusIcon('Read-only') : ''}
+        ${type.required(value, record) ? statusIcon('Required') : ''}
+        ${!record.isValid(name) ? statusIcon('Invalid') : ''}
+    </span>`;
+}
+
+export function statusLegend() {
+    return html`<div class="legend" aria-label="Status icon legend">
+        <p>Icon legend</p>
+        <ul>${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}</ul>
+    </div>`;
 }
 
 /** Read-only inspection of an FDL record, independent of its form or page. */
@@ -131,27 +150,13 @@ export class FdlRecordInspector extends LitElement {
                                               >
                                               <td>${storedValue(value)}</td>
                                               <td
-                                                  ><span class="field-status">
-                                                      ${!type.visible(value, record) ? statusIcon('Hidden') : ''}
-                                                      ${type.isDisabled(value, record) ? statusIcon('Disabled') : ''}
-                                                      ${type.readonly(value, record) ? statusIcon('Read-only') : ''}
-                                                      ${type.required(value, record) ? statusIcon('Required') : ''}
-                                                      ${!record.isValid(name) ? statusIcon('Invalid') : ''}
-                                                  </span></td
+                                                  >${fieldStatus(record, name)}</td
                                               >
                                           </tr>`;
                                       })}</tbody
                                   >
                               </table>
-                              <div
-                                  class="legend"
-                                  aria-label="Status icon legend"
-                              >
-                                  <p>Icon legend</p>
-                                  <ul
-                                      >${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}</ul
-                                  >
-                              </div>
+                              ${statusLegend()}
                               <p class="validation" role="status"
                                   >Record validation:
                                   <strong

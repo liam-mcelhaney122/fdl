@@ -16,7 +16,7 @@ beforeAll(() => {
 });
 
 async function stateText(host: HTMLElement): Promise<string> {
-    const inspector = host.shadowRoot!.querySelector('fdl-record-inspector');
+    const inspector = host.shadowRoot!.querySelector('fdl-record-inspector') ?? host.shadowRoot!.querySelector('fdl-recordset-inspector');
     if (inspector) {
         await inspector.updateComplete;
         return inspector.shadowRoot!.textContent!;
@@ -376,7 +376,7 @@ describe('extended model exercises', () => {
         await table.recordset.requestUpdate();
         await catalog.updateComplete;
         const state = JSON.parse(
-            catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!
+            catalog.shadowRoot!.querySelector('fdl-recordset-inspector')!.shadowRoot!.querySelector('pre')!.textContent!
         );
         expect(state.visibleRows[0].lastName).toBe('Alpha');
         expect(state.sortColumns[0].field).toBe('lastName');
@@ -873,4 +873,22 @@ it.each([
         .filter(field => field.record === inspector.record)
         .map(field => field.field)));
     expect(root.querySelector('.model, .focused-state')).toBeNull();
+});
+
+
+it.each([
+    'cellClass', 'columnClass', 'compareFunction', 'filter', 'rowClass',
+    'sortable', 'template', 'textAlign', 'maxColumnWidth', 'minColumnWidth',
+    'targetColumnWidth',
+])('inspects the live recordset on the %s modifier page', async name => {
+    const page = await openPage(`#${name}`);
+    const catalog = page.shadowRoot!.getElementById(name)!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    await catalog.updateComplete;
+    const inspector = catalog.shadowRoot!.querySelector('fdl-recordset-inspector')!;
+    expect(inspector).toBeTruthy();
+    await inspector.updateComplete;
+    const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
+    await table.updateComplete;
+    expect(inspector.recordset === table.recordset).toBe(true);
+    expect(catalog.shadowRoot!.querySelector('.focused-state')).toBeNull();
 });

@@ -132,3 +132,25 @@ space, as the delivery example does. The component listens to record changes
 and releases its listener when removed or rebound to another record; its parent
 does not need to request updates for it. This is a documentation-site component,
 imported from the example source alongside `fdl-field`.
+
+## Reusing the recordset inspector
+
+Import `./fdl-recordset-inspector` and bind the live recordset:
+
+```ts
+html`<fdl-recordset-inspector .recordset=${recordset}></fdl-recordset-inspector>`;
+```
+
+The inspector displays matching, total, loaded, and current-page counts, the page
+number and size, sort priorities, and a table of raw stored values on the current
+page. Field-state icons and the icon legend are shared with the record inspector.
+Each row reports validation for its complete record using the same Invalid icon. The JSON disclosure
+includes current-page values and view metadata. Server-side totals can exceed
+the number of loaded records; the inspector reports these separately.
+
+Use `.fields=${['name', 'amount']}` to select and order the displayed columns;
+the default is every declared field. Column headers use field keys to make it
+easy to match values to the model source. The panel observes recordset updates
+and loaded-record edits independently of its parent and releases subscriptions
+when rebound or removed. `collapsed` and `.collapsed=${true}` work like the
+record inspector. Inspection does not change sorting, filtering, paging, or data.

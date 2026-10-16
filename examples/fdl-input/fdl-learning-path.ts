@@ -10,6 +10,7 @@ import { recordSummary } from './model-summary';
 import { highlightJavaScript } from './highlight-javascript';
 import './fdl-field';
 import './fdl-table';
+import './fdl-recordset-inspector';
 
 const lessons = [
     {
@@ -259,7 +260,8 @@ export class FdlLearningPath extends LitElement {
                               ><fdl-table .recordset=${this.table}
                                   ><fdl-column field="method"></fdl-column
                                   ><fdl-column field="charge"></fdl-column
-                              ></fdl-table>`
+                              ></fdl-table>
+                              <fdl-recordset-inspector .recordset=${this.table}></fdl-recordset-inspector>`
                         : ''
                 }
                 <details open

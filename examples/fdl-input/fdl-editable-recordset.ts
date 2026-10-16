@@ -9,6 +9,7 @@ import {
 } from './editable-recordset-model';
 import type Record from '../../record';
 import './fdl-field';
+import './fdl-recordset-inspector';
 
 export class FdlEditableRecordset extends LitElement {
     readonly shipments = createShipments();
@@ -124,6 +125,7 @@ export class FdlEditableRecordset extends LitElement {
             >
             <h2>Selected shipment: ${this.selected?.getField('id')}</h2>
             ${this.selected ? keyed(this.selected, html`<fdl-field .record=${this.selected} field="quantity" .showValidationErrors=${true}></fdl-field><fdl-field .record=${this.selected} field="reason" .showValidationErrors=${true}></fdl-field>`) : ''}
+            <fdl-recordset-inspector .recordset=${this.shipments}></fdl-recordset-inspector>
             <details
                 ><summary>All records, including filtered-out edits</summary
                 ><pre>

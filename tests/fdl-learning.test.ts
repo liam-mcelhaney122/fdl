@@ -358,7 +358,9 @@ it('changes the minimum-length definition while retaining the value', async () =
     await catalog.updateComplete;
     await page.updateComplete;
     expect(catalog.shadowRoot!.querySelector('.result')!.textContent).toContain('Valid');
-    expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('ABC');
+    const inspector = catalog.shadowRoot!.querySelector('fdl-record-inspector')!;
+    await inspector.updateComplete;
+    expect(inspector.shadowRoot!.querySelector('[data-field="longCode"]')!.textContent).toContain('ABC');
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
     page.shadowRoot!.querySelector<HTMLAnchorElement>(
         '.modifier-list a[href="#minLength"]'
@@ -367,17 +369,16 @@ it('changes the minimum-length definition while retaining the value', async () =
     expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
 });
 
-it('summarizes semantic state and keeps the JSON inspector collapsed', async () => {
+it('shows semantic state with the shared inspector icons', async () => {
     const page = await openExplorer('#visible');
     await editField(page.shadowRoot!, 'fulfillment', 'pickup');
     await page.updateComplete;
-    expect(
-        page
-            .shadowRoot!.querySelector('.model .state-summary')!
-            .textContent!.replace(/\s+/g, ' ')
-            .trim()
-    ).toContain('Hidden · Optional');
-    expect(page.shadowRoot!.querySelector('.model details')!.hasAttribute('open')).toBe(false);
+    const inspector = page.shadowRoot!.querySelector('fdl-record-inspector')!;
+    await inspector.updateComplete;
+    const address = inspector.shadowRoot!.querySelector('[data-field="address"]')!;
+    expect(address.querySelector('[aria-label="Hidden"]')).toBeTruthy();
+    expect(address.querySelector('[aria-label="Required"]')).toBeNull();
+    expect(inspector.collapsed).toBe(false);
 });
 it('explains actual sort precedence without requiring a JSON read', async () => {
     const page = await openExplorer('#compareFunction');
@@ -389,13 +390,12 @@ it('explains actual sort precedence without requiring a JSON read', async () => 
     table.shadowRoot.querySelector('button[title="Sort by Last name"]').click();
     await table.recordset.requestUpdate();
     await catalog.updateComplete;
-    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain(
-        'Sorted by Last name ↑'
-    );
-    expect(catalog.shadowRoot!.querySelector('.state-summary')!.textContent).toContain('6 of 6');
-    expect(catalog.shadowRoot!.querySelector('.focused-state details')!.hasAttribute('open')).toBe(
-        false
-    );
+    const inspector = catalog.shadowRoot!.querySelector('fdl-recordset-inspector')!;
+    await inspector.updateComplete;
+    const counts = inspector.shadowRoot!.querySelector('.counts')!.textContent!.replace(/\s+/g, ' ');
+    expect(counts).toContain('Sorted by lastName ↑');
+    expect(counts).toContain('6 of 6');
+    expect(inspector.shadowRoot!.querySelector('details')!.hasAttribute('open')).toBe(false);
 });
 
 it('automatically clears an assignee removed from the available choices', async () => {
@@ -411,8 +411,10 @@ it('automatically clears an assignee removed from the available choices', async 
     const explanation = catalog.shadowRoot!.querySelector('.selection-explanation')!;
     expect(explanation.textContent).toContain('Katherine Johnson');
     expect(explanation.textContent).toContain('No assignee is selected');
-    const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
-    expect(state.assignee).toBeUndefined();
+    const inspector = catalog.shadowRoot!.querySelector('fdl-record-inspector')!;
+    await inspector.updateComplete;
+    expect(inspector.record!.getField('assignee')).toBeUndefined();
+    expect(inspector.shadowRoot!.querySelector('[data-field="assignee"]')!.textContent).toContain('(undefined)');
 });
 
 it('offers email, quantity, and username validator examples', async () => {

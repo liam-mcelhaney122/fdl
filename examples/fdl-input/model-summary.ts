@@ -1,6 +1,5 @@
 import { html } from 'lit';
 import Record from '../../record.js';
-import Recordset from '../../recordset.js';
 
 export const describeValue = (value: unknown): string => {
     if (typeof value === 'number' && !Number.isFinite(value))
@@ -29,21 +28,5 @@ export function recordSummary(
                     ></dd
                 >`;
         })}</dl
-    >`;
-}
-export function tableSummary(table: Recordset<any>) {
-    const sort = (table.sortColumns as { field: string; sort: string }[])
-        .map(
-            column =>
-                `${table.getFieldType(column.field).label() || column.field} ${column.sort === 'ascending' ? '↑' : '↓'}`
-        )
-        .join(', then ');
-    return html`<div class="state-summary" role="status"
-        ><p
-            >${table.filteredCount} of ${table.allRecords.length} records match;
-            ${table.currentPage.length} shown on this page.</p
-        ><p
-            >${sort ? `Sorted by ${sort}.` : 'Original order; no sort selected.'}</p
-        ><p>Filtering preserves the source records.</p></div
     >`;
 }
