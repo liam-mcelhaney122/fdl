@@ -44,14 +44,17 @@ const delivery = new Record({
     }
     render() {
         const address = this.delivery.fieldTypeForField('address');
+        const instruction = this.delivery.getField('fulfillment') === 'ship'
+            ? this.delivery.getField('address') ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Switch to pickup.'
+            : 'With pickup, the address is not required.';
         return html`<section aria-label="Try a delivery rule">
             <h2>Try a delivery rule</h2>
-            <p>Switch to pickup. What happens to the address you already entered?</p>
             <div class="tabs" role="tablist" aria-label="Delivery example views">
                 <button id="delivery-example-tab" role="tab" aria-selected=${this.activeTab === 'example'} aria-controls="delivery-example-panel" @click=${() => this.selectTab('example')}>Interactive example</button>
                 <button id="delivery-code-tab" role="tab" aria-selected=${this.activeTab === 'code'} aria-controls="delivery-code-panel" @click=${() => this.selectTab('code')}>FDL code</button>
             </div>
             <div id="delivery-example-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-example-tab" ?hidden=${this.activeTab !== 'example'}>
+                <p class="instruction">${instruction}</p>
                 <div class="experiment">
                     <div class="editor"><fdl-field .record=${this.delivery} field="fulfillment"></fdl-field><fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field></div>
                     <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
@@ -64,7 +67,6 @@ const delivery = new Record({
                 <h3>Lit template</h3>
                 <pre class="code"><code>${highlightMarkup(this.litCode)}</code></pre>
             </div>
-            <p>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Pickup hides the address and makes it optional. The stored address is preserved; switch back to see it again.'}</p>
             <p><a href="#visibleWhen">Explore visibility</a> · <a href="#required">Explore requiredness</a></p>
         </section>`;
     }

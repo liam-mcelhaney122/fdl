@@ -7,6 +7,7 @@ it('explores delivery visibility and requiredness without discarding the address
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
+    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Shipping needs an address. Clear it to see the record enforce that rule.');
     const field = demo.shadowRoot!.querySelector('fdl-field[field="fulfillment"]') as any;
     await field.updateComplete;
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -15,6 +16,7 @@ it('explores delivery visibility and requiredness without discarding the address
     select.dispatchEvent(new Event('input'));
     select.dispatchEvent(new Event('change'));
     await demo.updateComplete;
+    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('With pickup, the address is not required.');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Hidden · Optional');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('42 Orchard Street');
     select.value = 'ship';
@@ -28,6 +30,7 @@ it('explores delivery visibility and requiredness without discarding the address
     input.value = '';
     input.dispatchEvent(new Event('input'));
     await demo.updateComplete;
+    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Switch to pickup.');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Invalid');
 });
 
