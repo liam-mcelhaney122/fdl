@@ -16,8 +16,10 @@ module.exports = {
         './tests/jest-helpers/raw-sources.js',
     ],
     transformIgnorePatterns: [
-        '/node_modules/(?!(@angular|@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html)/)',
+        '/node_modules/(?!(@angular|@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html|svelte|esm-env|clsx)/)',
     ],
+    resolver: './tests/jest-helpers/svelte-resolver.js',
+    moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json', 'node', 'svelte'],
     moduleNameMapper: {
         '^@angular/core/primitives/([a-z-]+)$':
             '<rootDir>/node_modules/@angular/core/fesm2022/primitives-$1.mjs',
@@ -46,7 +48,7 @@ module.exports = {
         './filters/*.js',
         './helpers/*.js',
         './utilities/*.{js,ts}',
-        './adapters/angular/*.ts',
+        './adapters/**/*.{js,ts,tsx}',
     ],
     globals: {
         'ts-jest': {
@@ -57,7 +59,9 @@ module.exports = {
     },
     transform: {
         '/node_modules/@angular/.+\\.mjs$': angularBundleTransform,
+        '^.+\\.svelte\\.js$': './tests/jest-helpers/svelte-transform.js',
         '^.+\\.tsx?$': 'ts-jest',
         '^.+\\.(js|mjs)$': 'babel-jest',
+        '^.+\\.svelte$': './tests/jest-helpers/svelte-transform.js',
     },
 };

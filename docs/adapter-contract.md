@@ -26,9 +26,15 @@ shown, and the adapter creates the accessible relationship.
 ## Implementations
 
 - [`FormElement`](./form-element.md) is the built-in Lit adapter described below.
+- The [React adapter](./react-adapter.md) provides one `FdlField` component and
+  `useFieldState`, `useFieldOptions`, `useRecord`, and `useRecordset` hooks.
+- The [Svelte adapter](./svelte-adapter.md) provides one `FdlField` component,
+  record and field stores, and a native-control action.
 - The [Angular adapter](./angular-adapter.md) provides a standalone `<fdl-field>`
-  component and signal helpers that follow this contract, with the differences
-  listed in its current limits.
+  component and signal helpers.
+
+Each adapter documents its differences from `FormElement` in its current limits.
+A change to this contract applies to all of them.
 
 ## Native `FormElement` behavior
 

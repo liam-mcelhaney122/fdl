@@ -13,6 +13,15 @@ All notable changes to FDL will be documented in this file. The format follows
 - Continuous integration for tests, static type checking, and the documentation-site
   production build.
 - A documented release and compatibility checklist.
+- A React adapter at `@pmcelhaney/fdl/adapters/react` with one `FdlField`
+  component and `useRecord`, `useFieldState`, `useFieldOptions`, and
+  `useRecordset` hooks. React is an optional peer dependency. See the
+  [React adapter guide](./docs/react-adapter.md) and
+  [ADR-0008](./docs/adr/0008-add-a-react-adapter.md).
+- An optional [Svelte 5 adapter](./docs/svelte-adapter.md) with one `FdlField`
+  component, `recordStore`, `recordsetStore`, and `fieldStore` stores, and a
+  `fieldControl` action. Svelte is an optional peer dependency; see
+  [ADR-0009](./docs/adr/0009-add-svelte-adapter.md).
 - An [Angular adapter](./docs/angular-adapter.md) in `adapters/angular/`: a standalone
   `<fdl-field>` component, `recordSignal`/`fieldValue`/`fieldState`/`recordsetSignal`
   helpers, and a framework-independent field-state module. Angular 21 is an optional
