@@ -5,13 +5,6 @@ import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
 
-const deliveryMethodLabel = 'Delivery method';
-const shippingAddressLabel = 'Shipping address';
-const shippingCityLabel = 'City';
-const shippingStateLabel = 'State';
-const postalZipLabel = 'ZIP code';
-const pickupStoreLabel = 'Pickup store';
-
 const deliveryMethodOptions = [
     { text: 'Ship to address', value: 'ship' },
     { text: 'Pick up from store', value: 'pickup' },
@@ -92,13 +85,6 @@ export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
 
-const deliveryMethodLabel = 'Delivery method';
-const shippingAddressLabel = 'Shipping address';
-const shippingCityLabel = 'City';
-const shippingStateLabel = 'State';
-const postalZipLabel = 'ZIP code';
-const pickupStoreLabel = 'Pickup store';
-
 const deliveryMethodOptions = [
     { text: 'Ship to address', value: 'ship' },
     { text: 'Pick up from store', value: 'pickup' },
@@ -175,23 +161,23 @@ function isAvailablePickupStore(value, _view, record) {
     return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
 }
 
-const deliveryMethod = field.label(deliveryMethodLabel)
+const deliveryMethod = field.label('Delivery method')
     .options(deliveryMethodOptions);
-const shippingAddress = field.label(shippingAddressLabel)
+const shippingAddress = field.label('Shipping address')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
-const shippingCity = field.label(shippingCityLabel)
+const shippingCity = field.label('City')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
-const shippingState = field.label(shippingStateLabel)
+const shippingState = field.label('State')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress)
     .options(shippingStateOptions);
-const postalZip = field.label(postalZipLabel)
+const postalZip = field.label('ZIP code')
     .required()
     .validator(postalZipValidator);
-const pickupStore = field.label(pickupStoreLabel)
+const pickupStore = field.label('Pickup store')
     .visible(whenPickingUp)
     .disabled(whenZipIsInvalid)
     .required(whenPickingUp)
@@ -224,21 +210,21 @@ export class DeliveryForm extends LitElement {
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
-    private deliveryMethod = field.label(deliveryMethodLabel).options(deliveryMethodOptions);
-    private shippingAddress = field.label(shippingAddressLabel)
+    private deliveryMethod = field.label('Delivery method').options(deliveryMethodOptions);
+    private shippingAddress = field.label('Shipping address')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
-    private shippingCity = field.label(shippingCityLabel)
+    private shippingCity = field.label('City')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
-    private shippingState = field.label(shippingStateLabel)
+    private shippingState = field.label('State')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress)
         .options(shippingStateOptions);
-    private postalZip = field.label(postalZipLabel)
+    private postalZip = field.label('ZIP code')
         .required()
         .validator(postalZipValidator);
-    private pickupStore = field.label(pickupStoreLabel)
+    private pickupStore = field.label('Pickup store')
         .visible(whenPickingUp)
         .disabled(whenZipIsInvalid)
         .required(whenPickingUp)
