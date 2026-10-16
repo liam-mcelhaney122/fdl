@@ -81,9 +81,51 @@ it('requires a ZIP before revealing stores and validates pickup against the curr
     expect(record.isValid()).toBe(false);
     await editField(root, 'fulfillment', 'ship');
     await demo.updateComplete;
+    expect(record.isValid()).toBe(false);
+    await editField(root, 'state', 'NC');
+    await editField(root, 'zip', '28202');
+    await demo.updateComplete;
     expect(record.isValid()).toBe(true);
     expect(record.getField('address')).toBe('42 Orchard Street');
     expect(record.getField('store')).toBe('chelsea');
+});
+
+it('shows state and ZIP for shipping and retains them when switching to pickup', async () => {
+    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    document.body.append(demo);
+    await demo.updateComplete;
+    const root = demo.shadowRoot!;
+    const state = root.querySelector('fdl-field[field="state"]') as any;
+    const zip = root.querySelector('fdl-field[field="zip"]') as any;
+    const record = state.record;
+    await state.updateComplete;
+    await zip.updateComplete;
+    expect(state.shadowRoot.querySelector('select')).not.toBeNull();
+    expect(zip.shadowRoot.querySelector('input')).not.toBeNull();
+    expect(record.fieldTypeForField('state').visible('', record)).toBe(true);
+    expect(record.fieldTypeForField('zip').visible('', record)).toBe(true);
+    expect(record.isValid()).toBe(false);
+    await editField(root, 'state', 'NC');
+    await editField(root, 'zip', '28202');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(true);
+    await editField(root, 'zip', 'bad');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(false);
+    await editField(root, 'zip', '28202');
+    await editField(root, 'fulfillment', 'pickup');
+    await demo.updateComplete;
+    expect(record.fieldTypeForField('state').visible('NC', record)).toBe(false);
+    expect(record.fieldTypeForField('zip').visible('28202', record)).toBe(true);
+    expect(record.getField('state')).toBe('NC');
+    await editField(root, 'store', 'uptown');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(true);
+    await editField(root, 'fulfillment', 'ship');
+    await demo.updateComplete;
+    expect(record.getField('state')).toBe('NC');
+    expect(record.getField('zip')).toBe('28202');
+    expect(record.isValid()).toBe(true);
 });
 
 it('reveals the FDL delivery model behind the interactive example', async () => {

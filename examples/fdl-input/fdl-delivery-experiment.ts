@@ -9,6 +9,22 @@ function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
 }
 
+const stateOptions = [
+    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
+    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
+    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
+    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
+    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
+    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
+    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
+    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
+    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
+    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
+    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
+    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
+    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
+].map(([value, text]) => ({ text, value }));
+
 // Sample data only: this example does not call a store-location service.
 const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
     '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
@@ -38,6 +54,22 @@ export class FdlDeliveryExperiment extends LitElement {
 function whenDeliveryMethodRequiresAddress(record) {
   return record.getField('fulfillment') === 'ship';
 }
+
+const stateOptions = [
+    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
+    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
+    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
+    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
+    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
+    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
+    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
+    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
+    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
+    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
+    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
+    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
+    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
+].map(([value, text]) => ({ text, value }));
 
 // Sample data only: this example does not call a store-location service.
 const storesByZip = {
@@ -70,12 +102,15 @@ const shippingAddress = field.label('Shipping address')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
-const pickupZip = field.label('ZIP code')
-    .visible(whenPickingUp)
-    .required(whenPickingUp)
+const shippingState = field.label('State')
+    .visible(whenDeliveryMethodRequiresAddress)
+    .required(whenDeliveryMethodRequiresAddress)
+    .options([{ text: 'Select a state', value: '' }, ...stateOptions]);
+const postalZip = field.label('ZIP code')
+    .required()
     .validator({
         name: 'must contain five digits',
-        validate: (value, _view, record) => !whenPickingUp(record) || !value || hasValidZip(record),
+        validate: (value, _view, record) => !value || hasValidZip(record),
     });
 const pickupStore = field.label('Pickup store')
     .visible(whenReadyToChooseStore)
@@ -89,9 +124,10 @@ const pickupStore = field.label('Pickup store')
 export const delivery = new Record({
   fulfillment: deliveryMethod,
   address: shippingAddress,
-  zip: pickupZip,
+  state: shippingState,
+  zip: postalZip,
   store: pickupStore,
-}, { fulfillment: 'ship', address: '42 Orchard Street', zip: '', store: '' });`;
+}, { fulfillment: 'ship', address: '42 Orchard Street', state: '', zip: '', store: '' });`;
     private readonly litCode = `import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
@@ -101,6 +137,7 @@ export class DeliveryForm extends LitElement {
         return html\`
             <fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
             <fdl-field .record=\${delivery} field="address"></fdl-field>
+            <fdl-field .record=\${delivery} field="state"></fdl-field>
             <fdl-field .record=\${delivery} field="zip"></fdl-field>
             <fdl-field .record=\${delivery} field="store"></fdl-field>
         \`;
@@ -114,12 +151,15 @@ customElements.define('delivery-form', DeliveryForm);`;
     private shippingAddress = field.label('Shipping address')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
-    private pickupZip = field.label('ZIP code')
-        .visible(whenPickingUp)
-        .required(whenPickingUp)
+    private shippingState = field.label('State')
+        .visible(whenDeliveryMethodRequiresAddress)
+        .required(whenDeliveryMethodRequiresAddress)
+        .options([{ text: 'Select a state', value: '' }, ...stateOptions]);
+    private postalZip = field.label('ZIP code')
+        .required()
         .validator({
             name: 'must contain five digits',
-            validate: (value, _view, record) => !whenPickingUp(record) || !value || hasValidZip(record),
+            validate: (value, _view, record) => !value || hasValidZip(record),
         });
     private pickupStore = field.label('Pickup store')
         .visible(whenReadyToChooseStore)
@@ -132,9 +172,10 @@ customElements.define('delivery-form', DeliveryForm);`;
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
-        zip: this.pickupZip,
+        state: this.shippingState,
+        zip: this.postalZip,
         store: this.pickupStore,
-    }, { fulfillment: 'ship', address: '42 Orchard Street', zip: '', store: '' });
+    }, { fulfillment: 'ship', address: '42 Orchard Street', state: '', zip: '', store: '' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
     disconnectedCallback() { this.delivery.removeEventListener('change', this.refresh); super.disconnectedCallback(); }
@@ -167,11 +208,12 @@ customElements.define('delivery-form', DeliveryForm);`;
                     <div class="editor">
                         <fdl-field .record=${this.delivery} field="fulfillment"></fdl-field>
                         <fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field>
+                        <fdl-field .record=${this.delivery} field="state" .showValidationErrors=${true}></fdl-field>
                         <fdl-field .record=${this.delivery} field="zip" .showValidationErrors=${true}></fdl-field>
                         ${pickup ? html`<p class="sample-note">Sample store lookup: try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
                         <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
                     </div>
-                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${ready ? 'Visible' : 'Hidden'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${ready ? 'Visible' : 'Hidden'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
