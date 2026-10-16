@@ -1,3 +1,4 @@
+import type { FdlExample } from '../examples/fdl-input/fdl-example';
 import type { FdlField } from '../examples/fdl-input/fdl-field';
 import FieldTypeBuilder from '../field-type-builder';
 import { inputTypes } from '../types/input-types.types';
@@ -16,7 +17,9 @@ beforeAll(() => {
 });
 
 async function stateText(host: HTMLElement): Promise<string> {
-    const inspector = host.shadowRoot!.querySelector('fdl-record-inspector') ?? host.shadowRoot!.querySelector('fdl-recordset-inspector');
+    const inspector =
+        host.shadowRoot!.querySelector('fdl-record-inspector') ??
+        host.shadowRoot!.querySelector('fdl-recordset-inspector');
     if (inspector) {
         await inspector.updateComplete;
         return inspector.shadowRoot!.textContent!;
@@ -224,13 +227,12 @@ describe('complete explorer', () => {
                 recipe.category
             );
 
-            expect(section.querySelector('.code code')!.textContent).toBe(
+            const frame = section.querySelector('fdl-example') as FdlExample;
+            await frame.updateComplete;
+            expect(frame.sources[exampleSource(name).modelFile]).toBe(
                 exampleSource(name).definition
             );
-            expect(
-                section.querySelector('.code .syntax-function, .code .syntax-builtin')
-            ).toBeTruthy();
-            expect(section.querySelector('.focused-line')).toBeTruthy();
+            expect(frame.shadowRoot!.querySelector('.focused-line')).toBeTruthy();
             expect(page.shadowRoot!.querySelector('.chapter')).toBeNull();
             const categoryButton =
                 page.shadowRoot!.querySelector<HTMLButtonElement>('.page-category-icon')!;
@@ -250,18 +252,21 @@ describe('complete explorer', () => {
             categoryButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
             await settle(page);
             expect(page.shadowRoot!.querySelector('#category-tooltip')).toBeNull();
-            expect(section.querySelector('.markup')!.textContent).toBe(exampleSource(name).ui);
-            const css = section.querySelector('.example-css');
-            if (exampleSource(name).styles)
-                expect(css!.textContent).toBe(exampleSource(name).styles);
-            else expect(css).toBeNull();
+            expect(frame.sources[exampleSource(name).uiFile]).toBe(exampleSource(name).ui);
+            expect(frame.sources['example.css']).toBe(exampleSource(name).styles || undefined);
             const demo = section.querySelector('.playground')!;
-            for (const codeSection of section.querySelectorAll(
-                '.code-section, .markup-section, .css-section'
-            )) {
-                expect(
-                    demo.compareDocumentPosition(codeSection) & Node.DOCUMENT_POSITION_FOLLOWING
-                ).toBeTruthy();
+            expect(frame.contains(demo)).toBe(true);
+            frame.shadowRoot!.querySelector('details')!.open = true;
+            for (let index = 0; index < frame.filenames.length; index++) {
+                frame
+                    .shadowRoot!.querySelector<HTMLButtonElement>(`#example-tab-${index + 1}`)!
+                    .click();
+                await frame.updateComplete;
+                const panel = frame.shadowRoot!.querySelector('[role="tabpanel"]:not([hidden])')!;
+                expect(panel.querySelector('code')!.textContent).toBe(
+                    frame.sources[frame.filenames[index]]
+                );
+                expect(section.querySelector('.playground')).toBe(demo);
             }
             if (!['required', 'formatter', 'visible'].includes(name)) {
                 const catalog = section.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
@@ -273,9 +278,7 @@ describe('complete explorer', () => {
                         'Adapter support needed'
                     );
                 } else {
-                    expect(
-                        (await stateText(catalog)).length
-                    ).toBeGreaterThan(1);
+                    expect((await stateText(catalog)).length).toBeGreaterThan(1);
                 }
             }
         }
@@ -327,16 +330,12 @@ describe('complete explorer', () => {
         await catalog.updateComplete;
         catalog.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
         await catalog.updateComplete;
-        expect(await stateText(catalog)).toContain(
-            'Untitled document'
-        );
+        expect(await stateText(catalog)).toContain('Untitled document');
         root.querySelector<HTMLButtonElement>('.reset')!.click();
         await settle(page);
         catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
         await catalog.updateComplete;
-        expect(await stateText(catalog)).toContain(
-            'Quarterly plan'
-        );
+        expect(await stateText(catalog)).toContain('Quarterly plan');
     });
 });
 
@@ -376,7 +375,9 @@ describe('extended model exercises', () => {
         await table.recordset.requestUpdate();
         await catalog.updateComplete;
         const state = JSON.parse(
-            catalog.shadowRoot!.querySelector('fdl-recordset-inspector')!.shadowRoot!.querySelector('pre')!.textContent!
+            catalog
+                .shadowRoot!.querySelector('fdl-recordset-inspector')!
+                .shadowRoot!.querySelector('pre')!.textContent!
         );
         expect(state.visibleRows[0].lastName).toBe('Alpha');
         expect(state.sortColumns[0].field).toBe('lastName');
@@ -399,9 +400,7 @@ describe('extended model exercises', () => {
         const field = catalog.shadowRoot!.querySelector('fdl-field') as any;
         await field.updateComplete;
         expect(field.shadowRoot.querySelector('[aria-invalid="true"]')).toBeTruthy();
-        expect(await stateText(catalog)).toContain(
-            'THIS-CODE-IS-TOO-LONG'
-        );
+        expect(await stateText(catalog)).toContain('THIS-CODE-IS-TOO-LONG');
     });
 });
 
@@ -672,7 +671,7 @@ it('changes textarea rows while retaining the comment and updating the example s
         comments = await findField('comments');
         expect(comments.shadowRoot.querySelector('textarea').rows).toBe(rows);
         expect(comments.shadowRoot.querySelector('textarea').value).toBe(textarea.value);
-        expect(root.querySelector('.code-panel')?.textContent || root.textContent).toContain(
+        expect(root.querySelector('fdl-example')!.shadowRoot!.textContent).toContain(
             `.rowCount(${rows})`
         );
     }
@@ -717,10 +716,8 @@ it('previews every declared input type and keeps the source and record panel in 
         const input = preview.shadowRoot.querySelector('input') as HTMLInputElement;
         expect(input.type).toBe(inputType);
         expect(preview.record.fieldTypeForField('inputValue').type()).toBe(inputType);
-        expect(root.textContent).toContain(`.type('${inputType}')`);
-        expect(await stateText(catalog)).toContain(
-            'Example: ' + inputType
-        );
+        expect(root.querySelector('fdl-example')!.shadowRoot!.textContent).toContain(`.type('${inputType}')`);
+        expect(await stateText(catalog)).toContain('Example: ' + inputType);
         if (inputType === 'checkbox' || inputType === 'radio') {
             input.click();
             await catalog.updateComplete;
@@ -849,11 +846,24 @@ it('documents default factories with only their owning record', async () => {
     expect(section.querySelector('.setting-contract')!.textContent).toContain('(record)');
 });
 
-
 it.each([
-    'required', 'formatter', 'visible', 'defaultValue', 'disabled', 'emptyWhen',
-    'label', 'maxLength', 'minLength', 'multipleValues', 'options', 'parser',
-    'placeholder', 'readOnly', 'rowCount', 'type', 'validator',
+    'required',
+    'formatter',
+    'visible',
+    'defaultValue',
+    'disabled',
+    'emptyWhen',
+    'label',
+    'maxLength',
+    'minLength',
+    'multipleValues',
+    'options',
+    'parser',
+    'placeholder',
+    'readOnly',
+    'rowCount',
+    'type',
+    'validator',
 ])('inspects the live record and relevant fields on the %s page', async name => {
     const page = await openPage(`#${name}`);
     const catalog = page.shadowRoot!.querySelector<FdlModifierCatalog>('fdl-modifier-catalog');
@@ -866,23 +876,36 @@ it.each([
     await Promise.all(fields.map(field => field.updateComplete));
     expect(fields.some(field => inspector.record === field.record)).toBe(true);
     const names = inspector.fields ?? Object.keys(inspector.record!.fieldTypes);
-    expect([...inspector.shadowRoot!.querySelectorAll('tbody tr')].map(row =>
-        row.getAttribute('data-field')
-    )).toEqual(names);
-    expect(names).toEqual(expect.arrayContaining(fields
-        .filter(field => field.record === inspector.record)
-        .map(field => field.field)));
+    expect(
+        [...inspector.shadowRoot!.querySelectorAll('tbody tr')].map(row =>
+            row.getAttribute('data-field')
+        )
+    ).toEqual(names);
+    expect(names).toEqual(
+        expect.arrayContaining(
+            fields.filter(field => field.record === inspector.record).map(field => field.field)
+        )
+    );
     expect(root.querySelector('.model, .focused-state')).toBeNull();
 });
 
-
 it.each([
-    'cellClass', 'columnClass', 'compareFunction', 'filter', 'rowClass',
-    'sortable', 'template', 'textAlign', 'maxColumnWidth', 'minColumnWidth',
+    'cellClass',
+    'columnClass',
+    'compareFunction',
+    'filter',
+    'rowClass',
+    'sortable',
+    'template',
+    'textAlign',
+    'maxColumnWidth',
+    'minColumnWidth',
     'targetColumnWidth',
 ])('inspects the live recordset on the %s modifier page', async name => {
     const page = await openPage(`#${name}`);
-    const catalog = page.shadowRoot!.getElementById(name)!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
+    const catalog = page
+        .shadowRoot!.getElementById(name)!
+        .querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
     const inspector = catalog.shadowRoot!.querySelector('fdl-recordset-inspector')!;
     expect(inspector).toBeTruthy();

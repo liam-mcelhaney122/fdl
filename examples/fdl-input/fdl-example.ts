@@ -1,5 +1,5 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
-import { highlightSourceCode } from './highlight-javascript';
+import { highlightSourceCode, highlightModifier } from './highlight-javascript';
 import { exampleTheme } from './example-theme';
 
 /** A collapsible live example with source tabs and slotted example content. */
@@ -9,8 +9,10 @@ export class FdlExample extends LitElement {
         filenames: { attribute: false },
         sources: { attribute: false },
         activeTab: { state: true },
+        modifier: { type: String },
     };
     heading = 'Example';
+    modifier = '';
     filenames: readonly string[] = [];
     sources: Readonly<Record<string, string>> = {};
     private activeTab = '';
@@ -67,7 +69,7 @@ export class FdlExample extends LitElement {
                     >
                         <pre
                             class="code"
-                        ><code>${highlightSourceCode(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
+                        ><code>${this.modifier && index === 0 ? highlightModifier(this.sources[filename] ?? '', this.modifier) : highlightSourceCode(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
                     </div>`
             )}
         </details>`;
@@ -165,6 +167,17 @@ export class FdlExample extends LitElement {
             font: 0.875rem/1.7 monospace;
             overflow: auto;
             tab-size: 2;
+        }
+        .code-line {
+            display: inline-block;
+            min-width: 100%;
+            width: max-content;
+            border-left: 4px solid transparent;
+            padding: 0 8px;
+        }
+        .focused-line {
+            border-left-color: #60a5fa;
+            background: #1e3a5f;
         }
         .syntax-comment {
             color: #a5b4c8;

@@ -1,3 +1,4 @@
+import './fdl-example';
 import { renderValidatorContract } from './change-rule-page';
 import { field } from '../../index';
 import { modifierPage } from './modifier-page-groups';
@@ -12,7 +13,6 @@ import { categoryIcon, categoryDescriptions } from './category-icon';
 import { LitElement, css, html } from 'lit';
 import { renderSitePage, sitePages, type SitePage } from './fdl-site-pages';
 import { exampleSource, type ExampleSettings } from './modifier-example-source';
-import { highlightJavaScript, highlightModifier } from './highlight-javascript';
 import { inputText, valuePipeline } from './value-pipeline';
 import { exampleTheme } from './example-theme';
 import './fdl-record-inspector';
@@ -437,39 +437,50 @@ export class FdlModifierExplorer extends LitElement {
             ><p class="modifier-title">${recipe.title}</p
             ><p class="description">${recipe.description}</p>
             ${recipe.deprecation ? html`<p class="deprecation-note"><strong>Deprecated.</strong> ${recipe.deprecation} The existing modifier remains available for compatibility.</p>` : ''}
-            <section
-                class="playground"
-                data-modifier=${recipe.name}
-                aria-label="Interactive example"
+            <fdl-example
+                heading="Interactive example"
+                modifier=${recipe.name}
+                .filenames=${[source.modelFile, source.uiFile, ...(source.styles ? ['example.css'] : [])]}
+                .sources=${{
+                    [source.modelFile]: source.definition,
+                    [source.uiFile]: source.ui,
+                    ...(source.styles ? { 'example.css': source.styles } : {}),
+                }}
             >
-                <div class="section-bar"
-                    ><span
-                        ><i></i>
-                        ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span
-                    >${recipe.limitation ? html`` : html`<button class="reset" @click=${() => this.reset(recipe.name)}>Reset example ↺</button>`}</div
+                <section
+                    class="playground"
+                    data-modifier=${recipe.name}
+                    aria-label="Interactive example"
                 >
-                <p class="instruction">${recipe.prompt}</p>
-                <div
-                    class=${!standaloneDemo ? 'demo-grid catalog-demo' : 'demo-grid'}
-                    ><div
-                        class="controls"
-                        role="group"
-                        aria-label="Current modifier effect"
-                        >${keyed(`${recipe.name}-${this.resetVersions[recipe.name] ?? 0}`, this.demo(recipe.name))}</div
-                    >${
-                        standaloneDemo
-                            ? html`<fdl-record-inspector
-                                  .record=${model}
-                              ></fdl-record-inspector>`
-                            : ''
-                    }</div
-                >
-            </section>
+                    <div class="section-bar"
+                        ><span
+                            ><i></i>
+                            ${recipe.limitation ? 'ADAPTER CONTRACT' : ['hashFunction', 'reducer'].includes(recipe.name) ? 'MODEL EXERCISE' : 'LIVE EXAMPLE'}</span
+                        >${recipe.limitation ? html`` : html`<button class="reset" @click=${() => this.reset(recipe.name)}>Reset example ↺</button>`}</div
+                    >
+                    <p class="instruction">${recipe.prompt}</p>
+                    <div
+                        class=${!standaloneDemo ? 'demo-grid catalog-demo' : 'demo-grid'}
+                        ><div
+                            class="controls"
+                            role="group"
+                            aria-label="Current modifier effect"
+                            >${keyed(`${recipe.name}-${this.resetVersions[recipe.name] ?? 0}`, this.demo(recipe.name))}</div
+                        >${
+                            standaloneDemo
+                                ? html`<fdl-record-inspector
+                                      .record=${model}
+                                  ></fdl-record-inspector>`
+                                : ''
+                        }</div
+                    >
+                </section>
+            </fdl-example>
             <div class="details">
                 <p class="source-intro"
-                    >Starting values are shown below. These two files require
-                    the repository’s example adapters and their dependencies.
-                    Read
+                    >The file tabs show starting values. The model and view
+                    require the repository’s example adapters and their
+                    dependencies. Read
                     <a href="#quickstart">setup and adapter prerequisites</a>
                     before copying them. Save the model and view in the same
                     folder within that environment. The model file exports the
@@ -478,52 +489,6 @@ export class FdlModifierExplorer extends LitElement {
                     and rule selectors are omitted.</p
                 >
                 ${/\.rowCount\(/.test(source.definition) ? html`<p class="compatibility-note"><strong>Example adapter compatibility:</strong> <code>rowCount()</code> sizes this textarea. It is a deprecated compatibility API. Keep control selection and sizing in your adapter for new integrations; the reusable rules remain in the field model. <a href="#integration">Read the adapter boundary.</a></p>` : ''}
-                <section class="code-section"
-                    ><div class="detail-heading"
-                        ><h3
-                            >Define the
-                            ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3
-                        ><span><code>${source.modelFile}</code></span></div
-                    >><pre
-                        class="code"
-                    ><code>${highlightModifier(source.definition, recipe.name)}</code></pre>
-                </section>
-                <section class="markup-section"
-                    ><div class="detail-heading"
-                        ><h3>Render with Lit</h3
-                        ><span><code>${source.uiFile}</code></span></div
-                    >
-                    <p class="markup-note"
-                        >This file imports <code>${source.modelName}</code> from
-                        <code>./${source.modelFile}</code
-                        >.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p
-                    >><pre
-                        class="code markup"
-                    ><code>${highlightJavaScript(source.ui)}</code></pre>
-                </section>
-                ${
-                    source.styles
-                        ? html`<section class="css-section"
-                              ><div class="detail-heading"
-                                  ><h3>Style the example</h3
-                                  ><span
-                                      >CSS · ${source.stylesComponent}</span
-                                  ></div
-                              >
-                              <p class="markup-note"
-                                  >These rules live in
-                                  <code>${source.stylesComponent}</code>’s
-                                  shadow-root stylesheet (<code
-                                      >static styles</code
-                                  >).
-                                  ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p
-                              >
-                              <pre
-                                  class="code example-css"
-                              ><code>${source.styles}</code></pre>
-                          </section>`
-                        : ''
-                }
                 ${recipe.name === 'validator' ? renderValidatorContract() : ''}<section
                     class="explanation"
                     ><h3>What happens</h3

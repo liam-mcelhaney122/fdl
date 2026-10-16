@@ -1,3 +1,5 @@
+import './fdl-example';
+import viewSource from './change-rule-page.ts?raw';
 import { LitElement, html } from 'lit';
 import { createAccount } from './conditional-validation-model';
 import { highlightJavaScript } from './highlight-javascript';
@@ -101,10 +103,12 @@ export function renderValidatorContract() {
             <code>examples/fdl-input/conditional-validation-model.ts</code>.
             This consumer-facing version imports FDL by its package name.</p
         >
-        <pre
-            class="code"
-        ><code>${highlightJavaScript(conditionalRuleSource)}</code></pre>
-        <fdl-conditional-validation></fdl-conditional-validation>
+        <fdl-example
+            heading="Conditional validation"
+            .filenames=${['conditional-validation-model.ts', 'change-rule-page.ts']}
+            .sources=${{ 'conditional-validation-model.ts': conditionalRuleSource, 'change-rule-page.ts': viewSource }}
+            ><fdl-conditional-validation></fdl-conditional-validation
+        ></fdl-example>
         <p
             ><a href="#change-a-rule"
                 >Trace this change through the model, consumers, and behavior

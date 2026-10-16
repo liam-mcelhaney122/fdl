@@ -23,6 +23,11 @@ npm run docs:build
 The production output is `examples/fdl-input/dist/`, with a single `index.html`
 entry point. Building and previewing do not deploy the site.
 
+Every interactive example uses `<fdl-example>` for its collapsible frame and
+source-file tabs. Slot the working demo inside it and pass `filenames` and
+`sources` for the model, view, and optional CSS. Modifier examples also set
+`modifier` to highlight the relevant calls in the model tab.
+
 Every editable field example uses `<fdl-field>` bound to an FDL record. The
 field metadata selects a native input, select, or textarea. Table separators
 support keyboard resizing: Left/Right for one pixel, Shift for ten pixels,
@@ -51,10 +56,10 @@ Repository API references and architecture decision records remain in `docs/`.
 - Modifier pages summarize model state first. Expand **Inspect full JSON** to
   see the complete values. Dependency traces read FDL's public state methods.
 - Requiredness, minimum length, and filter matching have adjustable rules. The
-  complete definition updates below the example; reset restores its default.
+  model tab updates with the complete definition; reset restores its default.
 - Validator, filter, and comparator examples compare several cases at once.
   Parser and formatter pages trace original input through stored and display values.
-- Every modifier page shows two connected code examples below its demo: the
+- Every modifier example has connected model and view source tabs: the
   complete record or recordset definition, followed by the Lit UI using that
   same model. Save the labeled files in the same folder: the model file exports
   its record and any shared helpers; the Lit file imports them explicitly.
@@ -62,7 +67,7 @@ Repository API references and architecture decision records remain in `docs/`.
   Teaching panels and rule selectors are omitted from the snippets. Unsupported
   adapter interactions remain explicit.
 - Class-based styling examples (`cellClass` and
-  `rowClass`) also show their CSS after the Lit UI. These rules are shared
+  `rowClass`) also provide a CSS tab. These rules are shared
   with the live table and belong in its shadow-root stylesheet, not the page
   stylesheet.
 

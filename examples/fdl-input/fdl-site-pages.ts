@@ -1,3 +1,8 @@
+import './fdl-example';
+import compositionSource from './fdl-composition-experiment.ts?raw';
+import compositionModelSource from './composition-model.ts?raw';
+import specializationSource from './fdl-specialization-experiment.ts?raw';
+import learningSource from './fdl-learning-path.ts?raw';
 import { renderChangeRule } from './change-rule-page';
 import { renderEditableRecordset } from './editable-recordset-page';
 import { renderIntegration } from './integration-page';
@@ -52,7 +57,12 @@ export function renderSitePage(
     if (page === 'composition')
         return html`<article class="site-page"
             ><h1 tabindex="-1">Combine the rules</h1
-            >${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</article
+            ><fdl-example
+                heading="Combine the rules"
+                .filenames=${['composition-model.ts', 'fdl-composition-experiment.ts']}
+                .sources=${{ 'composition-model.ts': compositionModelSource, 'fdl-composition-experiment.ts': compositionSource }}
+                >${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</fdl-example
+            ></article
         >`;
     if (page === 'learn')
         return html`<article class="site-page"
@@ -61,7 +71,13 @@ export function renderSitePage(
                 >Build one delivery example from a field into a collection.
                 Follow the questions in order or jump to the one you want to
                 investigate.</p
-            ><fdl-learning-path .session=${learningState}></fdl-learning-path
+            ><fdl-example
+                heading="Learn by exploring"
+                .filenames=${['fdl-learning-path.ts']}
+                .sources=${{ 'fdl-learning-path.ts': learningSource }}
+                ><fdl-learning-path
+                    .session=${learningState}
+                ></fdl-learning-path></fdl-example
         ></article>`;
     if (page === 'home')
         return html` <article class="site-page">
@@ -214,7 +230,12 @@ export function renderSitePage(
             ><code>${highlightJavaScript(`const name = field.label('Name');
 const requiredName = name.required();
 // name is unchanged; requiredName adds the required rule.`)}</code></pre>
-            <fdl-specialization-experiment></fdl-specialization-experiment>
+            <fdl-example
+                heading="One base, independent specializations"
+                .filenames=${['fdl-specialization-experiment.ts']}
+                .sources=${{ 'fdl-specialization-experiment.ts': specializationSource }}
+                ><fdl-specialization-experiment></fdl-specialization-experiment
+            ></fdl-example>
             <h2>2. Create a record</h2>
             <p
                 >A record connects field definitions to actual values and

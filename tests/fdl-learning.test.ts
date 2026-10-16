@@ -356,7 +356,7 @@ it('removes requiredness from both model validation and the displayed definition
     root.querySelector<HTMLInputElement>('.rule-control input')!.click();
     await page.updateComplete;
     expect(root.querySelector('.result')!.textContent).toContain('record is valid');
-    expect(root.querySelector('.code')!.textContent).toContain('required rule is removed');
+    expect(root.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain('required rule is removed');
 });
 it('changes the minimum-length definition while retaining the value', async () => {
     const page = await openExplorer('#minLength');
@@ -374,12 +374,12 @@ it('changes the minimum-length definition while retaining the value', async () =
     const inspector = catalog.shadowRoot!.querySelector('fdl-record-inspector')!;
     await inspector.updateComplete;
     expect(inspector.shadowRoot!.querySelector('[data-field="longCode"]')!.textContent).toContain('ABC');
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
+    expect(page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
     page.shadowRoot!.querySelector<HTMLAnchorElement>(
         '.modifier-list a[href="#minLength"]'
     )!.click();
     await page.updateComplete;
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
+    expect(page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain('.minLength(2)');
 });
 
 it('shows semantic state with the shared inspector icons', async () => {
@@ -463,7 +463,7 @@ it('compares prefix and substring matching and updates the executable rule', asy
     await editField(catalog.shadowRoot!, 'matchRule', 'contains');
     await catalog.updateComplete;
     await page.updateComplete;
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.includes(');
+    expect(page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain('.includes(');
     const table = catalog.shadowRoot!.querySelector('fdl-table') as any;
     expect(table.recordset.getFieldType('name').match('ar', 'Margaret')).toBe(true);
 });
@@ -665,7 +665,7 @@ it('highlights fixed weekday expenses above the adjustable threshold and formats
         '$125.25',
     ]);
     expect(
-        page.shadowRoot!.getElementById('cellClass')!.querySelector('.code')!.textContent
+        page.shadowRoot!.getElementById('cellClass')!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent
     ).toContain('value > 125.25');
 });
 
@@ -684,7 +684,7 @@ it('sorts the live T-shirt size column in size order and highlights all comparat
             row.querySelectorAll('td')[2].textContent.trim()
         )
     ).toEqual(['XS', 'S', 'M', 'L', 'XL', 'XXL']);
-    const focused = page.shadowRoot!.querySelectorAll('.code .focused-line');
+    const focused = page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelectorAll('.code .focused-line');
     expect(
         [...focused].filter(line => line.textContent!.includes('.compareFunction('))
     ).toHaveLength(3);
@@ -719,8 +719,8 @@ it('keeps a shared selection in both function and async-function options after t
             expect(field.record.getField(field.field)).toBe('margaret');
         }
     }
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain(
+    expect(page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain(
         '.options(async record =>'
     );
-    expect(page.shadowRoot!.querySelector('.code')!.textContent).toContain('.options(record =>');
+    expect(page.shadowRoot!.querySelector('fdl-example')!.shadowRoot!.querySelector('.code')!.textContent).toContain('.options(record =>');
 });

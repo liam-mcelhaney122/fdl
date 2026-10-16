@@ -1,3 +1,6 @@
+import './fdl-example';
+import modelSource from './editable-recordset-model.ts?raw';
+import viewSource from './fdl-editable-recordset.ts?raw';
 import { html } from 'lit';
 import { highlightJavaScript } from './highlight-javascript';
 import './fdl-editable-recordset';
@@ -8,7 +11,12 @@ export function renderEditableRecordset() {
             >Keep actual row Records shared between a table and a detail editor
             while changing the view.</p
         >
-        <fdl-editable-recordset></fdl-editable-recordset>
+        <fdl-example
+            heading="Edit a recordset"
+            .filenames=${['editable-recordset-model.ts', 'fdl-editable-recordset.ts']}
+            .sources=${{ 'editable-recordset-model.ts': modelSource, 'fdl-editable-recordset.ts': viewSource }}
+            ><fdl-editable-recordset></fdl-editable-recordset
+        ></fdl-example>
         <h2>Load once, edit the loaded Records</h2>
         <pre
             class="code"
