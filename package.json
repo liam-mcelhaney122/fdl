@@ -34,8 +34,18 @@
         "esbuild": "^0.21.5",
         "jest": "^27.2.1",
         "prettier": "^3.9.10",
+        "prettier-plugin-svelte": "^4.1.1",
         "regenerator-runtime": "^0.13.9",
+        "svelte": "^5.57.2",
         "vite": "^5.4.19"
+    },
+    "peerDependencies": {
+        "svelte": "^5.20.0"
+    },
+    "peerDependenciesMeta": {
+        "svelte": {
+            "optional": true
+        }
     },
     "overrides": {
         "errorstacks": "2.4.1"
