@@ -4,37 +4,11 @@ import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
-
-const deliveryMethodOptions = [
-    { text: 'Ship to address', value: 'ship' },
-    { text: 'Pick up from store', value: 'pickup' },
-];
+import { deliveryMethodOptions, shippingStateOptions, storesByZip } from './delivery-data';
 
 function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
 }
-
-const stateOptions = [
-    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
-    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
-    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
-    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
-    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
-    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
-    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
-    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
-    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
-    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
-    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
-    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
-    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
-].map(([value, text]) => ({ text, value }));
-
-// Sample data only: this example does not call a store-location service.
-const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
-    '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
-    '10001': [{ text: 'Chelsea store', value: 'chelsea' }, { text: 'Midtown store', value: 'midtown' }],
-};
 
 function whenPickingUp(record: Record<any>) {
     return record.getField('fulfillment') === 'pickup';
@@ -58,7 +32,6 @@ async function loadStoresForZip(record: Record<any>) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -84,37 +57,11 @@ function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<a
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
-
-const deliveryMethodOptions = [
-    { text: 'Ship to address', value: 'ship' },
-    { text: 'Pick up from store', value: 'pickup' },
-];
+import { deliveryMethodOptions, shippingStateOptions, storesByZip } from './delivery-data';
 
 function whenDeliveryMethodRequiresAddress(record) {
   return record.getField('fulfillment') === 'ship';
 }
-
-const stateOptions = [
-    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
-    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
-    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
-    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
-    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
-    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
-    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
-    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
-    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
-    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
-    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
-    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
-    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
-].map(([value, text]) => ({ text, value }));
-
-// Sample data only: this example does not call a store-location service.
-const storesByZip = {
-    '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
-    '10001': [{ text: 'Chelsea store', value: 'chelsea' }, { text: 'Midtown store', value: 'midtown' }],
-};
 
 function whenPickingUp(record) {
     return record.getField('fulfillment') === 'pickup';
@@ -138,7 +85,6 @@ async function loadStoresForZip(record) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -210,6 +156,34 @@ export class DeliveryForm extends LitElement {
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
+    private readonly dataCode = `export const deliveryMethodOptions = [
+    { text: 'Ship to address', value: 'ship' },
+    { text: 'Pick up from store', value: 'pickup' },
+];
+
+const stateOptions = [
+    ['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'],
+    ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'],
+    ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'],
+    ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'],
+    ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'],
+    ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'],
+    ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'],
+    ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'],
+    ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'],
+    ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'],
+    ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'],
+    ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'],
+    ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming'],
+].map(([value, text]) => ({ text, value }));
+
+// Sample data only: this example does not call a store-location service.
+export const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
+    '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
+    '10001': [{ text: 'Chelsea store', value: 'chelsea' }, { text: 'Midtown store', value: 'midtown' }],
+};
+
+export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];`;
     private deliveryMethod = field.label('Delivery method').options(deliveryMethodOptions);
     private shippingAddress = field.label('Shipping address')
         .visible(whenDeliveryMethodRequiresAddress)
@@ -285,6 +259,8 @@ customElements.define('delivery-form', DeliveryForm);`;
                 <pre class="code"><code>${highlightJavaScript(this.code)}</code></pre>
                 <h3><code>delivery-form.ts</code></h3>
                 <pre class="code"><code>${highlightJavaScript(this.litCode)}</code></pre>
+                <h3><code>delivery-data.ts</code></h3>
+                <pre class="code"><code>${highlightJavaScript(this.dataCode)}</code></pre>
             </div>
         </section>`;
     }

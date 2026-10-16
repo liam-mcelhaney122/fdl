@@ -187,6 +187,15 @@ it('reveals the FDL delivery model behind the interactive example', async () => 
     await demo.updateComplete;
     expect(codeTab.getAttribute('aria-selected')).toBe('true');
     const codePanel = demo.shadowRoot!.querySelector('#delivery-code-panel')!;
+    expect([...codePanel.querySelectorAll('h3')].map(heading => heading.textContent)).toEqual([
+        'delivery-model.ts', 'delivery-form.ts', 'delivery-data.ts',
+    ]);
+    const snippets = codePanel.querySelectorAll('pre');
+    expect(snippets[0].textContent).toContain("from './delivery-data'");
+    expect(snippets[0].textContent).not.toContain('const stateOptions =');
+    expect(snippets[2].textContent).toContain('export const deliveryMethodOptions =');
+    expect(snippets[2].textContent).toContain('export const shippingStateOptions =');
+    expect(snippets[2].textContent).toContain('export const storesByZip');
     expect(codePanel.textContent).not.toContain('// delivery-model.ts');
     expect(codePanel.textContent).toContain('export const delivery = new Record');
     expect(codePanel.textContent).not.toContain('// delivery-form.ts');
