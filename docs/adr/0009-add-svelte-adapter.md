@@ -1,4 +1,4 @@
-# ADR-0008: Add a Svelte adapter outside the core runtime
+# ADR-0009: Add a Svelte adapter outside the core runtime
 
 - Status: Accepted
 - Date: 2026-10-16

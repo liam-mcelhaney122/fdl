@@ -4,7 +4,7 @@ The Svelte adapter renders and edits FDL fields in Svelte 5 applications. It
 honors the same [form adapter contract](./adapter-contract.md) as the Lit
 `FormElement`: FDL owns field behavior, the adapter owns accessible control
 semantics, and the application owns workflow and visual presentation. The
-decision is recorded in [ADR-0008](./adr/0008-add-svelte-adapter.md).
+decision is recorded in [ADR-0009](./adr/0009-add-svelte-adapter.md).
 
 The adapter lives in `adapters/svelte/`. Svelte is an optional peer dependency
 (`svelte@^5.20.0`); the core package never imports it. Install Svelte in the
@@ -47,6 +47,7 @@ fields render a labeled `<output>` unless `usesCustomPrint()` is set.
 </script>
 
 <form
+    novalidate
     onsubmit={event => {
         event.preventDefault();
         submitted = true;
@@ -62,6 +63,13 @@ fields render a labeled `<output>` unless `usesCustomPrint()` is set.
     <button>Save</button>
 </form>
 ```
+
+The adapter renders native controls in the page's DOM, so they take part in
+the surrounding `<form>`. Add `novalidate` when the application owns
+validation display: otherwise a native `required` control blocks the `submit`
+event before the application can turn on `showValidationErrors`, and the
+browser's own message replaces FDL's. `Record.isValid()` remains the source of
+truth for whether to save.
 
 | Prop                   | Required | Purpose                                                                                               |
 | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
@@ -116,11 +124,14 @@ leaves.
 <script>
     import { recordStore } from '@pmcelhaney/fdl/adapters/svelte';
     let { record } = $props();
-    const values = recordStore(record);
+    const values = $derived(recordStore(record));
 </script>
 
 <p>Total: {$values.getFormattedField('total', 'model')}</p>
 ```
+
+Create stores with `$derived(...)` when their Record comes from a prop, so a
+new Record replaces the store and the old store's listeners are removed.
 
 A field store snapshot includes the chosen `control`, `label`, `required`,
 `visible`, `readonly`, `disabled`, `placeholder`, `formattedValue`,
@@ -138,7 +149,7 @@ without moving its semantics into `FieldType`:
     import { fieldStore } from '@pmcelhaney/fdl/adapters/svelte';
     import { Slider } from './design-system';
     let { record } = $props();
-    const volume = fieldStore(record, 'volume');
+    const volume = $derived(fieldStore(record, 'volume'));
 </script>
 
 <Slider
@@ -161,7 +172,7 @@ ARIA.
 <script>
     import { fieldControl, fieldStore } from '@pmcelhaney/fdl/adapters/svelte';
     let { record } = $props();
-    const amount = fieldStore(record, 'amount');
+    const amount = $derived(fieldStore(record, 'amount'));
 </script>
 
 <label for="amount">{$amount.label}</label>
@@ -170,8 +181,9 @@ ARIA.
 
 `readFieldState(record, field, options)`, `controlFor(fieldType, readonly)`,
 `acceptedInput(fieldType, text)`, and `visibleFieldErrors(record, field,
-options)` are the framework-independent helpers behind the stores. They are
-exported for adapters and tests.
+options)` are the framework-independent helpers behind the stores, and
+`controlValue(control)` reads the view value of a native control as the action
+does. They are exported for adapters and tests.
 
 ## Current limits
 
@@ -186,8 +198,14 @@ exported for adapters and tests.
 - Validation display uses synchronous `Record.readableFieldErrors()`, like the
   Lit adapter. Asynchronous validation must be awaited and rendered by the
   application.
-- `additionalProperties()` and other legacy custom-element properties are not
-  forwarded; they are deprecated renderer-specific modifiers
+- Server rendering produces the label, attributes, and validation markup, but
+  editable controls receive their values and select options from the action
+  after hydration. Subscribing to a field store during server rendering starts
+  its option lookup, as on the client; the result is discarded when rendering
+  ends.
+- `accept()`, `autofocus()`, `additionalProperties()`, and other legacy
+  custom-element properties are not forwarded; they are deprecated
+  renderer-specific modifiers
   ([ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md)).
 - The documentation site does not include a live Svelte example; it remains a
   Lit application.

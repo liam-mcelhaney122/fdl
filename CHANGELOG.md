@@ -16,7 +16,7 @@ All notable changes to FDL will be documented in this file. The format follows
 - An optional [Svelte 5 adapter](./docs/svelte-adapter.md) with one `FdlField`
   component, `recordStore`, `recordsetStore`, and `fieldStore` stores, and a
   `fieldControl` action. Svelte is an optional peer dependency; see
-  [ADR-0008](./docs/adr/0008-add-svelte-adapter.md).
+  [ADR-0009](./docs/adr/0009-add-svelte-adapter.md).
 
 ### Changed
 
