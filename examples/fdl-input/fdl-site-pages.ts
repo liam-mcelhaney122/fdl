@@ -150,6 +150,10 @@ export function renderSitePage(
                         every record. For example, a name may be required and
                         displayed as text.</p
                     >
+                    <pre><code>${highlightJavaScript(`const fields = {
+    name: field.label('Name').required(),
+    city: field.label('City'),
+};`)}</code></pre>
                 </section>
                 <section class="model-concept" aria-labelledby="model-record">
                     <h3 id="model-record">Record</h3>
@@ -164,6 +168,10 @@ export function renderSitePage(
                         >One record binds <strong>Name</strong> to “Ada” and
                         <strong>City</strong> to “London”.</p
                     >
+                    <pre><code>${highlightJavaScript(`const person = new Record(fields, {
+    name: 'Ada',
+    city: 'London',
+});`)}</code></pre>
                 </section>
                 <section
                     class="model-concept"
@@ -183,6 +191,10 @@ export function renderSitePage(
                         <strong>Name</strong> and
                         <strong>City</strong> fields.</p
                     >
+                    <pre><code>${highlightJavaScript(`const people = new Recordset(fields, [
+    { name: 'Ada', city: 'London' },
+    { name: 'Grace', city: 'New York' },
+]);`)}</code></pre>
                 </section>
             </div>
             <h2>From model to interface</h2>
