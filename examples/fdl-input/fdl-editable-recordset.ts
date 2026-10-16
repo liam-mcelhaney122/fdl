@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
+import { keyed } from 'lit/directives/keyed.js';
 import { createShipments, applyShipmentView, shipmentCharge, shipmentTotals } from './editable-recordset-model';
 import type Record from '../../record';
 import './fdl-field';
@@ -44,7 +45,7 @@ export class FdlEditableRecordset extends LitElement {
           </tbody></table></div>
           <p role="status">All records: ${all.quantity} units / $${all.charge.toFixed(2)}. Visible records: ${visible.quantity} units / $${visible.charge.toFixed(2)}.</p>
           <h2>Selected shipment: ${this.selected?.getField('id')}</h2>
-          ${this.selected ? html`<fdl-field .record=${this.selected} field="quantity" .showValidationErrors=${true}></fdl-field><fdl-field .record=${this.selected} field="reason" .showValidationErrors=${true}></fdl-field>` : ''}
+          ${this.selected ? keyed(this.selected, html`<fdl-field .record=${this.selected} field="quantity" .showValidationErrors=${true}></fdl-field><fdl-field .record=${this.selected} field="reason" .showValidationErrors=${true}></fdl-field>`) : ''}
           <details><summary>All records, including filtered-out edits</summary><pre>${JSON.stringify(this.shipments.allRecords.map(row => row.values), null, 2)}</pre></details>`;
     }
     static styles = css`:host{display:block} .table-scroll{overflow:auto} table{border-collapse:collapse;width:100%}caption{text-align:left;padding:12px 0}th,td{padding:12px;border:1px solid #cbd5e1;vertical-align:top;text-align:left}.numeric{text-align:right;font-variant-numeric:tabular-nums}fdl-field{min-width:140px;--field-control-width:100%;--field-label-width:auto} .view-controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center}button,select{font:inherit;padding:8px}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #2563eb;outline-offset:3px}p{line-height:1.65}pre{white-space:pre-wrap}`;
