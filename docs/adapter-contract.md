@@ -23,6 +23,13 @@ must not move that policy into `FieldType`. `FormElement.showValidationErrors`
 is one such setting: FDL supplies errors, the application decides when they are
 shown, and the adapter creates the accessible relationship.
 
+## Implementations
+
+- [`FormElement`](./form-element.md) is the built-in Lit adapter described below.
+- The [Angular adapter](./angular-adapter.md) provides a standalone `<fdl-field>`
+  component and signal helpers that follow this contract, with the differences
+  listed in its current limits.
+
 ## Native `FormElement` behavior
 
 For the built-in Lit adapter, `field` and `record` identify the model field.

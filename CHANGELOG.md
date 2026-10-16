@@ -13,6 +13,10 @@ All notable changes to FDL will be documented in this file. The format follows
 - Continuous integration for tests, static type checking, and the documentation-site
   production build.
 - A documented release and compatibility checklist.
+- An [Angular adapter](./docs/angular-adapter.md) in `adapters/angular/`: a standalone
+  `<fdl-field>` component, `recordSignal`/`fieldValue`/`fieldState`/`recordsetSignal`
+  helpers, and a framework-independent field-state module. Angular 21 is an optional
+  peer dependency; see [ADR-0008](./docs/adr/0008-add-an-angular-adapter.md).
 
 ### Changed
 
