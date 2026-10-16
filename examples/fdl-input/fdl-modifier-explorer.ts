@@ -1483,6 +1483,19 @@ export class FdlModifierExplorer extends LitElement {
         .model-concept p {
             margin: 12px 0;
         }
+        .model-concept pre {
+            margin: 16px 0 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #000;
+            color: #e2e8f0;
+            font: 0.8125rem/1.6 monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .model-concept pre code {
+            font: inherit;
+        }
         .model-concept .model-analogy {
             font-weight: 600;
             color: var(--accent);
