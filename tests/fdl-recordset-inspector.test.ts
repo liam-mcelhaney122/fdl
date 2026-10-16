@@ -40,15 +40,15 @@ it('shows raw values, row validity and counts, with selectable field order', asy
     expect(root.querySelector('[data-field="enabled"]')!.textContent!.trim()).toBe('false');
     expect(root.querySelector('[data-field="missing"]')!.textContent!.trim()).toBe('(undefined)');
     expect(
-        root.querySelector('tbody tr:last-child td:last-child [aria-label="Invalid"]')
+        root.querySelector('tbody tr:last-child .row-status [aria-label="Invalid"]')
     ).toBeTruthy();
     inspector.fields = ['amount', 'name'];
     await inspector.updateComplete;
     expect([...root.querySelectorAll('thead th')].map(cell => cell.textContent)).toEqual([
+        'Status',
         'Row',
         'amount',
         'name',
-        'Validation',
     ]);
 });
 
@@ -171,7 +171,7 @@ it('uses the record inspector icons and legend for field and row states', async 
             icon.getAttribute('aria-label')
         )
     ).toEqual(['Hidden', 'Disabled', 'Read-only', 'Required', 'Invalid']);
-    expect(root.querySelector('tbody td:last-child [aria-label="Invalid"]')).toBeTruthy();
+    expect(root.querySelector('tbody .row-status [aria-label="Invalid"]')).toBeTruthy();
     expect(
         [...root.querySelectorAll('.legend [role="img"]')].map(icon =>
             icon.getAttribute('aria-label')
@@ -180,7 +180,7 @@ it('uses the record inspector icons and legend for field and row states', async 
     recordset.allRecords[0].setField('name', 'Ada');
     await inspector.updateComplete;
     expect(root.querySelector('[data-field="name"] [aria-label="Invalid"]')).toBeNull();
-    expect(root.querySelector('tbody td:last-child [aria-label="Invalid"]')).toBeNull();
+    expect(root.querySelector('tbody .row-status [aria-label="Invalid"]')).toBeNull();
 });
 
 it('observes inserted rows and releases removed rows', async () => {
@@ -199,4 +199,20 @@ it('observes inserted rows and releases removed rows', async () => {
     expect(inspector.shadowRoot!.querySelector('tbody')!.textContent).not.toContain(
         'Edited insertion'
     );
+});
+
+it('shows only applicable icons on the left without a validation column or valid labels', async () => {
+    const inspector = await inspect(data());
+    const root = inspector.shadowRoot!;
+    const headers = [...root.querySelectorAll('thead th')].map(cell => cell.textContent);
+    expect(headers[0]).toBe('Status');
+    expect(headers).not.toContain('Validation');
+    expect(root.querySelector('[aria-label="Valid"]')).toBeNull();
+    expect(root.querySelector('tbody tr:first-child .row-status')!.textContent!.trim()).toBe('');
+    expect(
+        root.querySelector('tbody tr:last-child td:first-child [aria-label="Invalid"]')
+    ).toBeTruthy();
+    const name = root.querySelector('[data-field="name"] .stored-cell')!;
+    expect(name.firstElementChild!.classList.contains('field-status')).toBe(true);
+    expect(name.lastElementChild!.textContent).toBe('Zulu');
 });

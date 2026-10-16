@@ -150,22 +150,35 @@ export class FdlRecordsetInspector extends LitElement {
                                   <table aria-label="Current page records">
                                       <thead
                                           ><tr>
+                                              <th scope="col" class="row-status"
+                                                  >Status</th
+                                              >
                                               <th scope="col">Row</th>
                                               ${fields.map(name => html`<th scope="col">${name}</th>`)}
-                                              <th scope="col">Validation</th>
                                           </tr></thead
                                       >
                                       <tbody
                                           >${recordset.currentPage.map(
                                               (record, index) =>
                                                   html` <tr>
+                                                      <td class="row-status"
+                                                          >${!record.isValid() ? statusIcon('Invalid') : ''}</td
+                                                      >
                                                       <th scope="row"
                                                           >${recordset.firstRecordNumberOnPage + index}</th
                                                       >
-                                                      ${fields.map(name => html`<td data-field=${name}>${storedValue(record.getField(name))}${fieldStatus(record, name)}</td>`)}
-                                                      <td
-                                                          >${record.isValid() ? html`<span aria-label="Valid">Valid</span>` : statusIcon('Invalid')}</td
-                                                      >
+                                                      ${fields.map(
+                                                          name =>
+                                                              html`<td
+                                                                  data-field=${name}
+                                                                  ><span
+                                                                      class="stored-cell"
+                                                                      >${fieldStatus(record, name)}<span
+                                                                          >${storedValue(record.getField(name))}</span
+                                                                      ></span
+                                                                  ></td
+                                                              >`
+                                                      )}
                                                   </tr>`
                                           )}
                                       </tbody>
@@ -175,7 +188,8 @@ export class FdlRecordsetInspector extends LitElement {
                               ${statusLegend()}
                               <p class="note"
                                   >Values are stored values before formatting.
-                                  Validation covers each complete record.</p
+                                  Icons on the left indicate applicable states;
+                                  the row status covers the complete record.</p
                               >
                               <details
                                   ><summary>Inspect full JSON</summary
@@ -237,6 +251,18 @@ ${JSON.stringify(
             }
             td {
                 font-family: monospace;
+            }
+            .row-status {
+                min-width: 32px;
+                width: 32px;
+            }
+            .stored-cell {
+                display: flex;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .field-status:not(:has(.status-icon)) {
+                display: none;
             }
             summary {
                 cursor: pointer;
