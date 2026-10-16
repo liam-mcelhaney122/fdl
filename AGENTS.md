@@ -29,6 +29,9 @@ rendering. The npm package is `@pmcelhaney/fdl`.
 - Add or update focused Jest coverage for behavior changes.
 - Prefer function declarations over function expressions and arrow functions
   for named functions.
+- `.agents/skills/fdl/SKILL.md` (linked from `.claude/skills/fdl`) teaches
+  agents how to use FDL. Update it with public API changes;
+  `tests/fdl-skill.test.ts` keeps its claims executable.
 
 ## Documentation site
 
