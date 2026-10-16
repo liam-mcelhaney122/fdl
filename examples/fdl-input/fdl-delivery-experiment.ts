@@ -3,11 +3,12 @@ import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import './fdl-field';
-import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
+import { highlightJavaScript } from './highlight-javascript';
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
-    private readonly code = `import { field, Record } from 'digital-fdl';
+    private readonly code = `// delivery-model.ts
+import { field, Record } from 'digital-fdl';
 
 const deliveryMethod = field.label('Delivery method')
     .tag('select')
@@ -19,12 +20,25 @@ const shippingAddress = field.label('Shipping address')
     .visibleWhen(record => record.getField('fulfillment') === 'ship')
     .required(record => record.getField('fulfillment') === 'ship');
 
-const delivery = new Record({
+export const delivery = new Record({
   fulfillment: deliveryMethod,
   address: shippingAddress,
 }, { fulfillment: 'ship', address: '42 Orchard Street' });`;
-    private readonly litCode = `<fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
-<fdl-field .record=\${delivery} field="address"></fdl-field>`;
+    private readonly litCode = `// delivery-form.ts
+import { LitElement, html } from 'lit';
+import { delivery } from './delivery-model';
+import './fdl-field';
+
+export class DeliveryForm extends LitElement {
+    render() {
+        return html\`
+            <fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
+            <fdl-field .record=\${delivery} field="address"></fdl-field>
+        \`;
+    }
+}
+
+customElements.define('delivery-form', DeliveryForm);`;
     private deliveryMethod = field.label('Delivery method').tag('select').options([
         { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
     ]);
@@ -62,10 +76,10 @@ const delivery = new Record({
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
                 <p class="code-intro">The interactive example is driven by this FDL model and Lit view:</p>
-                <h3>FDL model</h3>
+                <h3><code>delivery-model.ts</code></h3>
                 <pre class="code"><code>${highlightJavaScript(this.code)}</code></pre>
-                <h3>Lit template</h3>
-                <pre class="code"><code>${highlightMarkup(this.litCode)}</code></pre>
+                <h3><code>delivery-form.ts</code></h3>
+                <pre class="code"><code>${highlightJavaScript(this.litCode)}</code></pre>
             </div>
         </section>`;
     }
