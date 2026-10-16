@@ -330,7 +330,7 @@ export class FdlRecordInspector extends LitElement {
             min-width: 480px;
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: auto;
             font-size: 0.875rem;
             line-height: 1.5;
         }
@@ -348,7 +348,8 @@ export class FdlRecordInspector extends LitElement {
             font-weight: 600;
         }
         .status-column {
-            width: 52px;
+            width: 1%;
+            white-space: nowrap;
         }
         .field-name,
         .stored-value {
@@ -359,8 +360,10 @@ export class FdlRecordInspector extends LitElement {
             background: #fafafa;
         }
         .field-status {
-            display: flex;
+            display: inline-flex;
+            flex-wrap: nowrap;
             gap: 6px;
+            width: max-content;
         }
         .status-icon {
             display: inline-flex;
@@ -409,9 +412,6 @@ export class FdlRecordInspector extends LitElement {
             border-top: 1px solid var(--example-border);
             font-size: 0.875rem;
             margin-bottom: 0;
-        }
-        .field-status {
-            flex-wrap: wrap;
         }
         @media (max-width: 480px) {
             header {
