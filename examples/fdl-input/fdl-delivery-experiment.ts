@@ -9,6 +9,28 @@ function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
 }
 
+// Sample data only: this example does not call a store-location service.
+const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
+    '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
+    '10001': [{ text: 'Chelsea store', value: 'chelsea' }, { text: 'Midtown store', value: 'midtown' }],
+};
+
+function whenPickingUp(record: Record<any>) {
+    return record.getField('fulfillment') === 'pickup';
+}
+
+function hasValidZip(record: Record<any>) {
+    return /^[0-9]{5}$/.test(record.getField('zip') || '');
+}
+
+function whenReadyToChooseStore(record: Record<any>) {
+    return whenPickingUp(record) && hasValidZip(record);
+}
+
+function storesForZip(record: Record<any>) {
+    return storesByZip[record.getField('zip')] || [];
+}
+
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
@@ -17,19 +39,59 @@ function whenDeliveryMethodRequiresAddress(record) {
   return record.getField('fulfillment') === 'ship';
 }
 
+// Sample data only: this example does not call a store-location service.
+const storesByZip = {
+    '28202': [{ text: 'Uptown store', value: 'uptown' }, { text: 'South End store', value: 'south-end' }],
+    '10001': [{ text: 'Chelsea store', value: 'chelsea' }, { text: 'Midtown store', value: 'midtown' }],
+};
+
+function whenPickingUp(record) {
+    return record.getField('fulfillment') === 'pickup';
+}
+
+function hasValidZip(record) {
+    return /^[0-9]{5}$/.test(record.getField('zip') || '');
+}
+
+function whenReadyToChooseStore(record) {
+    return whenPickingUp(record) && hasValidZip(record);
+}
+
+function storesForZip(record) {
+    return storesByZip[record.getField('zip')] || [];
+}
+
 const deliveryMethod = field.label('Delivery method')
     .options([
       { text: 'Ship to address', value: 'ship' },
-      { text: 'Pick up in person', value: 'pickup' },
+      { text: 'Pick up from store', value: 'pickup' },
     ]);
 const shippingAddress = field.label('Shipping address')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
+const pickupZip = field.label('ZIP code')
+    .visible(whenPickingUp)
+    .required(whenPickingUp)
+    .validator({
+        name: 'must contain five digits',
+        validate: (value, _view, record) => !whenPickingUp(record) || !value || hasValidZip(record),
+    });
+const pickupStore = field.label('Pickup store')
+    .visible(whenReadyToChooseStore)
+    .required(whenPickingUp)
+    .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
+    .validator({
+        name: 'must be available for this ZIP code',
+        validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
+    });
+
 export const delivery = new Record({
   fulfillment: deliveryMethod,
   address: shippingAddress,
-}, { fulfillment: 'ship', address: '42 Orchard Street' });`;
+  zip: pickupZip,
+  store: pickupStore,
+}, { fulfillment: 'ship', address: '42 Orchard Street', zip: '', store: '' });`;
     private readonly litCode = `import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
@@ -39,21 +101,40 @@ export class DeliveryForm extends LitElement {
         return html\`
             <fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
             <fdl-field .record=\${delivery} field="address"></fdl-field>
+            <fdl-field .record=\${delivery} field="zip"></fdl-field>
+            <fdl-field .record=\${delivery} field="store"></fdl-field>
         \`;
     }
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
     private deliveryMethod = field.label('Delivery method').options([
-        { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
+        { text: 'Ship to address', value: 'ship' }, { text: 'Pick up from store', value: 'pickup' },
     ]);
     private shippingAddress = field.label('Shipping address')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
+    private pickupZip = field.label('ZIP code')
+        .visible(whenPickingUp)
+        .required(whenPickingUp)
+        .validator({
+            name: 'must contain five digits',
+            validate: (value, _view, record) => !whenPickingUp(record) || !value || hasValidZip(record),
+        });
+    private pickupStore = field.label('Pickup store')
+        .visible(whenReadyToChooseStore)
+        .required(whenPickingUp)
+        .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
+        .validator({
+            name: 'must be available for this ZIP code',
+            validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
+        });
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
-    }, { fulfillment: 'ship', address: '42 Orchard Street' });
+        zip: this.pickupZip,
+        store: this.pickupStore,
+    }, { fulfillment: 'ship', address: '42 Orchard Street', zip: '', store: '' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
     disconnectedCallback() { this.delivery.removeEventListener('change', this.refresh); super.disconnectedCallback(); }
@@ -63,9 +144,17 @@ customElements.define('delivery-form', DeliveryForm);`;
     }
     render() {
         const address = this.delivery.fieldTypeForField('address');
+        const pickup = whenPickingUp(this.delivery);
+        const ready = whenReadyToChooseStore(this.delivery);
+        const store = this.delivery.getField('store');
+        const availableStore = storesForZip(this.delivery).find(option => option.value === store);
         const instruction = this.delivery.getField('fulfillment') === 'ship'
             ? this.delivery.getField('address') ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Switch to pickup.'
-            : 'With pickup, the address is not required.';
+            : !ready ? 'Enter a five-digit ZIP code to choose a pickup store.'
+            : !storesForZip(this.delivery).length ? 'No sample stores for this ZIP code. Try 28202 or 10001.'
+            : store && !availableStore ? 'Your stored selection is unavailable for this ZIP code. Choose another store.'
+            : availableStore ? 'Pickup is ready. Change the ZIP code to see the available stores change.'
+            : 'Choose a store to complete your pickup details.';
         return html`<section aria-label="Try a delivery rule">
             <h2>Try a delivery rule</h2>
             <div class="tabs" role="tablist" aria-label="Delivery example views">
@@ -75,8 +164,14 @@ customElements.define('delivery-form', DeliveryForm);`;
             <div id="delivery-example-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-example-tab" ?hidden=${this.activeTab !== 'example'}>
                 <p class="instruction">${instruction}</p>
                 <div class="experiment">
-                    <div class="editor"><fdl-field .record=${this.delivery} field="fulfillment"></fdl-field><fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field></div>
-                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                    <div class="editor">
+                        <fdl-field .record=${this.delivery} field="fulfillment"></fdl-field>
+                        <fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field>
+                        <fdl-field .record=${this.delivery} field="zip" .showValidationErrors=${true}></fdl-field>
+                        ${pickup ? html`<p class="sample-note">Sample store lookup: try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
+                        <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
+                    </div>
+                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${ready ? 'Visible' : 'Hidden'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
@@ -110,6 +205,7 @@ customElements.define('delivery-form', DeliveryForm);`;
         .syntax-punctuation { color:#cbd5e1; }
         .experiment { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:stretch; }
         .editor { padding:20px; border:1px solid var(--example-border); border-radius:var(--example-radius); background:white; }
+        .sample-note { font-size:.875rem; color:#475569; }
         .editor fdl-field:last-child { margin-bottom:0; }
         fdl-field { --field-label-width:100%; --field-control-width:100%; }
         dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px 16px; margin:0; } dt { font-size:.8125rem; font-weight:600; color:#64748b; line-height:1.5; } dd { margin:6px 0 0; font-size:1rem; line-height:1.5; }

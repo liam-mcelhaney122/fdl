@@ -16,7 +16,7 @@ it('explores delivery visibility and requiredness without discarding the address
     select.dispatchEvent(new Event('input'));
     select.dispatchEvent(new Event('change'));
     await demo.updateComplete;
-    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('With pickup, the address is not required.');
+    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Enter a five-digit ZIP code to choose a pickup store.');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Hidden · Optional');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('42 Orchard Street');
     select.value = 'ship';
@@ -32,6 +32,58 @@ it('explores delivery visibility and requiredness without discarding the address
     await demo.updateComplete;
     expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Switch to pickup.');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Invalid');
+});
+
+it('requires a ZIP before revealing stores and validates pickup against the current choices', async () => {
+    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    document.body.append(demo);
+    await demo.updateComplete;
+    const root = demo.shadowRoot!;
+    const storeField = root.querySelector('fdl-field[field="store"]') as any;
+    const record = storeField.record;
+    function storeVisible() {
+        return record.fieldTypeForField('store').visible(record.getField('store'), record);
+    }
+    await editField(root, 'fulfillment', 'pickup');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(false);
+    expect(storeVisible()).toBe(false);
+    await editField(root, 'zip', '2820');
+    await demo.updateComplete;
+    expect(storeVisible()).toBe(false);
+    expect(record.isValid()).toBe(false);
+    await editField(root, 'zip', 'abcde');
+    await demo.updateComplete;
+    expect(storeVisible()).toBe(false);
+    await editField(root, 'zip', '28202');
+    await demo.updateComplete;
+    await editField(root, 'store', 'uptown');
+    await demo.updateComplete;
+    expect(storeVisible()).toBe(true);
+    expect(record.isValid()).toBe(true);
+    expect(root.querySelector('.state')!.textContent).toContain('Uptown store');
+    await editField(root, 'zip', '10001');
+    await demo.updateComplete;
+    expect(record.getField('store')).toBe('uptown');
+    expect(record.isValid()).toBe(false);
+    expect(root.querySelector('.instruction')!.textContent).toContain('unavailable');
+    await editField(root, 'store', 'chelsea');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(true);
+    await editField(root, 'zip', '01234');
+    await demo.updateComplete;
+    expect(record.getField('zip')).toBe('01234');
+    expect(record.isValid()).toBe(false);
+    expect(root.querySelector('.instruction')!.textContent).toContain('No sample stores');
+    await editField(root, 'zip', '');
+    await demo.updateComplete;
+    expect(storeVisible()).toBe(false);
+    expect(record.isValid()).toBe(false);
+    await editField(root, 'fulfillment', 'ship');
+    await demo.updateComplete;
+    expect(record.isValid()).toBe(true);
+    expect(record.getField('address')).toBe('42 Orchard Street');
+    expect(record.getField('store')).toBe('chelsea');
 });
 
 it('reveals the FDL delivery model behind the interactive example', async () => {
