@@ -59,7 +59,10 @@ export class FdlTransferChallenge extends LitElement {
         super.disconnectedCallback();
     }
     private reset = () => {
-        this.configuration.setFields({ visibility: 'always', requiredness: 'never' });
+        this.configuration.setFields({
+            visibility: 'always',
+            requiredness: 'never',
+        });
         this.record.setFields({ status: 'cancelled', reason: '' });
         this.results = undefined;
         this.transition = undefined;
@@ -68,20 +71,27 @@ export class FdlTransferChallenge extends LitElement {
     render() {
         return html`<h3>Try it in another domain</h3
             ><p
-                >A request needs a cancellation reason only when its status is Cancelled. Hide the
-                reason for Active requests, but preserve it when the status changes.</p
+                >A request needs a cancellation reason only when its status is
+                Cancelled. Hide the reason for Active requests, but preserve it
+                when the status changes.</p
             ><p
-                >Choose rules, try the form, then check four cases and a status-change sequence. No
-                new modifiers are needed.</p
+                >Choose rules, try the form, then check four cases and a
+                status-change sequence. No new modifiers are needed.</p
             >
             <div class="grid"
                 ><section aria-label="Choose cancellation rules"
                     >${['visibility', 'requiredness'].map(field => html`<fdl-field .record=${this.configuration} field=${field}></fdl-field>`)}</section
                 ><section aria-label="Try the cancellation form"
-                    ><fdl-field .record=${this.record} field="status"></fdl-field
+                    ><fdl-field
+                        .record=${this.record}
+                        field="status"
+                    ></fdl-field
                     >${keyed(this.record.fieldTypeForField('reason'), html`<fdl-field .record=${this.record} field="reason" .showValidationErrors=${true}></fdl-field>`)}<p
                         >Stored reason:
-                        <code>${JSON.stringify(this.record.getField('reason'))}</code> · Record
+                        <code
+                            >${JSON.stringify(this.record.getField('reason'))}</code
+                        >
+                        · Record
                         ${this.record.isValid() ? 'valid' : 'invalid'}</p
                     ></section
                 ></div
@@ -91,7 +101,9 @@ export class FdlTransferChallenge extends LitElement {
                     class="check-challenge"
                     @click=${() => {
                         this.results = checkCancellation(this.rules);
-                        this.transition = checkCancellationTransition(this.rules);
+                        this.transition = checkCancellationTransition(
+                            this.rules
+                        );
                         this.requestUpdate();
                     }}
                     >Check all cases</button
@@ -108,11 +120,14 @@ export class FdlTransferChallenge extends LitElement {
                                   <strong
                                       >${this.transition?.passes ? 'Matches' : 'Needs a change'}</strong
                                   ><br />Stored reason while Active:
-                                  <code>${JSON.stringify(this.transition?.activeReason)}</code>.
-                                  After returning to Cancelled:
-                                  <code>${JSON.stringify(this.transition?.returnedReason)}</code>.
-                                  Expected: hidden while Active, visible again when Cancelled, with
-                                  “Changed plans” preserved.</li
+                                  <code
+                                      >${JSON.stringify(this.transition?.activeReason)}</code
+                                  >. After returning to Cancelled:
+                                  <code
+                                      >${JSON.stringify(this.transition?.returnedReason)}</code
+                                  >. Expected: hidden while Active, visible
+                                  again when Cancelled, with “Changed plans”
+                                  preserved.</li
                               ></ul
                           ></section
                       >`
@@ -121,8 +136,9 @@ export class FdlTransferChallenge extends LitElement {
             <details
                 ><summary>Hint</summary
                 ><p
-                    >Visibility and requiredness are independent. Both should read the request
-                    status. Hiding a field preserves its stored value.</p
+                    >Visibility and requiredness are independent. Both should
+                    read the request status. Hiding a field preserves its stored
+                    value.</p
                 ></details
             ><details
                 ><summary>Inspect a solution</summary

@@ -222,3 +222,6 @@ Run `npm run format` to apply Prettier to source, tests, documentation, and exam
 including complete static code snippets displayed on the documentation site. Run
 `npm run format:check` to check formatting without changing files. Generated build
 output, dependencies, worktrees, and bundled agent skills are excluded.
+
+Examples use an 80-character print width, including their static displayed code
+snippets. Other files use a 100-character print width.

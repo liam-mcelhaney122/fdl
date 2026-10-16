@@ -4,5 +4,13 @@
     "printWidth": 100,
     "trailingComma": "es5",
     "htmlWhitespaceSensitivity": "strict",
-    "arrowParens": "avoid"
+    "arrowParens": "avoid",
+    "overrides": [
+        {
+            "files": "examples/**/*",
+            "options": {
+                "printWidth": 80
+            }
+        }
+    ]
 }

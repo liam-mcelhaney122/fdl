@@ -8,7 +8,11 @@ import {
 } from './input-type-example';
 import type { inputType } from '../../types/input-types.types';
 import { assigneeDirectory, optionsDelay } from './assignee-options';
-import { compareShirtSizes, compareShirtSizesSource, shirtOrders } from './shirt-size-example';
+import {
+    compareShirtSizes,
+    compareShirtSizesSource,
+    shirtOrders,
+} from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { exampleTheme } from './example-theme';
 import { LitElement, css, html, nothing, type TemplateResult } from 'lit';
@@ -16,7 +20,11 @@ import Record from '../../record.js';
 import Recordset from '../../recordset.js';
 import './fdl-field';
 import { inputText, valuePipeline } from './value-pipeline';
-import { sortCases, prefixFilter, substringFilter } from './comparison-examples';
+import {
+    sortCases,
+    prefixFilter,
+    substringFilter,
+} from './comparison-examples';
 import { describeValue, recordSummary, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
@@ -66,13 +74,22 @@ type CatalogEntry = {
 
 const customControlGap =
     'The modifier configures a richer custom control API. The cookbook uses FDL-backed form adapters, which do not implement that richer contract.';
-const live = (name: string, intent: string, demo: DemoName, snippet?: string): CatalogEntry => ({
+const live = (
+    name: string,
+    intent: string,
+    demo: DemoName,
+    snippet?: string
+): CatalogEntry => ({
     name,
     intent,
     demo,
     snippet,
 });
-const placeholder = (name: string, intent: string, limitation: string): CatalogEntry => ({
+const placeholder = (
+    name: string,
+    intent: string,
+    limitation: string
+): CatalogEntry => ({
     name,
     intent,
     limitation,
@@ -294,7 +311,10 @@ field
     ),
 ].sort((left, right) => left.name.localeCompare(right.name));
 
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const currency = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
 
 export class FdlModifierCatalog extends LitElement {
     static properties = { modifier: { type: String } };
@@ -321,7 +341,11 @@ export class FdlModifierCatalog extends LitElement {
     private optionsLoading = false;
 
     private defaultRecord = new Record(
-        { documentTitle: field.label('Document title').defaultValue('Untitled document') },
+        {
+            documentTitle: field
+                .label('Document title')
+                .defaultValue('Untitled document'),
+        },
         { documentTitle: 'Quarterly plan' }
     );
 
@@ -336,7 +360,9 @@ export class FdlModifierCatalog extends LitElement {
             budget: field
                 .label('Budget')
                 .type('number')
-                .disabled(record => record.getField('approvalStatus') === 'approved'),
+                .disabled(
+                    record => record.getField('approvalStatus') === 'approved'
+                ),
             emptyCode: field
                 .label('Reference')
                 .emptyWhen(value => value === 'N/A')
@@ -344,13 +370,18 @@ export class FdlModifierCatalog extends LitElement {
             optionalEmptyCode: field
                 .label('Optional reference')
                 .emptyWhen(value => value === 'N/A'),
-            hiddenSearch: field.label('Search directory').placeholder('Search directory'),
+            hiddenSearch: field
+                .label('Search directory')
+                .placeholder('Search directory'),
             expenseType: field.label('Expense type').options([
                 { text: 'Travel', value: 'travel' },
                 { text: 'Equipment', value: 'equipment' },
             ]),
             dynamicAmount: field
-                .label((record: any) => `Amount for ${record.getField('expenseType')}`)
+                .label(
+                    (record: any) =>
+                        `Amount for ${record.getField('expenseType')}`
+                )
                 .type('number'),
             money: field
                 .label('Money')
@@ -381,13 +412,23 @@ export class FdlModifierCatalog extends LitElement {
             ]),
             assignee: field
                 .label('Assignee (function)')
-                .options((record: any) => assigneeDirectory[record.getField('department')]),
-            asyncAssignee: field.label('Assignee (async function)').options(async (record: any) => {
-                const choices = assigneeDirectory[record.getField('department')];
-                await new Promise(resolve => setTimeout(resolve, optionsDelay));
-                return choices;
-            }),
-            projectName: field.label('Project name').placeholder('For example, Apollo migration'),
+                .options(
+                    (record: any) =>
+                        assigneeDirectory[record.getField('department')]
+                ),
+            asyncAssignee: field
+                .label('Assignee (async function)')
+                .options(async (record: any) => {
+                    const choices =
+                        assigneeDirectory[record.getField('department')];
+                    await new Promise(resolve =>
+                        setTimeout(resolve, optionsDelay)
+                    );
+                    return choices;
+                }),
+            projectName: field
+                .label('Project name')
+                .placeholder('For example, Apollo migration'),
             fixedOwner: field.label('Owner').readOnly(),
             phase: field.label('Phase').options([
                 { text: 'Draft', value: 'draft' },
@@ -395,7 +436,9 @@ export class FdlModifierCatalog extends LitElement {
             ]),
             conditionalOwner: field
                 .label('Request owner')
-                .readOnlyWhen(record => record.getField('phase') === 'submitted'),
+                .readOnlyWhen(
+                    record => record.getField('phase') === 'submitted'
+                ),
             requiredName: field.label('Legal name').required(),
             followUp: field.label('Follow-up needed?').options([
                 { text: 'No', value: 'no' },
@@ -411,7 +454,8 @@ export class FdlModifierCatalog extends LitElement {
                 .type('email')
                 .validator({
                     name: 'must be a valid email address',
-                    validate: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value)),
+                    validate: value =>
+                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value)),
                 }),
             orderQuantity: field
                 .label('Order quantity')
@@ -423,7 +467,8 @@ export class FdlModifierCatalog extends LitElement {
                 })
                 .validator({
                     name: 'must be between 1 and 12',
-                    validate: value => Number(value) >= 1 && Number(value) <= 12,
+                    validate: value =>
+                        Number(value) >= 1 && Number(value) <= 12,
                 }),
             username: field
                 .label('Username')
@@ -498,7 +543,9 @@ export class FdlModifierCatalog extends LitElement {
             { name: 'Margaret', team: 'Research' },
         ]
     );
-    private hashType = field.hashFunction((employee: { id: string }) => employee.id);
+    private hashType = field.hashFunction(
+        (employee: { id: string }) => employee.id
+    );
     private columnClassRecordset = new Recordset(
         {
             day: field.label('Day'),
@@ -535,14 +582,18 @@ export class FdlModifierCatalog extends LitElement {
             firstName: field
                 .label('First name')
                 .compareFunction(
-                    (left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1
+                    (left, right) =>
+                        Math.sign(left.localeCompare(right)) as -1 | 0 | 1
                 ),
             lastName: field
                 .label('Last name')
                 .compareFunction(
-                    (left, right) => Math.sign(left.localeCompare(right)) as -1 | 0 | 1
+                    (left, right) =>
+                        Math.sign(left.localeCompare(right)) as -1 | 0 | 1
                 ),
-            shirtSize: field.label('T-shirt size').compareFunction(compareShirtSizes),
+            shirtSize: field
+                .label('T-shirt size')
+                .compareFunction(compareShirtSizes),
         },
         shirtOrders.map(order => ({ ...order }))
     );
@@ -551,12 +602,14 @@ export class FdlModifierCatalog extends LitElement {
             firstName: field
                 .label('First name')
                 .compareFunction(
-                    (left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1
+                    (left: string, right: string) =>
+                        left.localeCompare(right) as -1 | 0 | 1
                 ),
             lastName: field
                 .label('Last name')
                 .compareFunction(
-                    (left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1
+                    (left: string, right: string) =>
+                        left.localeCompare(right) as -1 | 0 | 1
                 ),
             shirtSize: field.label('T-shirt size').sortable(false),
         },
@@ -582,7 +635,9 @@ export class FdlModifierCatalog extends LitElement {
                 .label('Status')
                 .rowClass('invoice-row')
                 .rowClass(record =>
-                    record.getField('status') === 'Disputed' ? ['disputed-row', 'needs-review'] : []
+                    record.getField('status') === 'Disputed'
+                        ? ['disputed-row', 'needs-review']
+                        : []
                 ),
             owner: field.label('Owner'),
         },
@@ -600,13 +655,16 @@ export class FdlModifierCatalog extends LitElement {
                 .parser(Number)
                 .textAlign('right')
                 .formatter((value, _record?: unknown, context?: string) =>
-                    context === 'input-focus' ? String(value) : currency.format(Number(value))
+                    context === 'input-focus'
+                        ? String(value)
+                        : currency.format(Number(value))
                 )
                 .template((formattedBalance, record) =>
                     record.getField('balance') === 0
                         ? html`<span class="paid-balance">✓ Paid in full</span>`
                         : html`<span class="due-balance"
-                              ><strong>${formattedBalance}</strong><small>Payment due</small></span
+                              ><strong>${formattedBalance}</strong
+                              ><small>Payment due</small></span
                           >`
                 ),
         },
@@ -630,17 +688,30 @@ export class FdlModifierCatalog extends LitElement {
     private widthRecordsets = {
         maxColumnWidth: new Recordset(
             {
-                constrained: field.label('Maximum (180px)').minColumnWidth(80).maxColumnWidth(180),
+                constrained: field
+                    .label('Maximum (180px)')
+                    .minColumnWidth(80)
+                    .maxColumnWidth(180),
                 flexible: field.label('Flexible').minColumnWidth(80),
             },
-            [{ constrained: 'Stops growing at 180px', flexible: 'Makes up the difference' }]
+            [
+                {
+                    constrained: 'Stops growing at 180px',
+                    flexible: 'Makes up the difference',
+                },
+            ]
         ),
         minColumnWidth: new Recordset(
             {
                 constrained: field.label('Minimum (110px)').minColumnWidth(110),
                 flexible: field.label('Flexible').minColumnWidth(80),
             },
-            [{ constrained: 'Stops shrinking at 110px', flexible: 'Makes up the difference' }]
+            [
+                {
+                    constrained: 'Stops shrinking at 110px',
+                    flexible: 'Makes up the difference',
+                },
+            ]
         ),
         targetColumnWidth: new Recordset(
             {
@@ -651,7 +722,12 @@ export class FdlModifierCatalog extends LitElement {
                     .maxColumnWidth(220),
                 flexible: field.label('Flexible').minColumnWidth(80),
             },
-            [{ constrained: 'Preferred width: 140px', flexible: 'Makes up the difference' }]
+            [
+                {
+                    constrained: 'Preferred width: 140px',
+                    flexible: 'Makes up the difference',
+                },
+            ]
         ),
     };
     private probes = new Record(
@@ -660,8 +736,13 @@ export class FdlModifierCatalog extends LitElement {
             textareaRows: field
                 .label('Row count')
                 .parser(Number)
-                .options([1, 4, 10].map(value => ({ text: String(value), value }))),
-            classThreshold: field.label('Daily Expense Limit').type('number').parser(Number),
+                .options(
+                    [1, 4, 10].map(value => ({ text: String(value), value }))
+                ),
+            classThreshold: field
+                .label('Daily Expense Limit')
+                .type('number')
+                .parser(Number),
             input: field.label('Digits and periods').inputMask(/[0-9.]/),
             filterProbe: field.label('Search names'),
             matchRule: field.label('Filter matching rule').options([
@@ -670,9 +751,18 @@ export class FdlModifierCatalog extends LitElement {
             ]),
             firstId: field.label('First employee ID'),
             secondId: field.label('Second employee ID'),
-            firstAmount: field.label('First amount').type('number').parser(Number),
-            secondAmount: field.label('Second amount').type('number').parser(Number),
-            thirdAmount: field.label('Third amount').type('number').parser(Number),
+            firstAmount: field
+                .label('First amount')
+                .type('number')
+                .parser(Number),
+            secondAmount: field
+                .label('Second amount')
+                .type('number')
+                .parser(Number),
+            thirdAmount: field
+                .label('Third amount')
+                .type('number')
+                .parser(Number),
         },
         {
             inputType: 'text',
@@ -722,7 +812,10 @@ export class FdlModifierCatalog extends LitElement {
         this.defaultRecord.removeEventListener('change', this.onRecordChange);
         this.inputTypeRecord.removeEventListener('change', this.onRecordChange);
         this.probes.removeEventListener('change', this.onProbeChange);
-        this.templateRecordset.removeEventListener('updated', this.onRecordChange);
+        this.templateRecordset.removeEventListener(
+            'updated',
+            this.onRecordChange
+        );
         new Set(Object.values(this.tableRecordsets)).forEach(table =>
             table.removeEventListener('page-changed', this.onRecordChange)
         );
@@ -780,7 +873,9 @@ export class FdlModifierCatalog extends LitElement {
 
         if (this.modifier === 'filter') {
             const filterMode =
-                this.probes.getField('matchRule') === 'contains' ? 'contains' : 'prefix';
+                this.probes.getField('matchRule') === 'contains'
+                    ? 'contains'
+                    : 'prefix';
             this.dispatchEvent(
                 new CustomEvent('example-settings-change', {
                     detail: { filterMode },
@@ -798,7 +893,9 @@ export class FdlModifierCatalog extends LitElement {
         this.optionsDepartment = department;
         this.optionsLoading = true;
         this.requestUpdate();
-        const choices = (await this.record.fieldTypeForField('assignee').options(this.record)) as {
+        const choices = (await this.record
+            .fieldTypeForField('assignee')
+            .options(this.record)) as {
             text: string;
             value: string;
         }[];
@@ -810,8 +907,8 @@ export class FdlModifierCatalog extends LitElement {
     private selectionExplanation() {
         return html`<div class="selection-explanation" role="status">
             <p
-                >Margaret Hamilton appears in both departments. Switching departments keeps her
-                selected.</p
+                >Margaret Hamilton appears in both departments. Switching
+                departments keeps her selected.</p
             >
             <p
                 >Available choices:
@@ -819,10 +916,13 @@ export class FdlModifierCatalog extends LitElement {
             >
             ${(['assignee', 'asyncAssignee'] as const).map(field => {
                 const selected = this.record.getField(field);
-                const matches = this.assigneeChoices.some(choice => choice.value === selected);
+                const matches = this.assigneeChoices.some(
+                    choice => choice.value === selected
+                );
                 return html`<div data-selection=${field}>
                     <p
-                        >${field === 'assignee' ? 'Function' : 'Async function'} stored selection:
+                        >${field === 'assignee' ? 'Function' : 'Async function'}
+                        stored selection:
                         <code>${selected || '(empty)'}</code>.</p
                     >
                     ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected. The record automatically clears selections that are no longer available.' : matches ? 'The stored assignee is among the available choices and is not reset when the list changes.' : 'The stored assignee is no longer among the available choices. The record clears an unavailable selection when the latest choices finish loading.'}</p>`}
@@ -830,7 +930,8 @@ export class FdlModifierCatalog extends LitElement {
                         class="clear-selection"
                         ?disabled=${!selected || this.optionsLoading}
                         @click=${() => this.record.setField(field, '')}
-                        >Clear ${field === 'assignee' ? 'function' : 'async function'}
+                        >Clear
+                        ${field === 'assignee' ? 'function' : 'async function'}
                         selection</button
                     >
                 </div>`;
@@ -864,21 +965,28 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     private validationResult(field: string) {
-        if (!this.validatedFields.has(field) || !this.record.isValid(field)) return nothing;
+        if (!this.validatedFields.has(field) || !this.record.isValid(field))
+            return nothing;
         return html`<p class="result valid" role="status">Valid.</p>`;
     }
 
     private renderValidation(field: string, buttonText = 'Check value') {
         const showValidationErrors = this.validatedFields.has(field);
         return html`${this.renderField(field, this.record, showValidationErrors)}
-            <button type="button" @click=${() => this.validateField(field)}>${buttonText}</button>
+            <button type="button" @click=${() => this.validateField(field)}
+                >${buttonText}</button
+            >
             ${this.validationResult(field)}`;
     }
 
-    private renderWidth(name: 'maxColumnWidth' | 'minColumnWidth' | 'targetColumnWidth') {
+    private renderWidth(
+        name: 'maxColumnWidth' | 'minColumnWidth' | 'targetColumnWidth'
+    ) {
         const instructions = {
-            maxColumnWidth: 'Drag the divider right. The Maximum column stops at 180px.',
-            minColumnWidth: 'Drag the divider left. The Minimum column stops at 110px.',
+            maxColumnWidth:
+                'Drag the divider right. The Maximum column stops at 180px.',
+            minColumnWidth:
+                'Drag the divider left. The Minimum column stops at 110px.',
             targetColumnWidth:
                 'Drag the divider to resize this preferred-width column; its minimum and maximum still apply.',
         };
@@ -897,8 +1005,9 @@ export class FdlModifierCatalog extends LitElement {
         switch (name) {
             case 'compareFunction': {
                 return html`<p class="try"
-                        >Sort T-shirt size to order sizes from XS to XXL instead of alphabetically.
-                        First and last names use alphabetic order.</p
+                        >Sort T-shirt size to order sizes from XS to XXL instead
+                        of alphabetically. First and last names use alphabetic
+                        order.</p
                     >
                     <fdl-table .recordset=${this.compareRecordset}>
                         <fdl-column field="firstName"></fdl-column>
@@ -908,8 +1017,9 @@ export class FdlModifierCatalog extends LitElement {
             }
             case 'columnClass':
                 return html`<p class="try"
-                        >The Expenses column shares its classes across the column, heading, and
-                        cells. Only the value above 100 adds the cell-specific high-value class.</p
+                        >The Expenses column shares its classes across the
+                        column, heading, and cells. Only the value above 100
+                        adds the cell-specific high-value class.</p
                     ><fdl-table .recordset=${this.columnClassRecordset}
                         ><fdl-column field="day"></fdl-column
                         ><fdl-column field="amount"></fdl-column
@@ -926,7 +1036,8 @@ export class FdlModifierCatalog extends LitElement {
                         @click=${this.clearDefaultRecord}
                         >Clear the record</button
                     ><p class="computed"
-                        >Current record value: ${this.defaultRecord.getField('documentTitle')}</p
+                        >Current record value:
+                        ${this.defaultRecord.getField('documentTitle')}</p
                     >`;
             case 'disabled':
                 return html`${this.renderField('lockedId')}<p class="try"
@@ -934,33 +1045,41 @@ export class FdlModifierCatalog extends LitElement {
                     >${this.renderField('approvalStatus')}${this.renderField('budget')}${explainDependency(this.record, 'budget', 'approvalStatus', `approvalStatus === 'approved'`, 'disabled')}`;
             case 'emptyWhen':
                 return html`<p class="try"
-                        >Both fields treat “N/A” as empty. Reference is required; Optional reference
-                        can be left empty.</p
+                        >Both fields treat “N/A” as empty. Reference is
+                        required; Optional reference can be left empty.</p
                     >${['emptyCode', 'optionalEmptyCode'].map(
                         field =>
                             html` ${this.renderField(field)}
-                                <p class="computed" role="status" data-field=${field}>
+                                <p
+                                    class="computed"
+                                    role="status"
+                                    data-field=${field}
+                                >
                                     ${this.record.fieldTypeForField(field).empty(this.record, field) ? 'This field is considered empty' : 'This field is not considered empty'}<br />
                                     ${!this.record.isValid(field) ? 'Invalid: Reference is required.' : field === 'optionalEmptyCode' ? 'Valid: this field is optional.' : 'Valid: a reference has been provided.'}
                                 </p>`
                     )}`;
             case 'filter':
                 return html`<p class="try"
-                        >Choose a matching rule and enter search text to filter the table.</p
+                        >Choose a matching rule and enter search text to filter
+                        the table.</p
                     >${this.renderField('matchRule', this.probes)}${this.renderField('filterProbe', this.probes)}<fdl-table
                         .recordset=${this.filterRecordset}
                         .filters=${{ name: this.probes.getField('filterProbe') }}
-                        @filters-changed=${(event: CustomEvent<{ name?: string }>) => {
+                        @filters-changed=${(
+                            event: CustomEvent<{ name?: string }>
+                        ) => {
                             const text = event.detail.name ?? '';
                             if (text !== this.probes.getField('filterProbe'))
                                 this.probes.setField('filterProbe', text);
                         }}
-                        ><fdl-column field="name"></fdl-column><fdl-column field="team"></fdl-column
+                        ><fdl-column field="name"></fdl-column
+                        ><fdl-column field="team"></fdl-column
                     ></fdl-table>`;
             case 'formatter':
                 return html`<p class="try"
-                        >The record stores <code>1250</code>; the table prints the formatted
-                        value.</p
+                        >The record stores <code>1250</code>; the table prints
+                        the formatted value.</p
                     ><fdl-table .recordset=${this.formatterRecordset}
                         ><fdl-column field="amount"></fdl-column
                         ><fdl-column field="invoice"></fdl-column
@@ -974,11 +1093,14 @@ export class FdlModifierCatalog extends LitElement {
                         Separate objects match when their IDs match.</p
                     >`;
             case 'inputMask':
-                return html`${this.renderField('input', this.probes)}<p class="try"
-                        >Only digits and periods are accepted. Other characters are ignored.</p
+                return html`${this.renderField('input', this.probes)}<p
+                        class="try"
+                        >Only digits and periods are accepted. Other characters
+                        are ignored.</p
                     >`;
             case 'label':
-                return html`<p class="try">Change the expense type and watch the amount label.</p
+                return html`<p class="try"
+                        >Change the expense type and watch the amount label.</p
                     >${this.renderField('expenseType')}${this.renderField('dynamicAmount')}`;
             case 'maxColumnWidth':
                 return this.renderWidth('maxColumnWidth');
@@ -988,7 +1110,10 @@ export class FdlModifierCatalog extends LitElement {
                         ? html`<button
                               class="model-assignment"
                               @click=${() => {
-                                  this.record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG');
+                                  this.record.setField(
+                                      'shortCode',
+                                      'THIS-CODE-IS-TOO-LONG'
+                                  );
                                   this.validateField('shortCode');
                               }}
                               >Assign an overlong model value</button
@@ -1004,10 +1129,14 @@ export class FdlModifierCatalog extends LitElement {
                             class="minimum-rule"
                             .value=${String(this.minimum)}
                             @change=${(event: Event) => {
-                                this.minimum = Number((event.target as HTMLSelectElement).value);
+                                this.minimum = Number(
+                                    (event.target as HTMLSelectElement).value
+                                );
                                 this.record.addField(
                                     'longCode',
-                                    field.label('Access code').minLength(this.minimum),
+                                    field
+                                        .label('Access code')
+                                        .minLength(this.minimum),
                                     this.record.getField('longCode')
                                 );
                                 this.dispatchEvent(
@@ -1024,19 +1153,23 @@ export class FdlModifierCatalog extends LitElement {
                     >${this.renderValidation('longCode')}`;
             case 'multipleValues':
                 return html`<p class="try"
-                        >Hold Ctrl (Windows/Linux) or Command (macOS) to choose more than one
-                        option.</p
+                        >Hold Ctrl (Windows/Linux) or Command (macOS) to choose
+                        more than one option.</p
                     >${this.renderField('skills')}`;
             case 'options':
-                return html`<p class="try">Change Department; Assignee choices refresh.</p
+                return html`<p class="try"
+                        >Change Department; Assignee choices refresh.</p
                     >${this.renderField('department')}${this.renderField('assignee')}${this.renderField('asyncAssignee')}${this.selectionExplanation()}`;
             case 'parser':
                 return html`<p class="try"
-                        >Edit the money field. The stored number updates as you type; currency
-                        formatting is applied when you leave the field.</p
-                    ><div @input=${this.captureMoneyInput}>${this.renderField('money')}</div
+                        >Edit the money field. The stored number updates as you
+                        type; currency formatting is applied when you leave the
+                        field.</p
+                    ><div @input=${this.captureMoneyInput}
+                        >${this.renderField('money')}</div
                     ><p class="computed"
-                        >Raw stored value: <code>${this.record.getField('money')}</code></p
+                        >Raw stored value:
+                        <code>${this.record.getField('money')}</code></p
                     >${valuePipeline(this.record, 'money', this.moneyInput)}`;
             case 'placeholder':
                 return html`${this.renderField('projectName')}`;
@@ -1044,7 +1177,8 @@ export class FdlModifierCatalog extends LitElement {
                 return html`${this.renderField('fixedOwner')}`;
             case 'readOnlyWhen':
                 return html`<p class="try"
-                        >Choose Submitted to replace the owner input with printed text.</p
+                        >Choose Submitted to replace the owner input with
+                        printed text.</p
                     >${this.renderField('phase')}${this.renderField('conditionalOwner')}${explainDependency(this.record, 'conditionalOwner', 'phase', `phase === 'submitted'`, 'readonly')}`;
             case 'reducer':
                 return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p
@@ -1054,13 +1188,15 @@ export class FdlModifierCatalog extends LitElement {
                         ${currency.format(this.reducerType.valueOf().aggregate([this.probes.getField('firstAmount'), this.probes.getField('secondAmount'), this.probes.getField('thirdAmount')]))}</p
                     >`;
             case 'required':
-                return html`${this.renderValidation('requiredName')}<p class="try"
+                return html`${this.renderValidation('requiredName')}<p
+                        class="try"
                         >Choose Yes, then check the empty notes.</p
                     >${this.renderField('followUp')}${this.renderValidation('followUpNotes')}${explainDependency(this.record, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}`;
             case 'rowClass':
                 return html`<p class="try"
-                        >Every row receives <code>invoice-row</code>. The Disputed row also receives
-                        <code>disputed-row</code> and <code>needs-review</code>.</p
+                        >Every row receives <code>invoice-row</code>. The
+                        Disputed row also receives <code>disputed-row</code> and
+                        <code>needs-review</code>.</p
                     ><fdl-table .recordset=${this.rowClassRecordset}
                         ><fdl-column field="status"></fdl-column
                         ><fdl-column field="owner"></fdl-column
@@ -1069,8 +1205,8 @@ export class FdlModifierCatalog extends LitElement {
                 return html`${this.renderField('textareaRows', this.probes)}${this.renderField('comments')}`;
             case 'sortable':
                 return html`<p class="try"
-                        >First name and Last name can sort. T-shirt size has .sortable(false), so
-                        its header has no sort action.</p
+                        >First name and Last name can sort. T-shirt size has
+                        .sortable(false), so its header has no sort action.</p
                     ><fdl-table .recordset=${this.sortableRecordset}
                         ><fdl-column field="firstName"></fdl-column
                         ><fdl-column field="lastName"></fdl-column
@@ -1085,7 +1221,8 @@ export class FdlModifierCatalog extends LitElement {
                 ></fdl-table>`;
             case 'textAlign':
                 return html`<p class="try"
-                        >The columns demonstrate left, center, and right alignment.</p
+                        >The columns demonstrate left, center, and right
+                        alignment.</p
                     ><fdl-table .recordset=${this.alignRecordset}
                         ><fdl-column field="left"></fdl-column
                         ><fdl-column field="center"></fdl-column
@@ -1106,7 +1243,8 @@ export class FdlModifierCatalog extends LitElement {
                         </section>`
                 )}`;
             case 'visible':
-                return html`<p class="try">Choose Pickup to remove Shipping address.</p
+                return html`<p class="try"
+                        >Choose Pickup to remove Shipping address.</p
                     >${this.renderField('fulfillment')}${this.renderField('address')}`;
         }
         return html``;
@@ -1134,7 +1272,9 @@ export class FdlModifierCatalog extends LitElement {
             return Object.fromEntries(
                 fields[name].map(field => [
                     field,
-                    this.record.getField(field as keyof typeof this.record.values),
+                    this.record.getField(
+                        field as keyof typeof this.record.values
+                    ),
                 ])
             );
         if (name === 'type') return this.inputTypeRecord.values;
@@ -1144,18 +1284,23 @@ export class FdlModifierCatalog extends LitElement {
                 firstObject: { id: this.probes.getField('firstId') },
                 secondObject: { id: this.probes.getField('secondId') },
             };
-        if (name === 'inputMask') return { input: this.probes.getField('input') };
+        if (name === 'inputMask')
+            return { input: this.probes.getField('input') };
         if (name === 'reducer')
             return {
-                values: (['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field =>
-                    this.probes.getField(field)
-                ),
+                values: (
+                    ['firstAmount', 'secondAmount', 'thirdAmount'] as const
+                ).map(field => this.probes.getField(field)),
                 sum: this.reducerType
                     .valueOf()
                     .aggregate(
-                        (['firstAmount', 'secondAmount', 'thirdAmount'] as const).map(field =>
-                            this.probes.getField(field)
-                        )
+                        (
+                            [
+                                'firstAmount',
+                                'secondAmount',
+                                'thirdAmount',
+                            ] as const
+                        ).map(field => this.probes.getField(field))
                     ),
             };
         const table = this.tableRecordsets[name];
@@ -1186,7 +1331,9 @@ export class FdlModifierCatalog extends LitElement {
     }
 
     render() {
-        const entry = modifierEntries.find(entry => entry.name === this.modifier);
+        const entry = modifierEntries.find(
+            entry => entry.name === this.modifier
+        );
         if (!entry) return nothing;
         return html`<div
             class=${`focused ${['cellClass', 'columnClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClass', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`}
@@ -1194,7 +1341,8 @@ export class FdlModifierCatalog extends LitElement {
         >
             ${
                 entry.demo
-                    ? html`<div class="focused-demo">${this.renderDemo(entry.demo)}</div
+                    ? html`<div class="focused-demo"
+                              >${this.renderDemo(entry.demo)}</div
                           ><div class="focused-state"
                               ><p class="state-label"
                                   >${['hashFunction', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p
@@ -1205,10 +1353,11 @@ ${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre>
                               </details></div
                           >`
                     : html`<div class="limitation"
-                          ><strong>Adapter support needed</strong><p>${entry.limitation}</p
+                          ><strong>Adapter support needed</strong
+                          ><p>${entry.limitation}</p
                           ><p
-                              >This page documents the contract; it does not simulate an unsupported
-                              control.</p
+                              >This page documents the contract; it does not
+                              simulate an unsupported control.</p
                           ></div
                       >`
             }

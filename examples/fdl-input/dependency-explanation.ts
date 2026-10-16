@@ -24,12 +24,16 @@ export function explainDependency(
     return html`<div class="dependency-trace" role="status">
         <strong>Why did this field change?</strong>
         <p
-            ><code>${dependency} = ${JSON.stringify(record.getField(dependency))}</code> →
-            <code>${expression}</code> → <strong>${String(result)}</strong> →
+            ><code
+                >${dependency} =
+                ${JSON.stringify(record.getField(dependency))}</code
+            >
+            → <code>${expression}</code> → <strong>${String(result)}</strong> →
             ${labels[state][result ? 0 : 1]}</p
         >
         <p
-            >Stored ${field}: <code>${JSON.stringify(record.getField(field))}</code>.
+            >Stored ${field}:
+            <code>${JSON.stringify(record.getField(field))}</code>.
             ${state === 'visible' ? 'Visibility preserves the stored value and does not determine requiredness.' : 'This state does not erase the stored value.'}</p
         >
     </div>`;

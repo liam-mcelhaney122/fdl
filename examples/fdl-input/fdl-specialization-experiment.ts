@@ -13,19 +13,31 @@ export class FdlSpecializationExperiment extends LitElement {
     private required = this.base.required();
     private enabled = true;
     private get definitions() {
-        return { base: this.base, required: this.required, sibling: this.sibling };
+        return {
+            base: this.base,
+            required: this.required,
+            sibling: this.sibling,
+        };
     }
-    private record = new Record(this.definitions, { base: '', required: '', sibling: '' });
-    private table = new Recordset(this.definitions, [{ ...this.record.values }]);
+    private record = new Record(this.definitions, {
+        base: '',
+        required: '',
+        sibling: '',
+    });
+    private table = new Recordset(this.definitions, [
+        { ...this.record.values },
+    ]);
     private syncing = false;
     private sync = (event: Event) => {
         if (this.syncing) return;
         this.syncing = true;
-        const field = (event as CustomEvent<{ field: 'base' | 'required' | 'sibling' }>).detail
-            .field;
+        const field = (
+            event as CustomEvent<{ field: 'base' | 'required' | 'sibling' }>
+        ).detail.field;
         const value = this.record.getField(field);
         (['base', 'required', 'sibling'] as const).forEach(key => {
-            if (this.record.getField(key) !== value) this.record.setField(key, value);
+            if (this.record.getField(key) !== value)
+                this.record.setField(key, value);
         });
         this.table.setData([{ ...this.record.values }]);
         this.syncing = false;
@@ -42,19 +54,27 @@ export class FdlSpecializationExperiment extends LitElement {
     private toggle = () => {
         this.enabled = !this.enabled;
         this.required = this.enabled ? this.base.required() : this.base;
-        this.record.addField('required', this.required, this.record.getField('required'));
-        this.table = new Recordset(this.definitions, [{ ...this.record.values }]);
+        this.record.addField(
+            'required',
+            this.required,
+            this.record.getField('required')
+        );
+        this.table = new Recordset(this.definitions, [
+            { ...this.record.values },
+        ]);
         this.requestUpdate();
     };
     render() {
         return html`<section aria-label="Explore immutable specialization"
             ><h2>One base, independent specializations</h2>
             <p
-                >Edit any name; all three receive the same test value. Remove the required rule from
-                its specialization and compare the base and sibling.</p
+                >Edit any name; all three receive the same test value. Remove
+                the required rule from its specialization and compare the base
+                and sibling.</p
             >
             <button @click=${this.toggle}
-                >${this.enabled ? 'Remove' : 'Add'} required rule on requiredName</button
+                >${this.enabled ? 'Remove' : 'Add'} required rule on
+                requiredName</button
             >
             <div class="variants"
                 >${(['base', 'required', 'sibling'] as const).map(
@@ -69,7 +89,8 @@ export class FdlSpecializationExperiment extends LitElement {
                             ${keyed(this.record.fieldTypeForField(key), html`<fdl-field .record=${this.record} field=${key} .showValidationErrors=${true}></fdl-field>`)}
                             <p class="variant-state"
                                 >${this.record.fieldTypeForField(key).required(this.record.getField(key), this.record) ? 'Required' : 'Optional'}
-                                · ${this.record.isValid(key) ? 'Valid' : 'Invalid'}</p
+                                ·
+                                ${this.record.isValid(key) ? 'Valid' : 'Invalid'}</p
                             ></section
                         >`
                 )}</div
@@ -83,7 +104,8 @@ export class FdlSpecializationExperiment extends LitElement {
             <p role="status"
                 >The base is
                 ${this.base.valueOf().required(undefined, this.record) ? 'required' : 'optional'};
-                shortName still has a ${this.sibling.valueOf().minLength()}-character minimum.
+                shortName still has a
+                ${this.sibling.valueOf().minLength()}-character minimum.
                 Specializing requiredName changes neither definition.</p
             >
         </section>`;
@@ -171,4 +193,7 @@ export class FdlSpecializationExperiment extends LitElement {
         ${exampleTheme}
     `;
 }
-customElements.define('fdl-specialization-experiment', FdlSpecializationExperiment);
+customElements.define(
+    'fdl-specialization-experiment',
+    FdlSpecializationExperiment
+);

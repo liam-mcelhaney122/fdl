@@ -28,7 +28,9 @@ const relationships: readonly (readonly string[])[] = [
 ];
 
 export function relatedModifierNames(name: string): string[] {
-    return [...new Set(relationships.filter(group => group.includes(name)).flat())]
+    return [
+        ...new Set(relationships.filter(group => group.includes(name)).flat()),
+    ]
         .filter(related => related !== name)
         .sort((a, b) => a.localeCompare(b, 'en'));
 }

@@ -1,4 +1,6 @@
-export const exampleFields: { [name: string]: [record: string, fields: string[]] } = {
+export const exampleFields: {
+    [name: string]: [record: string, fields: string[]];
+} = {
     required: ['person', ['name', 'followUp', 'followUpNotes']],
     formatter: ['money', ['amount']],
     visible: ['delivery', ['fulfillment', 'address']],
@@ -21,10 +23,15 @@ export const exampleFields: { [name: string]: [record: string, fields: string[]]
     inputMask: ['probes', ['input']],
     reducer: ['probes', ['firstAmount', 'secondAmount', 'thirdAmount']],
 };
-export const exampleTables: { [name: string]: [recordset: string, columns: string[]] } = {
+export const exampleTables: {
+    [name: string]: [recordset: string, columns: string[]];
+} = {
     columnClass: ['columnClassRecordset', ['day', 'amount']],
     cellClass: ['cellClassRecordset', ['day', 'amount']],
-    compareFunction: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
+    compareFunction: [
+        'compareRecordset',
+        ['firstName', 'lastName', 'shirtSize'],
+    ],
     sortable: ['compareRecordset', ['firstName', 'lastName', 'shirtSize']],
     filter: ['filterRecordset', ['name', 'team']],
     rowClass: ['rowClassRecordset', ['status', 'owner']],
@@ -40,7 +47,10 @@ export function exampleMarkup(name: string): string | undefined {
     if (exampleFields[name]) {
         const [record, names] = exampleFields[name];
         const markup = names
-            .map(field => `<fdl-field\n  .record=\${${record}}\n  field="${field}"\n></fdl-field>`)
+            .map(
+                field =>
+                    `<fdl-field\n  .record=\${${record}}\n  field="${field}"\n></fdl-field>`
+            )
             .join('\n\n');
         if (name === 'formatter')
             return `${markup}\n\n<div class="formatted">\n  <span>Formatted output</span>\n  <strong>\n    \${money.getFormattedField('amount', 'print')}\n  </strong>\n</div>`;

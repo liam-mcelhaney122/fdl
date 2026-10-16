@@ -1,13 +1,20 @@
 import { modifierSignatures } from './modifier-signatures';
 import { validatorExamples } from './validator-examples';
-import { inputTypeInitialValue, inputTypeNeedsNumber } from './input-type-example';
+import {
+    inputTypeInitialValue,
+    inputTypeNeedsNumber,
+} from './input-type-example';
 import type { inputType } from '../../types/input-types.types';
 import { assigneeDirectory, optionsDelay } from './assignee-options';
 import { shirtOrders, compareShirtSizesSource } from './shirt-size-example';
 import { weeklyExpenses, expenseHighlightThreshold } from './weekly-expenses';
 import { disabledFieldStyles } from './field-example-styles';
 import { tableExampleStyles } from './table-example-styles';
-import { exampleFields, exampleTables, exampleMarkup } from './modifier-example-markup';
+import {
+    exampleFields,
+    exampleTables,
+    exampleMarkup,
+} from './modifier-example-markup';
 
 export type ExampleSettings = {
     required?: boolean;
@@ -42,8 +49,12 @@ const choose = (label: string, choices: string[][]) =>
         )})`
     );
 const peopleFields = {
-    firstName: type("label('First name').compareFunction((a, b) => a.localeCompare(b))"),
-    lastName: type("label('Last name').compareFunction((a, b) => a.localeCompare(b))"),
+    firstName: type(
+        "label('First name').compareFunction((a, b) => a.localeCompare(b))"
+    ),
+    lastName: type(
+        "label('Last name').compareFunction((a, b) => a.localeCompare(b))"
+    ),
 };
 
 /** Complete model declarations paired with the bindings in modifier-example-markup. */
@@ -96,7 +107,9 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         defaultValue: {
             name: 'defaultRecord',
             fields: {
-                documentTitle: type("label('Document title').defaultValue('Untitled document')"),
+                documentTitle: type(
+                    "label('Document title').defaultValue('Untitled document')"
+                ),
             },
             values: { documentTitle: 'Quarterly plan' },
         },
@@ -112,7 +125,11 @@ function modelFor(name: string, settings: ExampleSettings): Model {
                     "label('Budget').type('number').disabled(record => record.getField('approvalStatus') === 'approved')"
                 ),
             },
-            values: { lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000 },
+            values: {
+                lockedId: 'SYS-77',
+                approvalStatus: 'draft',
+                budget: 5000,
+            },
         },
         emptyWhen: {
             name: 'record',
@@ -146,7 +163,11 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         },
         minLength: {
             name: 'record',
-            fields: { longCode: type(`label('Access code').minLength(${settings.minimum ?? 4})`) },
+            fields: {
+                longCode: type(
+                    `label('Access code').minLength(${settings.minimum ?? 4})`
+                ),
+            },
             values: { longCode: '' },
         },
         multipleValues: {
@@ -171,14 +192,19 @@ function modelFor(name: string, settings: ExampleSettings): Model {
                 assignee: type(`label('Assignee (function)').options(record =>
       directory[record.getField('department')]
     )`),
-                asyncAssignee: type(`label('Assignee (async function)').options(async record => {
+                asyncAssignee:
+                    type(`label('Assignee (async function)').options(async record => {
       const choices = directory[record.getField('department')];
       // Simulate an asynchronous directory lookup.
       await new Promise(resolve => setTimeout(resolve, ${optionsDelay}));
       return choices;
     })`),
             },
-            values: { department: 'engineering', assignee: 'margaret', asyncAssignee: 'margaret' },
+            values: {
+                department: 'engineering',
+                assignee: 'margaret',
+                asyncAssignee: 'margaret',
+            },
         },
         parser: {
             name: 'record',
@@ -220,7 +246,11 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         rowCount: {
             name: 'record',
             prefix: '// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',
-            fields: { comments: type(`label('Comments').rowCount(${settings.rows ?? 4})`) },
+            fields: {
+                comments: type(
+                    `label('Comments').rowCount(${settings.rows ?? 4})`
+                ),
+            },
             values: { comments: '' },
         },
         type: {
@@ -230,7 +260,9 @@ function modelFor(name: string, settings: ExampleSettings): Model {
                     `label('Example: ${settings.inputType ?? 'text'}').type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.parser(Number)' : ''}`
                 ),
             },
-            values: { inputValue: inputTypeInitialValue(settings.inputType ?? 'text') },
+            values: {
+                inputValue: inputTypeInitialValue(settings.inputType ?? 'text'),
+            },
         },
         validator: {
             name: 'record',
@@ -239,14 +271,19 @@ function modelFor(name: string, settings: ExampleSettings): Model {
       name: 'must be a valid email address',
       validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)),
     })`),
-                orderQuantity: type(`label('Order quantity').type('number').parser(Number)
+                orderQuantity:
+                    type(`label('Order quantity').type('number').parser(Number)
     .validator({name: 'must be a whole number', validate: value => Number.isInteger(value)})
     .validator({name: 'must be between 1 and 12', validate: value => value >= 1 && value <= 12})`),
                 username: type(`label('Username')
     .validator({name: 'must start with a letter', validate: value => /^[A-Za-z]/.test(String(value))})
     .validator({name: 'must contain only letters, numbers, or underscores', validate: value => /^[A-Za-z0-9_]+$/.test(String(value))})`),
             },
-            values: { email: 'ada@', orderQuantity: 2.5, username: '7bad-name' },
+            values: {
+                email: 'ada@',
+                orderQuantity: 2.5,
+                username: '7bad-name',
+            },
         },
         hashFunction: {
             name: 'probes',
@@ -265,7 +302,9 @@ const hashType = employees.fieldTypeForField('employee');`,
         },
         inputMask: {
             name: 'probes',
-            fields: { input: type("label('Digits and periods').inputMask(/[0-9.]/)") },
+            fields: {
+                input: type("label('Digits and periods').inputMask(/[0-9.]/)"),
+            },
             values: { input: '7.5' },
         },
         reducer: {
@@ -314,13 +353,18 @@ const hashType = employees.fieldTypeForField('employee');`,
             fields: {
                 firstName: peopleFields.firstName,
                 lastName: peopleFields.lastName,
-                shirtSize: type("label('T-shirt size').compareFunction(compareShirtSizes)"),
+                shirtSize: type(
+                    "label('T-shirt size').compareFunction(compareShirtSizes)"
+                ),
             },
             values: shirtOrders,
         },
         sortable: {
             name: 'compareRecordset',
-            fields: { ...peopleFields, shirtSize: type("label('T-shirt size').sortable(false)") },
+            fields: {
+                ...peopleFields,
+                shirtSize: type("label('T-shirt size').sortable(false)"),
+            },
             values: shirtOrders,
         },
         filter: {
@@ -385,13 +429,19 @@ const hashType = employees.fieldTypeForField('employee');`,
         },
     };
     if (tables[name]) return { ...tables[name], kind: 'Recordset' };
-    const widths: { [key: string]: [label: string, chain: string, text: string] } = {
+    const widths: {
+        [key: string]: [label: string, chain: string, text: string];
+    } = {
         maxColumnWidth: [
             'Maximum (180px)',
             '.minColumnWidth(80).maxColumnWidth(180)',
             'Stops growing at 180px',
         ],
-        minColumnWidth: ['Minimum (110px)', '.minColumnWidth(110)', 'Stops shrinking at 110px'],
+        minColumnWidth: [
+            'Minimum (110px)',
+            '.minColumnWidth(110)',
+            'Stops shrinking at 110px',
+        ],
         targetColumnWidth: [
             'Preferred (140px)',
             '.minColumnWidth(80).targetColumnWidth(140).maxColumnWidth(220)',
@@ -407,7 +457,9 @@ const hashType = employees.fieldTypeForField('employee');`,
                 constrained: type(`label('${label}')${chain}`),
                 flexible: type("label('Flexible').minColumnWidth(80)"),
             },
-            values: [{ constrained: text, flexible: 'Makes up the difference' }],
+            values: [
+                { constrained: text, flexible: 'Makes up the difference' },
+            ],
         };
     }
     const contracts: { [key: string]: string } = {
@@ -417,7 +469,9 @@ const hashType = employees.fieldTypeForField('employee');`,
     if (contracts[name])
         return {
             name: 'record',
-            fields: { value: type(`label('Adapter value').${contracts[name]}`) },
+            fields: {
+                value: type(`label('Adapter value').${contracts[name]}`),
+            },
             values: { value: null },
         };
     throw new Error(`Missing complete example for ${name}`);
@@ -438,14 +492,19 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const exports = [model.name, ...(helpers[name] ?? [])];
     const modelFile = `${name}-model.js`;
     const uiFile = `${name}-view.js`;
-    const legacyAdapter = Object.values(model.fields).some(chain => /\.rowCount\(/.test(chain));
+    const legacyAdapter = Object.values(model.fields).some(chain =>
+        /\.rowCount\(/.test(chain)
+    );
     const compatibility = legacyAdapter
         ? '// Adapter compatibility: rowCount() configures textarea sizing in this legacy example renderer.\n// Choose control selection and textarea sizing in your adapter for new integrations.\n'
         : '';
     const definition = `${name === 'template' ? `import { html } from 'lit';` : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}${compatibility}const ${model.name} = new ${kind}({\n${Object.entries(
         model.fields
     )
-        .map(([key, value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`)
+        .map(
+            ([key, value]) =>
+                `  ${key}: ${value.replace(modifierCall, '\n    .')},`
+        )
         .join(
             '\n'
         )}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
@@ -467,7 +526,10 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
         );
         markup = markup
             .replace("person.isValid('name')", 'person.isValid()')
-            .replace("person.readableFieldErrors('name')", 'person.readableRecordErrors()');
+            .replace(
+                "person.readableFieldErrors('name')",
+                'person.readableRecordErrors()'
+            );
     }
     if (name === 'validator') {
         setup = `const checked = new Set();`;
@@ -486,11 +548,13 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
             )
             .join('\n\n');
     if (name === 'defaultValue')
-        markup += '\n\n<button @click=${() => defaultRecord.clear()}>Clear the record</button>';
+        markup +=
+            '\n\n<button @click=${() => defaultRecord.clear()}>Clear the record</button>';
     if (name === 'maxLength')
         markup += `\n\n<button @click=\${() => {\n  checked = true;\n  record.setField('shortCode', 'THIS-CODE-IS-TOO-LONG');\n}}>Assign an overlong model value</button>`;
 
-    if (name === 'parser') markup += `\n\n<p>Stored number: \${record.getField('money')}</p>`;
+    if (name === 'parser')
+        markup += `\n\n<p>Stored number: \${record.getField('money')}</p>`;
     if (name === 'hashFunction')
         markup += `\n\n<p role="status">\n  \${hashType.hashFunction()({ id: probes.getField('firstId') }) ===\n    hashType.hashFunction()({ id: probes.getField('secondId') })\n    ? 'Same identity' : 'Different identities'}\n</p>`;
     if (name === 'reducer')

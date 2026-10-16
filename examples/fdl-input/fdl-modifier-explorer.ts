@@ -21,7 +21,10 @@ import { keyed } from 'lit/directives/keyed.js';
 import Record from '../../record.js';
 import './fdl-field';
 import './fdl-modifier-catalog';
-import { additionalRecipes, type ExplorerRecipe } from './modifier-explorer-recipes';
+import {
+    additionalRecipes,
+    type ExplorerRecipe,
+} from './modifier-explorer-recipes';
 
 export const explorerRecipes: ExplorerRecipe[] = [
     {
@@ -90,7 +93,10 @@ export class FdlModifierExplorer extends LitElement {
         }
         return this.compositionView.element;
     }
-    private learningState = { step: 0, values: { method: 'ship', charge: '$25.00' as any } };
+    private learningState = {
+        step: 0,
+        values: { method: 'ship', charge: '$25.00' as any },
+    };
     private selected = 0;
     private navigationOpen = false;
     private get modifierName() {
@@ -114,10 +120,15 @@ export class FdlModifierExplorer extends LitElement {
     private tooltipTimer?: ReturnType<typeof setTimeout>;
     private showTooltip(event: Event, recipe: ExplorerRecipe) {
         clearTimeout(this.tooltipTimer);
-        const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        const bounds = (
+            event.currentTarget as HTMLElement
+        ).getBoundingClientRect();
         this.tooltip = {
             recipe,
-            left: Math.max(8, Math.min(bounds.right + 8, window.innerWidth - 436)),
+            left: Math.max(
+                8,
+                Math.min(bounds.right + 8, window.innerWidth - 436)
+            ),
             top: Math.max(8, Math.min(bounds.top, window.innerHeight - 240)),
         };
         this.requestUpdate();
@@ -179,8 +190,12 @@ export class FdlModifierExplorer extends LitElement {
     );
     private refresh = () => this.requestUpdate();
     private closeCategoryMenu = (event: Event) => {
-        const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('.category-filters');
-        if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+        const menu =
+            this.shadowRoot?.querySelector<HTMLDetailsElement>(
+                '.category-filters'
+            );
+        if (menu?.open && !event.composedPath().includes(menu))
+            menu.open = false;
     };
     private readLocation = (event?: Event) => {
         const route = window.location.hash.slice(1).split('?')[0];
@@ -195,12 +210,13 @@ export class FdlModifierExplorer extends LitElement {
         if (page || !hash) {
             this.showPage(page?.id ?? 'home', false, Boolean(event));
             if (page?.id === 'categories') {
-                const category = new URLSearchParams(window.location.hash.split('?')[1]).get(
-                    'category'
-                );
+                const category = new URLSearchParams(
+                    window.location.hash.split('?')[1]
+                ).get('category');
                 if (category)
                     this.updateComplete.then(() => {
-                        const heading = this.shadowRoot?.getElementById(category);
+                        const heading =
+                            this.shadowRoot?.getElementById(category);
                         heading?.focus({ preventScroll: true });
                         heading?.scrollIntoView?.({ block: 'start' });
                     });
@@ -252,8 +268,11 @@ export class FdlModifierExplorer extends LitElement {
         if (index < 0 || index >= recipes.length) return;
         const changed =
             this.page !== 'modifier' ||
-            !modifierPage(this.modifierName).names.includes(recipes[index].name);
-        const targetChanged = this.page !== 'modifier' || this.selected !== index;
+            !modifierPage(this.modifierName).names.includes(
+                recipes[index].name
+            );
+        const targetChanged =
+            this.page !== 'modifier' || this.selected !== index;
         this.page = 'modifier';
         this.navigationOpen = false;
         this.selected = index;
@@ -264,7 +283,9 @@ export class FdlModifierExplorer extends LitElement {
         this.requestUpdate();
         this.updateComplete.then(() =>
             this.shadowRoot
-                ?.querySelector<HTMLElement>('.modifier-list [aria-current="page"]')
+                ?.querySelector<HTMLElement>(
+                    '.modifier-list [aria-current="page"]'
+                )
                 ?.scrollIntoView?.({ block: 'nearest' })
         );
         if (updateUrl) {
@@ -301,7 +322,11 @@ export class FdlModifierExplorer extends LitElement {
         if (name === 'required') {
             this.checked = false;
             this.requiredRule = true;
-            this.person.addField('name', field.label('Legal name').required(), '');
+            this.person.addField(
+                'name',
+                field.label('Legal name').required(),
+                ''
+            );
             this.person.setField('followUp', 'no');
             this.person.setField('followUpNotes', '');
         }
@@ -323,7 +348,9 @@ export class FdlModifierExplorer extends LitElement {
                         type="checkbox"
                         .checked=${this.requiredRule}
                         @change=${(event: Event) => {
-                            this.requiredRule = (event.target as HTMLInputElement).checked;
+                            this.requiredRule = (
+                                event.target as HTMLInputElement
+                            ).checked;
                             const base = field.label('Legal name');
                             this.person.addField(
                                 'name',
@@ -335,7 +362,8 @@ export class FdlModifierExplorer extends LitElement {
                     />
                     Require a value</label
                 >
-                ${this.field(this.person, 'name')} ${this.field(this.person, 'followUp')}
+                ${this.field(this.person, 'name')}
+                ${this.field(this.person, 'followUp')}
                 ${this.field(this.person, 'followUpNotes')}
                 ${explainDependency(this.person, 'followUpNotes', 'followUp', `followUp === 'yes'`, 'required')}
                 <button
@@ -355,14 +383,19 @@ export class FdlModifierExplorer extends LitElement {
                 >
                 <div class="formatted"
                     ><span>Formatted output</span
-                    ><strong>${this.money.getFormattedField('amount', 'print')}</strong></div
+                    ><strong
+                        >${this.money.getFormattedField('amount', 'print')}</strong
+                    ></div
                 >
-                <p class="result">The formatter leaves the stored number unchanged.</p
+                <p class="result"
+                    >The formatter leaves the stored number unchanged.</p
                 >${valuePipeline(this.money, 'amount', this.amountInput)}`;
         if (!['required', 'formatter', 'visible'].includes(name))
             return html`<fdl-modifier-catalog
                 modifier=${name}
-                @example-settings-change=${(event: CustomEvent<ExampleSettings>) => {
+                @example-settings-change=${(
+                    event: CustomEvent<ExampleSettings>
+                ) => {
                     this.exampleSettings[name] = event.detail;
                     this.requestUpdate();
                 }}
@@ -378,7 +411,9 @@ export class FdlModifierExplorer extends LitElement {
             ...this.exampleSettings[recipe.name],
             required: this.requiredRule,
         });
-        const standaloneDemo = ['required', 'formatter', 'visible'].includes(recipe.name);
+        const standaloneDemo = ['required', 'formatter', 'visible'].includes(
+            recipe.name
+        );
         const model =
             recipe.name === 'required'
                 ? this.person
@@ -414,8 +449,12 @@ export class FdlModifierExplorer extends LitElement {
                     >${recipe.limitation ? html`` : html`<button class="reset" @click=${() => this.reset(recipe.name)}>Reset example ↺</button>`}</div
                 >
                 <p class="instruction">${recipe.prompt}</p>
-                <div class=${!standaloneDemo ? 'demo-grid catalog-demo' : 'demo-grid'}
-                    ><div class="controls" role="group" aria-label="Current modifier effect"
+                <div
+                    class=${!standaloneDemo ? 'demo-grid catalog-demo' : 'demo-grid'}
+                    ><div
+                        class="controls"
+                        role="group"
+                        aria-label="Current modifier effect"
                         >${keyed(`${recipe.name}-${this.resetVersions[recipe.name] ?? 0}`, this.demo(recipe.name))}</div
                     >${
                         standaloneDemo
@@ -423,8 +462,11 @@ export class FdlModifierExplorer extends LitElement {
                                   ><p class="eyebrow">IN THE RECORD</p
                                   >${recordSummary(model)}<details
                                       ><summary>Inspect full JSON</summary
-                                      ><pre>${JSON.stringify(model.values, null, 2)}</pre></details
-                                  ><div class="model-foot">Actual FDL model state</div></div
+                                      ><pre>
+${JSON.stringify(model.values, null, 2)}</pre></details
+                                  ><div class="model-foot"
+                                      >Actual FDL model state</div
+                                  ></div
                               >`
                             : ''
                     }</div
@@ -432,18 +474,22 @@ export class FdlModifierExplorer extends LitElement {
             </section>
             <div class="details">
                 <p class="source-intro"
-                    >Starting values are shown below. These two files require the repository’s
-                    example adapters and their dependencies. Read
-                    <a href="#quickstart">setup and adapter prerequisites</a> before copying them.
-                    Save the model and view in the same folder within that environment. The model
-                    file exports the record and the Lit file imports it to render the core example
-                    with its current rules. The demo’s teaching panels and rule selectors are
-                    omitted.</p
+                    >Starting values are shown below. These two files require
+                    the repository’s example adapters and their dependencies.
+                    Read
+                    <a href="#quickstart">setup and adapter prerequisites</a>
+                    before copying them. Save the model and view in the same
+                    folder within that environment. The model file exports the
+                    record and the Lit file imports it to render the core
+                    example with its current rules. The demo’s teaching panels
+                    and rule selectors are omitted.</p
                 >
                 ${/\.rowCount\(/.test(source.definition) ? html`<p class="compatibility-note"><strong>Example adapter compatibility:</strong> <code>rowCount()</code> sizes this textarea. It is a deprecated compatibility API. Keep control selection and sizing in your adapter for new integrations; the reusable rules remain in the field model. <a href="#integration">Read the adapter boundary.</a></p>` : ''}
                 <section class="code-section"
                     ><div class="detail-heading"
-                        ><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3
+                        ><h3
+                            >Define the
+                            ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3
                         ><span><code>${source.modelFile}</code></span></div
                     >><pre
                         class="code"
@@ -451,27 +497,37 @@ export class FdlModifierExplorer extends LitElement {
                 </section>
                 <section class="markup-section"
                     ><div class="detail-heading"
-                        ><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div
+                        ><h3>Render with Lit</h3
+                        ><span><code>${source.uiFile}</code></span></div
                     >
                     <p class="markup-note"
                         >This file imports <code>${source.modelName}</code> from
                         <code>./${source.modelFile}</code
                         >.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p
-                    >><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
+                    >><pre
+                        class="code markup"
+                    ><code>${highlightJavaScript(source.ui)}</code></pre>
                 </section>
                 ${
                     source.styles
                         ? html`<section class="css-section"
                               ><div class="detail-heading"
                                   ><h3>Style the example</h3
-                                  ><span>CSS · ${source.stylesComponent}</span></div
+                                  ><span
+                                      >CSS · ${source.stylesComponent}</span
+                                  ></div
                               >
                               <p class="markup-note"
-                                  >These rules live in <code>${source.stylesComponent}</code>’s
-                                  shadow-root stylesheet (<code>static styles</code>).
+                                  >These rules live in
+                                  <code>${source.stylesComponent}</code>’s
+                                  shadow-root stylesheet (<code
+                                      >static styles</code
+                                  >).
                                   ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p
                               >
-                              <pre class="code example-css"><code>${source.styles}</code></pre>
+                              <pre
+                                  class="code example-css"
+                              ><code>${source.styles}</code></pre>
                           </section>`
                         : ''
                 }
@@ -480,17 +536,25 @@ export class FdlModifierExplorer extends LitElement {
                     ><h3>What happens</h3
                     ><ol
                         >${recipe.steps.map(step => html`<li>${step}</li>`)}</ol
-                    ><p class="use"><strong>Good for</strong>${recipe.use}</p></section
+                    ><p class="use"
+                        ><strong>Good for</strong>${recipe.use}</p
+                    ></section
                 ></div
             >
             <section class="note"
-                ><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section
+                ><div
+                    ><h3>Behavior details</h3><p>${recipe.note}</p></div
+                ></section
             >
-            <section class="related-modifiers" aria-labelledby=${`${recipe.name}-related-title`}
+            <section
+                class="related-modifiers"
+                aria-labelledby=${`${recipe.name}-related-title`}
                 ><h3 id=${`${recipe.name}-related-title`}>Related modifiers</h3
                 ><ul
                     >${relatedModifierNames(recipe.name).map(name => {
-                        const related = recipes.find(entry => entry.name === name)!;
+                        const related = recipes.find(
+                            entry => entry.name === name
+                        )!;
                         return html`<li
                             ><a
                                 href=${`#${name}`}
@@ -509,16 +573,22 @@ export class FdlModifierExplorer extends LitElement {
     render() {
         const recipe = recipes[this.selected];
         const group = modifierPage(recipe.name);
-        const categories = [...new Set(recipes.map(entry => entry.category))].sort();
+        const categories = [
+            ...new Set(recipes.map(entry => entry.category)),
+        ].sort();
         const filtered = recipes
             .map((entry, index) => ({ entry, index }))
             .filter(
                 ({ entry }) =>
                     (this.selectedCategories.size === 0 ||
                         this.selectedCategories.has(entry.category)) &&
-                    entry.name.toLowerCase().includes(this.query.toLowerCase().trim())
+                    entry.name
+                        .toLowerCase()
+                        .includes(this.query.toLowerCase().trim())
             );
-        const filtering = Boolean(this.query.trim() || this.selectedCategories.size);
+        const filtering = Boolean(
+            this.query.trim() || this.selectedCategories.size
+        );
         const pages = filtered
             .filter(
                 (item, index) =>
@@ -529,7 +599,9 @@ export class FdlModifierExplorer extends LitElement {
                     ) === index
             )
             .map(item => {
-                const name = filtering ? item.entry.name : modifierPage(item.entry.name).names[0];
+                const name = filtering
+                    ? item.entry.name
+                    : modifierPage(item.entry.name).names[0];
                 const index = recipes.findIndex(entry => entry.name === name);
                 return { entry: recipes[index], index };
             });
@@ -543,7 +615,8 @@ export class FdlModifierExplorer extends LitElement {
                 href="#main-content"
                 @click=${(event: Event) => {
                     event.preventDefault();
-                    const main = this.shadowRoot?.getElementById('main-content');
+                    const main =
+                        this.shadowRoot?.getElementById('main-content');
                     main?.focus({ preventScroll: true });
                     main?.scrollIntoView?.({ block: 'start' });
                 }}
@@ -559,9 +632,13 @@ export class FdlModifierExplorer extends LitElement {
                         this.showPage('home');
                     }}
                     >f<span>d</span>l<span class="brand-dot">.</span></a
-                ><span class="mast-label">FIELD DEFINITION LIBRARY</span></header
+                ><span class="mast-label"
+                    >FIELD DEFINITION LIBRARY</span
+                ></header
             >
-            <div class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}>
+            <div
+                class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}
+            >
                 <button
                     class="mobile-browse"
                     aria-expanded=${this.navigationOpen}
@@ -573,7 +650,9 @@ export class FdlModifierExplorer extends LitElement {
                     ><span>Browse modifiers</span
                     ><small
                         >${this.page === 'modifier' ? `.${recipe.name}()` : sitePages.find(entry => entry.id === this.page)?.title}</small
-                    ><span aria-hidden="true">${this.navigationOpen ? '−' : '+'}</span></button
+                    ><span aria-hidden="true"
+                        >${this.navigationOpen ? '−' : '+'}</span
+                    ></button
                 >
                 <aside id="site-navigation">
                     <nav class="site-nav" aria-label="Site pages"
@@ -596,13 +675,23 @@ export class FdlModifierExplorer extends LitElement {
                     >
                         <div class="modifier-tools"
                             ><div class="modifier-heading"
-                                ><h2 id="modifier-navigation-title" class="eyebrow"
+                                ><h2
+                                    id="modifier-navigation-title"
+                                    class="eyebrow"
                                     >Modifiers</h2
                                 ></div
                             >
                             <div class="modifier-search-field"
-                                ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                                    <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                                ><svg
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        cx="10.5"
+                                        cy="10.5"
+                                        r="6.5"
+                                    ></circle>
                                     <path d="m16 16 4 4"></path>
                                 </svg>
                                 <input
@@ -613,7 +702,9 @@ export class FdlModifierExplorer extends LitElement {
                                     placeholder="Find a modifier…"
                                     .value=${this.query}
                                     @input=${(event: Event) => {
-                                        this.query = (event.target as HTMLInputElement).value;
+                                        this.query = (
+                                            event.target as HTMLInputElement
+                                        ).value;
                                         this.requestUpdate();
                                     }}
                             /></div>
@@ -621,7 +712,8 @@ export class FdlModifierExplorer extends LitElement {
                                 class="category-filters"
                                 @keydown=${(event: KeyboardEvent) => {
                                     if (event.key === 'Escape') {
-                                        const menu = event.currentTarget as HTMLDetailsElement;
+                                        const menu =
+                                            event.currentTarget as HTMLDetailsElement;
                                         menu.open = false;
                                         menu.querySelector('summary')?.focus();
                                         event.stopPropagation();
@@ -632,15 +724,21 @@ export class FdlModifierExplorer extends LitElement {
                                     aria-label=${`Filter modifiers by category: ${this.selectedCategories.size ? [...this.selectedCategories].join(', ') : 'all categories'}`}
                                     ><span
                                         >${this.selectedCategories.size === 0 ? 'All categories' : this.selectedCategories.size === 1 ? [...this.selectedCategories][0] : `${this.selectedCategories.size} categories`}</span
-                                    ><svg aria-hidden="true" viewBox="0 0 16 16">
+                                    ><svg
+                                        aria-hidden="true"
+                                        viewBox="0 0 16 16"
+                                    >
                                         <path d="m4 6 4 4 4-4"></path></svg
                                 ></summary>
                                 <div class="category-menu">
                                     <fieldset class="categories">
                                         <legend class="visually-hidden"
-                                            >Filter modifiers by category</legend
+                                            >Filter modifiers by
+                                            category</legend
                                         >
-                                        <p class="category-hint">Select any combination.</p>
+                                        <p class="category-hint"
+                                            >Select any combination.</p
+                                        >
                                         <div class="category-options"
                                             >${categories.map(
                                                 category =>
@@ -648,7 +746,9 @@ export class FdlModifierExplorer extends LitElement {
                                                         ><input
                                                             type="checkbox"
                                                             .checked=${this.selectedCategories.has(category)}
-                                                            @change=${(event: Event) => {
+                                                            @change=${(
+                                                                event: Event
+                                                            ) => {
                                                                 if (
                                                                     (
                                                                         event.target as HTMLInputElement
@@ -682,7 +782,9 @@ export class FdlModifierExplorer extends LitElement {
                                                     event.currentTarget as HTMLElement
                                                 ).closest('details')!;
                                                 menu.open = false;
-                                                menu.querySelector('summary')?.focus();
+                                                menu.querySelector(
+                                                    'summary'
+                                                )?.focus();
                                             }}
                                             >Done</button
                                         ></div
@@ -690,7 +792,8 @@ export class FdlModifierExplorer extends LitElement {
                                 ></details
                             >
                             ${
-                                this.query.trim() || this.selectedCategories.size
+                                this.query.trim() ||
+                                this.selectedCategories.size
                                     ? html`<div class="filter-status"
                                           ><button
                                               class="clear-filters"
@@ -700,8 +803,11 @@ export class FdlModifierExplorer extends LitElement {
                                                   this.requestUpdate();
                                               }}
                                               >Clear filters</button
-                                          ><span class="match-count" role="status"
-                                              >(${filtered.length} of ${recipes.length} shown)</span
+                                          ><span
+                                              class="match-count"
+                                              role="status"
+                                              >(${filtered.length} of
+                                              ${recipes.length} shown)</span
                                           ></div
                                       >`
                                     : ''
@@ -718,7 +824,8 @@ export class FdlModifierExplorer extends LitElement {
                                         @focus=${(event: Event) => this.showTooltip(event, entry)}
                                         @blur=${this.hideTooltip}
                                         @keydown=${(event: KeyboardEvent) => {
-                                            if (event.key === 'Escape') this.hideTooltip();
+                                            if (event.key === 'Escape')
+                                                this.hideTooltip();
                                         }}
                                         aria-label=${`${entry.name} — ${entry.category}`}
                                         aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'}
@@ -776,7 +883,9 @@ export class FdlModifierExplorer extends LitElement {
                                                   this.categoryTooltip = false;
                                                   this.requestUpdate();
                                               }}
-                                              @keydown=${(event: KeyboardEvent) => {
+                                              @keydown=${(
+                                                  event: KeyboardEvent
+                                              ) => {
                                                   if (event.key === 'Escape') {
                                                       this.categoryTooltip = false;
                                                       this.requestUpdate();
@@ -796,15 +905,21 @@ export class FdlModifierExplorer extends LitElement {
                                                     name =>
                                                         html`<a
                                                             href=${`#${name}`}
-                                                            @click=${(event: Event) => {
+                                                            @click=${(
+                                                                event: Event
+                                                            ) => {
                                                                 event.preventDefault();
                                                                 this.select(
                                                                     recipes.findIndex(
-                                                                        entry => entry.name === name
+                                                                        entry =>
+                                                                            entry.name ===
+                                                                            name
                                                                     )
                                                                 );
                                                             }}
-                                                            ><code>.${name}()</code></a
+                                                            ><code
+                                                                >.${name}()</code
+                                                            ></a
                                                         >`
                                                 )}</nav
                                             >`

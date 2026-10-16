@@ -5,7 +5,6 @@ import ts from 'typescript';
 
 const check = process.argv.includes('--check');
 const directory = 'examples/fdl-input';
-const config = await prettier.resolveConfig(directory);
 let changed = 0;
 
 // Prettier formats source files and tagged HTML/CSS templates, but leaves plain
@@ -13,6 +12,7 @@ let changed = 0;
 for (const file of await readdir(directory)) {
     if (!file.endsWith('.ts')) continue;
     const path = join(directory, file);
+    const config = await prettier.resolveConfig(path);
     const source = await readFile(path, 'utf8');
     const ast = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
     const literals = [];

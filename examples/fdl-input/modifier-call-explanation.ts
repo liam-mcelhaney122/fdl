@@ -1,5 +1,9 @@
 /** Learner-facing descriptions of the cookbook's modifier calls. Never evaluate source. */
-export function explainModifierCall(chain: string, modifier: string, call: string): string {
+export function explainModifierCall(
+    chain: string,
+    modifier: string,
+    call: string
+): string {
     const label = /\.label\(\s*(['"])(.*?)\1\s*\)/.exec(chain)?.[2];
     const target = label ? `“${label}”` : 'this field';
     const argument = call.slice(call.indexOf('(') + 1, -1).trim();
@@ -39,10 +43,11 @@ export function explainModifierCall(chain: string, modifier: string, call: strin
                 : `Checks ${target} against this validation rule; a failing value makes the field invalid.`;
         }
         case 'options': {
-            const choices = [...argument.matchAll(/\btext\s*:\s*(['"])(.*?)\1/g)].map(
-                match => `“${match[2]}”`
-            );
-            if (choices.length) return `Offers ${choices.join(', ')} as choices for ${target}.`;
+            const choices = [
+                ...argument.matchAll(/\btext\s*:\s*(['"])(.*?)\1/g),
+            ].map(match => `“${match[2]}”`);
+            if (choices.length)
+                return `Offers ${choices.join(', ')} as choices for ${target}.`;
             if (argument.includes('department'))
                 return `Updates the available assignees to match the selected department${argument.includes('async') ? ', after the directory lookup finishes' : ''}.`;
             return `Supplies the available choices for ${target} from this options configuration.`;
@@ -137,7 +142,10 @@ function conditionMeaning(argument: string): string {
     if (/getField\(['"]method['"]\)\s*===\s*['"]ship['"]/.test(argument))
         return 'the selected delivery method is shipping';
     if (argument === 'isInternational') return 'the country is outside the US';
-    const equality = /getField\(['"]([^'"]+)['"]\)\s*(===|!==)\s*['"]([^'"]+)['"]/.exec(argument);
+    const equality =
+        /getField\(['"]([^'"]+)['"]\)\s*(===|!==)\s*['"]([^'"]+)['"]/.exec(
+            argument
+        );
     if (equality) {
         const names: { [key: string]: string } = {
             followUp: 'follow-up',
@@ -147,7 +155,8 @@ function conditionMeaning(argument: string): string {
             country: 'country',
             condition: 'condition',
         };
-        if (equality[1] === 'followUp' && equality[3] === 'yes') return 'follow-up is needed';
+        if (equality[1] === 'followUp' && equality[3] === 'yes')
+            return 'follow-up is needed';
         return `the ${names[equality[1]] ?? equality[1]} is ${equality[2] === '!==' ? 'not ' : ''}${equality[3]}`;
     }
     return 'the condition supplied here is true';

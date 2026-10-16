@@ -48,7 +48,11 @@ export class FdlCompositionExperiment extends LitElement {
         this.continuation?.method ?? 'ship',
         '42 Orchard Street'
     );
-    private savedCases: { rules: CompositionRules; method: string; address: string }[] = [];
+    private savedCases: {
+        rules: CompositionRules;
+        method: string;
+        address: string;
+    }[] = [];
     private caseNotice = '';
     private appliedRules = JSON.stringify(this.rules);
     private refresh = () => this.requestUpdate();
@@ -76,7 +80,9 @@ export class FdlCompositionExperiment extends LitElement {
     private selectCase(method: string, value: string) {
         this.record.setFields({ fulfillment: method, address: value });
         this.updateComplete.then(() => {
-            const heading = this.shadowRoot?.querySelector<HTMLElement>('#selected-case-title');
+            const heading = this.shadowRoot?.querySelector<HTMLElement>(
+                '#selected-case-title'
+            );
             heading?.focus({ preventScroll: true });
             heading?.scrollIntoView?.({ block: 'nearest' });
         });
@@ -87,29 +93,41 @@ export class FdlCompositionExperiment extends LitElement {
             method: this.record.getField('fulfillment'),
             address: this.record.getField('address'),
         };
-        if (this.savedCases.some(saved => JSON.stringify(saved) === JSON.stringify(sample)))
+        if (
+            this.savedCases.some(
+                saved => JSON.stringify(saved) === JSON.stringify(sample)
+            )
+        )
             this.caseNotice = 'This case is already kept.';
         else if (this.savedCases.length < 6) {
             this.savedCases = [...this.savedCases, sample];
-            this.caseNotice = 'Case kept with its rules. Change a rule to compare the outcome.';
+            this.caseNotice =
+                'Case kept with its rules. Change a rule to compare the outcome.';
         }
         this.requestUpdate();
     };
     private reset = () => {
         this.caseNotice = '';
         this.configuration.setFields({ ...defaultCompositionRules });
-        this.record.setFields({ fulfillment: 'ship', address: '42 Orchard Street' });
+        this.record.setFields({
+            fulfillment: 'ship',
+            address: '42 Orchard Street',
+        });
     };
     private outcomes() {
         return html`<p class="scroll-hint"
-                >Scroll the comparison horizontally to see all three address cases.</p
+                >Scroll the comparison horizontally to see all three address
+                cases.</p
             ><div
                 class="outcomes"
                 role="region"
                 aria-label="Delivery outcome comparison"
                 tabindex="0"
                 ><table
-                    ><caption>Two delivery methods × three kinds of stored address</caption>
+                    ><caption
+                        >Two delivery methods × three kinds of stored
+                        address</caption
+                    >
                     <thead
                         ><tr
                             ><th scope="col">Delivery method</th
@@ -128,14 +146,20 @@ export class FdlCompositionExperiment extends LitElement {
                                             method,
                                             sample.value
                                         );
-                                        const type = record.fieldTypeForField('address');
+                                        const type =
+                                            record.fieldTypeForField('address');
                                         const selected =
-                                            this.record.getField('fulfillment') === method &&
-                                            addressCase(this.record.getField('address')) ===
-                                                sample.id;
+                                            this.record.getField(
+                                                'fulfillment'
+                                            ) === method &&
+                                            addressCase(
+                                                this.record.getField('address')
+                                            ) === sample.id;
                                         const hiddenInvalid =
-                                            !type.visible(record.getField('address'), record) &&
-                                            !record.isValid();
+                                            !type.visible(
+                                                record.getField('address'),
+                                                record
+                                            ) && !record.isValid();
                                         return html`<td
                                             ><button
                                                 class="case"
@@ -168,14 +192,14 @@ export class FdlCompositionExperiment extends LitElement {
         return html`<section class="collected-cases"
             ><h3>Your kept cases</h3
             ><p
-                >Saved outcomes keep the rules from that moment. The last column applies the rules
-                currently selected above.</p
+                >Saved outcomes keep the rules from that moment. The last column
+                applies the rules currently selected above.</p
             ><div class="outcomes"
                 ><table
                     ><thead
                         ><tr
-                            ><th>Case</th><th>With saved rules</th><th>With current rules</th
-                            ><th>Actions</th></tr
+                            ><th>Case</th><th>With saved rules</th
+                            ><th>With current rules</th><th>Actions</th></tr
                         ></thead
                     ><tbody
                         >${this.savedCases.map((sample, index) => {
@@ -189,7 +213,9 @@ export class FdlCompositionExperiment extends LitElement {
                                     sample.method,
                                     sample.address
                                 );
-                            const describe = (record: ReturnType<typeof compositionRecord>) =>
+                            const describe = (
+                                record: ReturnType<typeof compositionRecord>
+                            ) =>
                                 `${record.fieldTypeForField('address').visible(record.getField('address'), record) ? 'Visible' : 'Hidden'} · ${record.fieldTypeForField('address').required(record.getField('address'), record) ? 'Required' : 'Optional'} · ${record.isValid() ? 'Valid' : 'Invalid'}`;
                             return html`<tr
                                 ><th scope="row"
@@ -204,16 +230,22 @@ export class FdlCompositionExperiment extends LitElement {
                                 ><td
                                     ><button
                                         @click=${() => {
-                                            this.configuration.setFields({ ...sample.rules });
-                                            this.selectCase(sample.method, sample.address);
+                                            this.configuration.setFields({
+                                                ...sample.rules,
+                                            });
+                                            this.selectCase(
+                                                sample.method,
+                                                sample.address
+                                            );
                                         }}
                                         >Restore case ${index + 1}</button
                                     ><button
                                         aria-label=${`Remove case ${index + 1}`}
                                         @click=${() => {
-                                            this.savedCases = this.savedCases.filter(
-                                                (_, i) => i !== index
-                                            );
+                                            this.savedCases =
+                                                this.savedCases.filter(
+                                                    (_, i) => i !== index
+                                                );
                                             this.requestUpdate();
                                         }}
                                         >Remove</button
@@ -237,20 +269,26 @@ export class FdlCompositionExperiment extends LitElement {
         const type = this.record.fieldTypeForField('address');
         const method = this.record.getField('fulfillment');
         const value = this.record.getField('address');
-        const visible = type.visible(this.record.getField('address'), this.record);
-        const required = type.required(this.record.getField('address'), this.record);
+        const visible = type.visible(
+            this.record.getField('address'),
+            this.record
+        );
+        const required = type.required(
+            this.record.getField('address'),
+            this.record
+        );
         const explanation = compositionExplanation(this.rules, method, value);
         const errors: string[] = this.record.readableFieldErrors('address');
         return html`<div class="state" role="status"
             ><h3>Why this result?</h3
             ><ol>
                 <li
-                    ><strong>Visibility:</strong> ${explanation.visibility} The control is
-                    ${visible ? 'visible' : 'hidden'}.</li
+                    ><strong>Visibility:</strong> ${explanation.visibility} The
+                    control is ${visible ? 'visible' : 'hidden'}.</li
                 >
                 <li
-                    ><strong>Requiredness:</strong> ${explanation.requiredness} The address is
-                    ${required ? 'required' : 'optional'}.</li
+                    ><strong>Requiredness:</strong> ${explanation.requiredness}
+                    The address is ${required ? 'required' : 'optional'}.</li
                 >
                 <li><strong>Format:</strong> ${explanation.format}</li> </ol
             ><p class="verdict"
@@ -267,8 +305,8 @@ export class FdlCompositionExperiment extends LitElement {
             }
             ${!visible && errors.length ? html`<p class="surprise">Hiding the control leaves the value and its validation rules in the model. Switch to shipping to edit it, or change the rules above.</p>` : ''}
             <p
-                >Stored address: <code>${JSON.stringify(value)}</code>. Switching delivery method
-                preserves it.</p
+                >Stored address: <code>${JSON.stringify(value)}</code>.
+                Switching delivery method preserves it.</p
             >
         </div>`;
     }
@@ -276,7 +314,9 @@ export class FdlCompositionExperiment extends LitElement {
         return html`<section aria-label="Composition experiment"
             ><div class="title-row"
                 ><p>Change one rule and compare all six outcomes.</p
-                ><button class="reset" @click=${this.reset}>Reset rules and example</button></div
+                ><button class="reset" @click=${this.reset}
+                    >Reset rules and example</button
+                ></div
             >
             ${
                 this.continuation
@@ -287,13 +327,14 @@ export class FdlCompositionExperiment extends LitElement {
                               <strong
                                   >${this.continuation.method === 'ship' ? 'Shipping' : 'Pickup'}</strong
                               >
-                              and stored charge <code>${this.continuation.charge}</code>. We keep
-                              the delivery method and carry this charge snapshot forward. Now add a
-                              shipping address.</p
+                              and stored charge
+                              <code>${this.continuation.charge}</code>. We keep
+                              the delivery method and carry this charge snapshot
+                              forward. Now add a shipping address.</p
                           ><p
-                              >The form and six outcomes below evaluate the address rules
-                              independently of the charge. This is a new record using the same
-                              delivery scenario.</p
+                              >The form and six outcomes below evaluate the
+                              address rules independently of the charge. This is
+                              a new record using the same delivery scenario.</p
                           ></section
                       >`
                     : ''
@@ -305,26 +346,32 @@ export class FdlCompositionExperiment extends LitElement {
                 ></section
             >
             <details class="prediction"
-                ><summary>Predict a case before inspecting it (optional)</summary
+                ><summary
+                    >Predict a case before inspecting it (optional)</summary
                 ><fdl-prediction .rules=${{ ...this.rules }}></fdl-prediction
             ></details>
             <section aria-label="Compare all outcomes"
                 ><h3>2. Compare the possibilities</h3
                 ><p
-                    >Each cell runs a real FDL record with the rules above. Select a cell to inspect
-                    its exact example. When you edit the form, the grid highlights the matching kind
-                    of case.</p
+                    >Each cell runs a real FDL record with the rules above.
+                    Select a cell to inspect its exact example. When you edit
+                    the form, the grid highlights the matching kind of case.</p
                 >${this.outcomes()}</section
             >
             <section class="selected-case" aria-labelledby="selected-case-title"
-                ><h3 id="selected-case-title" tabindex="-1">3. Inspect the selected case</h3
+                ><h3 id="selected-case-title" tabindex="-1"
+                    >3. Inspect the selected case</h3
                 ><div class="case-workspace"
                     ><div class="editor">
-                        <fdl-field .record=${this.record} field="fulfillment"></fdl-field>
+                        <fdl-field
+                            .record=${this.record}
+                            field="fulfillment"
+                        ></fdl-field>
                         ${keyed(this.record.fieldTypeForField('address'), html`<fdl-field .record=${this.record} field="address" .showValidationErrors=${true}></fdl-field>`)}
                         <p
-                            >Try your own address. The number check is an illustrative format rule,
-                            not proof that an address exists or accepts deliveries.</p
+                            >Try your own address. The number check is an
+                            illustrative format rule, not proof that an address
+                            exists or accepts deliveries.</p
                         > </div
                     >${this.explanation()}</div
                 ><button
@@ -341,26 +388,29 @@ export class FdlCompositionExperiment extends LitElement {
                 ><h3>The resulting definition</h3
                 >><pre><code>${highlightJavaScript(compositionDefinition(this.rules))}</code></pre
                 ><p
-                    >This is the address definition used by every case and by the live form.</p
+                    >This is the address definition used by every case and by
+                    the live form.</p
                 ></section
             >
             <details class="field-builder"
-                ><summary>Build and export a field of your own (optional)</summary
+                ><summary
+                    >Build and export a field of your own (optional)</summary
                 ><fdl-field-builder></fdl-field-builder
             ></details>
             <details class="questions"
                 ><summary>Questions to investigate</summary
                 ><ul
                     ><li
-                        >Does hiding a field make it optional? Choose Always under requiredness,
-                        then inspect Pickup × Empty.</li
+                        >Does hiding a field make it optional? Choose Always
+                        under requiredness, then inspect Pickup × Empty.</li
                     ><li
-                        >Does optional mean any value is allowed? Choose Never under requiredness
-                        and inspect an address without a number.</li
+                        >Does optional mean any value is allowed? Choose Never
+                        under requiredness and inspect an address without a
+                        number.</li
                     ><li
-                        >Which rule would you change to get the behavior you intended? Compare
-                        switching off the format check with showing the field for both delivery
-                        methods.</li
+                        >Which rule would you change to get the behavior you
+                        intended? Compare switching off the format check with
+                        showing the field for both delivery methods.</li
                     ></ul
                 ></details
             >

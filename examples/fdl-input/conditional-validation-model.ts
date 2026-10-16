@@ -1,6 +1,7 @@
 import { field, Record } from '../../index';
 
-export const isInternational = (record: Record<any>) => record.getField('country') !== 'US';
+export const isInternational = (record: Record<any>) =>
+    record.getField('country') !== 'US';
 export const accountFields = {
     country: field.label('Country code').required(),
     taxId: field
@@ -10,7 +11,9 @@ export const accountFields = {
         .validator({
             name: 'must contain two uppercase letters followed by six digits',
             validate: (value, _viewValue, record) =>
-                !isInternational(record) || value === '' || /^[A-Z]{2}\d{6}$/.test(String(value)),
+                !isInternational(record) ||
+                value === '' ||
+                /^[A-Z]{2}\d{6}$/.test(String(value)),
         }),
 };
 export const createAccount = (country = 'US', taxId = '') =>

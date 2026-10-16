@@ -39,8 +39,9 @@ export class FdlEditableRecordset extends LitElement {
         const all = shipmentTotals(this.shipments.allRecords);
         const visible = shipmentTotals(this.shipments.currentPage);
         return html`<p
-                >Edit cells or select a shipment’s detail editor. Both editors use the same Record
-                object. Set Status to <code>hold</code> to require a reason.</p
+                >Edit cells or select a shipment’s detail editor. Both editors
+                use the same Record object. Set Status to <code>hold</code> to
+                require a reason.</p
             >
             <div class="view-controls"
                 ><label
@@ -58,7 +59,9 @@ export class FdlEditableRecordset extends LitElement {
                     ><input
                         type="checkbox"
                         @change=${(e: Event) => {
-                            this.descending = (e.target as HTMLInputElement).checked;
+                            this.descending = (
+                                e.target as HTMLInputElement
+                            ).checked;
                         }}
                     />
                     Highest quantity first</label
@@ -69,18 +72,23 @@ export class FdlEditableRecordset extends LitElement {
                 ></div
             >
             <p
-                >Edits update values, errors, and totals immediately. Rows keep their current
-                position and membership until Apply view; an edited row may then move or leave the
-                filtered view. Its Record and unsaved data remain in All records and in the selected
+                >Edits update values, errors, and totals immediately. Rows keep
+                their current position and membership until Apply view; an
+                edited row may then move or leave the filtered view. Its Record
+                and unsaved data remain in All records and in the selected
                 detail editor.</p
             >
             <div class="table-scroll"
                 ><table
-                    ><caption>Editable shipments — use Tab to move between controls</caption
+                    ><caption
+                        >Editable shipments — use Tab to move between
+                        controls</caption
                     ><thead
                         ><tr
-                            ><th>Shipment</th><th>Quantity</th><th>Unit price</th><th>Status</th
-                            ><th>Hold reason</th><th>Charge</th><th>Validation</th></tr
+                            ><th>Shipment</th><th>Quantity</th
+                            ><th>Unit price</th><th>Status</th
+                            ><th>Hold reason</th><th>Charge</th
+                            ><th>Validation</th></tr
                         ></thead
                     ><tbody>
                         ${repeat(
@@ -99,7 +107,8 @@ export class FdlEditableRecordset extends LitElement {
                                         ></th
                                     >
                                     ${(['quantity', 'unitPrice', 'status', 'reason'] as const).map(name => html`<td><fdl-field .record=${row} field=${name} .showValidationErrors=${true}></fdl-field></td>`)}
-                                    <td class="numeric">${shipmentCharge(row).toFixed(2)}</td
+                                    <td class="numeric"
+                                        >${shipmentCharge(row).toFixed(2)}</td
                                     ><td
                                         >${row.isValid() ? 'Valid' : row.readableRecordErrors().join('. ')}</td
                                     ></tr
@@ -109,8 +118,9 @@ export class FdlEditableRecordset extends LitElement {
                 ></div
             >
             <p role="status"
-                >All records: ${all.quantity} units / $${all.charge.toFixed(2)}. Visible records:
-                ${visible.quantity} units / $${visible.charge.toFixed(2)}.</p
+                >All records: ${all.quantity} units / $${all.charge.toFixed(2)}.
+                Visible records: ${visible.quantity} units /
+                $${visible.charge.toFixed(2)}.</p
             >
             <h2>Selected shipment: ${this.selected?.getField('id')}</h2>
             ${this.selected ? keyed(this.selected, html`<fdl-field .record=${this.selected} field="quantity" .showValidationErrors=${true}></fdl-field><fdl-field .record=${this.selected} field="reason" .showValidationErrors=${true}></fdl-field>`) : ''}

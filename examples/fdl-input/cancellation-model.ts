@@ -7,10 +7,14 @@ export type CancellationRules = {
 export function cancellationFields(rules: CancellationRules) {
     let reason = field.label('Cancellation reason').rowCount(2);
     if (rules.visibility === 'cancelled')
-        reason = reason.visible(record => record.getField('status') === 'cancelled');
+        reason = reason.visible(
+            record => record.getField('status') === 'cancelled'
+        );
     if (rules.requiredness === 'always') reason = reason.required();
     if (rules.requiredness === 'cancelled')
-        reason = reason.required(record => record.getField('status') === 'cancelled');
+        reason = reason.required(
+            record => record.getField('status') === 'cancelled'
+        );
     return {
         status: field.label('Request status').options([
             { text: 'Active', value: 'active' },
@@ -20,10 +24,34 @@ export function cancellationFields(rules: CancellationRules) {
     };
 }
 export const cancellationCases = [
-    { status: 'active', reason: '', visible: false, required: false, valid: true },
-    { status: 'active', reason: 'Changed plans', visible: false, required: false, valid: true },
-    { status: 'cancelled', reason: '', visible: true, required: true, valid: false },
-    { status: 'cancelled', reason: 'Changed plans', visible: true, required: true, valid: true },
+    {
+        status: 'active',
+        reason: '',
+        visible: false,
+        required: false,
+        valid: true,
+    },
+    {
+        status: 'active',
+        reason: 'Changed plans',
+        visible: false,
+        required: false,
+        valid: true,
+    },
+    {
+        status: 'cancelled',
+        reason: '',
+        visible: true,
+        required: true,
+        valid: false,
+    },
+    {
+        status: 'cancelled',
+        reason: 'Changed plans',
+        visible: true,
+        required: true,
+        valid: true,
+    },
 ];
 export function checkCancellation(rules: CancellationRules) {
     return cancellationCases.map(sample => {
@@ -53,10 +81,15 @@ export function cancellationDefinition(rules: CancellationRules) {
 
 export function checkCancellationTransition(rules: CancellationRules) {
     const reason = 'Changed plans';
-    const record = new Record(cancellationFields(rules), { status: 'cancelled', reason });
+    const record = new Record(cancellationFields(rules), {
+        status: 'cancelled',
+        reason,
+    });
     record.setField('status', 'active');
     const activeReason = record.getField('reason');
-    const hidden = !record.fieldTypeForField('reason').visible(record.getField('reason'), record);
+    const hidden = !record
+        .fieldTypeForField('reason')
+        .visible(record.getField('reason'), record);
     record.setField('status', 'cancelled');
     const returnedReason = record.getField('reason');
     return {
@@ -66,7 +99,9 @@ export function checkCancellationTransition(rules: CancellationRules) {
             hidden &&
             activeReason === reason &&
             returnedReason === reason &&
-            record.fieldTypeForField('reason').visible(record.getField('reason'), record) &&
+            record
+                .fieldTypeForField('reason')
+                .visible(record.getField('reason'), record) &&
             record.isValid(),
     };
 }

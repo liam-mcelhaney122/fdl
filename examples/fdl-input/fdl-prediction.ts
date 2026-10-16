@@ -24,7 +24,10 @@ export class FdlPrediction extends LitElement {
             ]),
             sample: choice(
                 'Case address',
-                addressCases.map(sample => ({ text: sample.title, value: sample.id }))
+                addressCases.map(sample => ({
+                    text: sample.title,
+                    value: sample.id,
+                }))
             ),
             visible: choice('Predict visibility', [
                 { text: 'Choose…', value: '' },
@@ -42,7 +45,13 @@ export class FdlPrediction extends LitElement {
                 { text: 'Invalid', value: 'false' },
             ]).required(),
         },
-        { method: 'pickup', sample: 'unnumbered', visible: '', required: '', valid: '' }
+        {
+            method: 'pickup',
+            sample: 'unnumbered',
+            visible: '',
+            required: '',
+            valid: '',
+        }
     );
     private result?: { visible: boolean; required: boolean; valid: boolean };
     private refresh = () => {
@@ -69,8 +78,14 @@ export class FdlPrediction extends LitElement {
             this.result = undefined;
     }
     private reveal = () => {
-        const sample = addressCases.find(sample => sample.id === this.guesses.getField('sample'))!;
-        const record = compositionRecord(this.rules, this.guesses.getField('method'), sample.value),
+        const sample = addressCases.find(
+            sample => sample.id === this.guesses.getField('sample')
+        )!;
+        const record = compositionRecord(
+                this.rules,
+                this.guesses.getField('method'),
+                sample.value
+            ),
             type = record.fieldTypeForField('address');
         this.result = {
             visible: type.visible(undefined, record),
@@ -80,16 +95,18 @@ export class FdlPrediction extends LitElement {
         this.requestUpdate();
     };
     render() {
-        const sample = addressCases.find(sample => sample.id === this.guesses.getField('sample'))!;
+        const sample = addressCases.find(
+            sample => sample.id === this.guesses.getField('sample')
+        )!;
         const explanation = compositionExplanation(
             this.rules,
             this.guesses.getField('method'),
             sample.value
         );
         return html`<p
-                >Use the current rules above. Choose a case and predict each result, then ask the
-                FDL model to check it. This is optional practice; the comparison remains
-                available.</p
+                >Use the current rules above. Choose a case and predict each
+                result, then ask the FDL model to check it. This is optional
+                practice; the comparison remains available.</p
             >
             <div class="choices"
                 >${['method', 'sample', 'visible', 'required', 'valid'].map(field => html`<fdl-field .record=${this.guesses} field=${field}></fdl-field>`)}</div
@@ -104,9 +121,11 @@ export class FdlPrediction extends LitElement {
                           ><ul
                               >${(['visible', 'required', 'valid'] as const).map(key => html`<li><strong>${key === 'visible' ? 'Visibility' : key === 'required' ? 'Requiredness' : 'Validity'}</strong>: ${key === 'visible' ? (this.result![key] ? 'Visible' : 'Hidden') : key === 'required' ? (this.result![key] ? 'Required' : 'Optional') : this.result![key] ? 'Valid' : 'Invalid'} — ${String(this.result![key]) === this.guesses.getField(key) ? 'matches your prediction' : 'differs from your prediction'}</li>`)}</ul
                           ><p
-                              >${explanation.visibility} ${explanation.requiredness}
-                              ${explanation.format} Validity checks the stored address even when its
-                              control is hidden. Change one rule above and try again.</p
+                              >${explanation.visibility}
+                              ${explanation.requiredness} ${explanation.format}
+                              Validity checks the stored address even when its
+                              control is hidden. Change one rule above and try
+                              again.</p
                           ></section
                       >`
                     : ''

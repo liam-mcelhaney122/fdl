@@ -4,31 +4,47 @@ import { describeValue } from './model-summary';
 
 /** Native input events are composed; read the editing text before formatting can replace it. */
 export function inputText(event: Event): string | undefined {
-    const input = event.composedPath().find(node => node instanceof HTMLInputElement) as
+    const input = event
+        .composedPath()
+        .find(node => node instanceof HTMLInputElement) as
         HTMLInputElement | undefined;
     return input?.value;
 }
-export function valuePipeline(record: Record<any>, field: string, lastInput?: string) {
-    const entered = lastInput ?? String(record.getFormattedField(field, 'input-focus'));
+export function valuePipeline(
+    record: Record<any>,
+    field: string,
+    lastInput?: string
+) {
+    const entered =
+        lastInput ?? String(record.getFormattedField(field, 'input-focus'));
     const stages = [
         ['Input text', describeValue(entered)],
         ['Parser result', describeValue(record.parse(field, entered))],
         ['Stored model value', describeValue(record.getField(field))],
         [
             'Formatted input representation',
-            describeValue(String(record.getFormattedField(field, 'input-focus'))),
+            describeValue(
+                String(record.getFormattedField(field, 'input-focus'))
+            ),
         ],
-        ['Printed representation', describeValue(record.getFormattedField(field, 'print'))],
+        [
+            'Printed representation',
+            describeValue(record.getFormattedField(field, 'print')),
+        ],
     ];
-    return html`<section class="value-pipeline" aria-label="From input to printed output">
+    return html`<section
+        class="value-pipeline"
+        aria-label="From input to printed output"
+    >
         <h3>From input to printed output</h3>
         <ol
             >${stages.map(([label, value]) => html`<li><strong>${label}</strong><br /><code>${value}</code></li>`)}</ol
         >
         <p
-            >Parsing changes the model value. Formatting creates a representation; it leaves the
-            stored value intact. The adapter preserves your editing text while you type and applies
-            the formatted representation when you leave the field.</p
+            >Parsing changes the model value. Formatting creates a
+            representation; it leaves the stored value intact. The adapter
+            preserves your editing text while you type and applies the formatted
+            representation when you leave the field.</p
         >
         ${typeof record.getField(field) === 'number' && !Number.isFinite(record.getField(field)) ? html`<p role="status">This parser produced a non-finite number. Parsing alone does not validate malformed input; a production field needs an explicit policy for it.</p>` : ''}
     </section>`;

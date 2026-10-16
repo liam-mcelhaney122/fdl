@@ -1,10 +1,12 @@
 // Signatures from field-type-builder.ts; preserve the API's declared parameter types.
 export const modifierSignatures: { [name: string]: string } = {
     required: 'required(predicate?: RecordSetting<boolean>)',
-    formatter: 'formatter(fn: (value: T, record: Record<any>, context: string) => any)',
+    formatter:
+        'formatter(fn: (value: T, record: Record<any>, context: string) => any)',
     visible: 'visible(predicate: RecordSetting<boolean>)',
     cellClass: 'cellClass(classes: ValueSetting<T, string | string[]>)',
-    columnClass: 'columnClass(classes: string | string[] | (() => string | string[]))',
+    columnClass:
+        'columnClass(classes: string | string[] | (() => string | string[]))',
     compareFunction: 'compareFunction(fn: (a: T, b: T) => number)',
     defaultValue: 'defaultValue(value: DefaultSetting<T>)',
     disabled: 'disabled(predicate?: RecordSetting<boolean>)',
@@ -33,7 +35,8 @@ export const modifierSignatures: { [name: string]: string } = {
     targetColumnWidth: 'targetColumnWidth(width: ColumnSetting<number>)',
     template:
         'template(fn: (field: T, record: Record<any>, context: string) => string | number | boolean | TemplateResult | Array<TemplateResult>)',
-    textAlign: "textAlign(direction: FieldSetting<T, 'left' | 'center' | 'right'>)",
+    textAlign:
+        "textAlign(direction: FieldSetting<T, 'left' | 'center' | 'right'>)",
     type: 'type(type: RecordSetting<inputType>)',
     validator: 'validator(validator: Validator<T>)',
 };
@@ -78,10 +81,14 @@ export const columnSettingResults: { [name: string]: string } = {
     sortable: 'boolean',
 };
 
-export const displayedModifierSignatures: { [name: string]: string } = { ...modifierSignatures };
+export const displayedModifierSignatures: { [name: string]: string } = {
+    ...modifierSignatures,
+};
 for (const [name, result] of Object.entries(fieldSettingResults)) {
     displayedModifierSignatures[name] = [
-        ...(['required', 'disabled', 'readOnly'].includes(name) ? [`.${name}()`] : []),
+        ...(['required', 'disabled', 'readOnly'].includes(name)
+            ? [`.${name}()`]
+            : []),
         ...(result === 'string | string[]'
             ? [`.${name}(className: string)`, `.${name}(classNames: string[])`]
             : [`.${name}(setting: ${result})`]),

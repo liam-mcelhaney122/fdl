@@ -21,7 +21,9 @@ const choiceText: { [value: string]: string } = {
     digits: 'Digits only',
 };
 const choice = (label: string, values: string[]) =>
-    field.label(label).options(values.map(value => ({ text: choiceText[value], value })));
+    field
+        .label(label)
+        .options(values.map(value => ({ text: choiceText[value], value })));
 export class FdlFieldBuilder extends LitElement {
     private configuration = new Record(
         {
@@ -32,11 +34,20 @@ export class FdlFieldBuilder extends LitElement {
                     name: 'must be a distinct field name using letters, numbers, or underscores',
                     validate: value =>
                         /^[A-Za-z_]\w*$/.test(value) &&
-                        !['condition', '__proto__', 'constructor', 'prototype'].includes(value),
+                        ![
+                            'condition',
+                            '__proto__',
+                            'constructor',
+                            'prototype',
+                        ].includes(value),
                 }),
             initialValue: field.label('Starting value'),
             visibility: choice('Show field', ['always', 'enabled']),
-            requiredness: choice('Require field', ['never', 'enabled', 'always']),
+            requiredness: choice('Require field', [
+                'never',
+                'enabled',
+                'always',
+            ]),
             validation: choice('Value check', ['none', 'minimum', 'digits']),
         },
         { ...defaultFieldSpec }
@@ -85,13 +96,15 @@ export class FdlFieldBuilder extends LitElement {
         const source = builderSource(this.currentSpec());
         return html`<h3>Build a field of your own</h3
             ><p
-                >Name a field, give it a starting value, and choose one dependency and value check.
-                Conditional rules use the Condition field. “Digits only” accepts digits in non-empty
-                values; requiredness determines whether an empty value is allowed.</p
+                >Name a field, give it a starting value, and choose one
+                dependency and value check. Conditional rules use the Condition
+                field. “Digits only” accepts digits in non-empty values;
+                requiredness determines whether an empty value is allowed.</p
             ><p
-                >Changing a rule or field name preserves your current preview value and condition.
-                Editing Starting value replaces the preview value; Reset restores the initial
-                example. The code below reflects the preview’s current value and condition.</p
+                >Changing a rule or field name preserves your current preview
+                value and condition. Editing Starting value replaces the preview
+                value; Reset restores the initial example. The code below
+                reflects the preview’s current value and condition.</p
             >
             <div class="workspace"
                 ><section aria-label="Field definition controls"
@@ -108,7 +121,8 @@ export class FdlFieldBuilder extends LitElement {
                         this.changeRules();
                         this.record.setFields({
                             condition: defaultFieldSpec.condition,
-                            [defaultFieldSpec.name]: defaultFieldSpec.initialValue,
+                            [defaultFieldSpec.name]:
+                                defaultFieldSpec.initialValue,
                         });
                     }}
                     >Reset builder</button
@@ -116,7 +130,8 @@ export class FdlFieldBuilder extends LitElement {
             >
             <h3>${source.modelFile}</h3
             >><pre><code>${highlightJavaScript(source.definition)}</code></pre
-            ><h3>${source.uiFile}</h3>><pre><code>${highlightJavaScript(source.ui)}</code></pre>`;
+            ><h3>${source.uiFile}</h3
+            >><pre><code>${highlightJavaScript(source.ui)}</code></pre>`;
     }
     static styles = css`
         :host {

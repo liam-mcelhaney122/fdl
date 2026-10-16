@@ -436,7 +436,8 @@ export const additionalRecipes: ExplorerRecipe[] = modifierEntries
     .filter(entry => !['required', 'formatter', 'visible'].includes(entry.name))
     .map(entry => {
         const detail = details[entry.name];
-        if (!detail) throw new Error(`Missing explorer detail for ${entry.name}`);
+        if (!detail)
+            throw new Error(`Missing explorer detail for ${entry.name}`);
         const [category, signature, title, prompt, steps, note, use] = detail;
         return {
             name: entry.name,

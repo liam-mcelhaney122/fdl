@@ -289,9 +289,12 @@ describe('complete explorer', () => {
         search.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelectorAll('.modifier-list a')).toHaveLength(3);
-        expect(root.querySelector('.filter-status .match-count')!.textContent).toBe(
-            `(3 of ${explorerRecipes.length} shown)`
-        );
+        expect(
+            root
+                .querySelector('.filter-status .match-count')!
+                .textContent!.replace(/\s+/g, ' ')
+                .trim()
+        ).toBe(`(3 of ${explorerRecipes.length} shown)`);
         expect(root.querySelector('h1')!.textContent).toBe('.required(predicate?)');
         root.querySelector<HTMLButtonElement>('.next')!.click();
         await settle(page);

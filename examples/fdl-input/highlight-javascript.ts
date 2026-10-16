@@ -39,7 +39,11 @@ const builtins = new Set([
 const tokens =
     /\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|\/(?![/*])(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\n\\])+\/[dgimsuvy]*|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*|=>|===|!==|[{}()[\].,;:?=+<>!-]/g;
 
-function modifierCallText(source: string, index: number, modifier: string): string {
+function modifierCallText(
+    source: string,
+    index: number,
+    modifier: string
+): string {
     const lexemes = [...source.matchAll(tokens)];
     const modifierIndex = lexemes.findIndex(
         match => match.index === index && match[0] === modifier
@@ -73,9 +77,13 @@ export function highlightJavaScript(
         else if (value.startsWith('/')) kind = 'regex';
         else if (/^\d/.test(value)) kind = 'number';
         else if (keywords.has(value)) kind = 'keyword';
-        else if (['true', 'false', 'null', 'undefined'].includes(value)) kind = 'literal';
+        else if (['true', 'false', 'null', 'undefined'].includes(value))
+            kind = 'literal';
         else if (builtins.has(value)) kind = 'builtin';
-        else if (/^[A-Za-z_$]/.test(value) && /^\s*\(/.test(source.slice(index + value.length)))
+        else if (
+            /^[A-Za-z_$]/.test(value) &&
+            /^\s*\(/.test(source.slice(index + value.length))
+        )
             kind = 'function';
         else if (/^[^\w$]+$/.test(value)) kind = 'punctuation';
         const token = html`<span class=${`syntax-${kind}`}>${value}</span>`;
@@ -86,9 +94,13 @@ export function highlightJavaScript(
         // Locate field boundaries in tokenized code, ignoring words in strings
         // and comments. Keep full-snippet context even when rendering one line.
         const fieldStarts = modifierCall
-            ? contextTokens.filter(token => token[0] === 'field' && token.index! < index + offset)
+            ? contextTokens.filter(
+                  token => token[0] === 'field' && token.index! < index + offset
+              )
             : [];
-        const chainStart = fieldStarts.length ? fieldStarts[fieldStarts.length - 1].index! : 0;
+        const chainStart = fieldStarts.length
+            ? fieldStarts[fieldStarts.length - 1].index!
+            : 0;
         const explanation = modifierCall
             ? explainModifierCall(
                   context.slice(chainStart, index + offset),
@@ -114,7 +126,10 @@ export function highlightJavaScript(
 }
 
 /** Locate every complete call, skipping apparent calls inside strings/comments. */
-export function modifierLineRanges(source: string, modifier: string): Array<[number, number]> {
+export function modifierLineRanges(
+    source: string,
+    modifier: string
+): Array<[number, number]> {
     const lexemes = [...source.matchAll(tokens)];
     const ranges: Array<[number, number]> = [];
     for (let index = 0; index < lexemes.length - 2; index++) {
@@ -142,7 +157,10 @@ export function modifierLineRanges(source: string, modifier: string): Array<[num
     return ranges;
 }
 
-export function modifierLineRange(source: string, modifier: string): [number, number] | undefined {
+export function modifierLineRange(
+    source: string,
+    modifier: string
+): [number, number] | undefined {
     return modifierLineRanges(source, modifier)[0];
 }
 

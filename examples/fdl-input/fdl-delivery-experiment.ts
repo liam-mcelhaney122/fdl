@@ -4,7 +4,11 @@ import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
-import { deliveryMethodOptions, shippingStateOptions, storesByZip } from './delivery-data';
+import {
+    deliveryMethodOptions,
+    shippingStateOptions,
+    storesByZip,
+} from './delivery-data';
 
 function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
@@ -32,11 +36,15 @@ function storesForZip(record: Record<any>) {
 
 async function loadStoresForZip(record: Record<any>) {
     const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
-    if (whenReadyToChooseStore(record)) await new Promise(resolve => setTimeout(resolve, 2000));
+    if (whenReadyToChooseStore(record))
+        await new Promise(resolve => setTimeout(resolve, 2000));
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
+const pickupStoreOptions = {
+    fields: ['zip', 'fulfillment'],
+    fetch: loadStoresForZip,
+};
 const postalZipValidator = {
     name: 'must contain five digits',
     validate: (zip: unknown) => isValidZip(zip),
@@ -45,7 +53,11 @@ const postalZipValidator = {
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
-import { deliveryMethodOptions, shippingStateOptions, storesByZip } from './delivery-data';
+import {
+    deliveryMethodOptions,
+    shippingStateOptions,
+    storesByZip,
+} from './delivery-data';
 
 function whenDeliveryMethodRequiresAddress(record) {
     return record.getField('fulfillment') === 'ship';
@@ -73,11 +85,15 @@ function storesForZip(record) {
 
 async function loadStoresForZip(record) {
     const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
-    if (whenReadyToChooseStore(record)) await new Promise(resolve => setTimeout(resolve, 2000));
+    if (whenReadyToChooseStore(record))
+        await new Promise(resolve => setTimeout(resolve, 2000));
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
+const pickupStoreOptions = {
+    fields: ['zip', 'fulfillment'],
+    fetch: loadStoresForZip,
+};
 const postalZipValidator = {
     name: 'must contain five digits',
     validate: zip => isValidZip(zip),
@@ -200,18 +216,22 @@ const stateOptions = [
 ].map(([value, text]) => ({ text, value }));
 
 // Sample data only: this example does not call a store-location service.
-export const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
-    '28202': [
-        { text: 'Uptown store', value: 'uptown' },
-        { text: 'South End store', value: 'south-end' },
-    ],
-    '10001': [
-        { text: 'Chelsea store', value: 'chelsea' },
-        { text: 'Midtown store', value: 'midtown' },
-    ],
-};
+export const storesByZip: { [zip: string]: { text: string; value: string }[] } =
+    {
+        '28202': [
+            { text: 'Uptown store', value: 'uptown' },
+            { text: 'South End store', value: 'south-end' },
+        ],
+        '10001': [
+            { text: 'Chelsea store', value: 'chelsea' },
+            { text: 'Midtown store', value: 'midtown' },
+        ],
+    };
 
-export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];`;
+export const shippingStateOptions = [
+    { text: 'Select a state', value: '' },
+    ...stateOptions,
+];`;
 
     private delivery = new Record(
         // prettier-ignore
@@ -270,7 +290,9 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
         const pickup = whenPickingUp(this.delivery);
         const ready = whenReadyToChooseStore(this.delivery);
         const store = this.delivery.getField('store');
-        const availableStore = storesForZip(this.delivery).find(option => option.value === store);
+        const availableStore = storesForZip(this.delivery).find(
+            option => option.value === store
+        );
         const instruction =
             this.delivery.getField('fulfillment') === 'ship'
                 ? this.delivery.getField('address')
@@ -285,7 +307,11 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                       : 'Choose a store to complete your pickup details.';
         return html`<section aria-label="Try a delivery rule">
             <h2>Try a delivery rule</h2>
-            <div class="tabs" role="tablist" aria-label="Delivery example views">
+            <div
+                class="tabs"
+                role="tablist"
+                aria-label="Delivery example views"
+            >
                 <button
                     id="delivery-example-tab"
                     role="tab"
@@ -313,7 +339,10 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                 <p class="instruction">${instruction}</p>
                 <div class="experiment">
                     <div class="editor">
-                        <fdl-field .record=${this.delivery} field="fulfillment"></fdl-field>
+                        <fdl-field
+                            .record=${this.delivery}
+                            field="fulfillment"
+                        ></fdl-field>
                         <fdl-field
                             .record=${this.delivery}
                             field="address"
@@ -345,10 +374,14 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                         ><dl
                             ><div
                                 ><dt>Delivery</dt
-                                ><dd>${this.delivery.getField('fulfillment')}</dd></div
+                                ><dd
+                                    >${this.delivery.getField('fulfillment')}</dd
+                                ></div
                             ><div
                                 ><dt>Stored address</dt
-                                ><dd>${this.delivery.getField('address') || '(empty)'}</dd></div
+                                ><dd
+                                    >${this.delivery.getField('address') || '(empty)'}</dd
+                                ></div
                             ><div
                                 ><dt>Address state</dt
                                 ><dd
@@ -358,13 +391,19 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                                 ></div
                             ><div
                                 ><dt>Stored city</dt
-                                ><dd>${this.delivery.getField('city') || '(empty)'}</dd></div
+                                ><dd
+                                    >${this.delivery.getField('city') || '(empty)'}</dd
+                                ></div
                             ><div
                                 ><dt>Stored state</dt
-                                ><dd>${this.delivery.getField('state') || '(empty)'}</dd></div
+                                ><dd
+                                    >${this.delivery.getField('state') || '(empty)'}</dd
+                                ></div
                             ><div
                                 ><dt>Stored ZIP code</dt
-                                ><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div
+                                ><dd
+                                    >${this.delivery.getField('zip') || '(empty)'}</dd
+                                ></div
                             ><div
                                 ><dt>Store state</dt
                                 ><dd
@@ -374,10 +413,14 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                                 ></div
                             ><div
                                 ><dt>Stored store</dt
-                                ><dd>${availableStore?.text || store || '(empty)'}</dd></div
+                                ><dd
+                                    >${availableStore?.text || store || '(empty)'}</dd
+                                ></div
                             ><div
                                 ><dt>Record validation</dt
-                                ><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div
+                                ><dd
+                                    >${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd
+                                ></div
                             ></dl
                         ></div
                     >
@@ -391,14 +434,21 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                 ?hidden=${this.activeTab !== 'code'}
             >
                 <p class="code-intro"
-                    >The interactive example is driven by this FDL model and Lit view:</p
+                    >The interactive example is driven by this FDL model and Lit
+                    view:</p
                 >
                 <h3><code>delivery-model.ts</code></h3>
-                <pre class="code"><code>${highlightJavaScript(this.code)}</code></pre>
+                <pre
+                    class="code"
+                ><code>${highlightJavaScript(this.code)}</code></pre>
                 <h3><code>delivery-form.ts</code></h3>
-                <pre class="code"><code>${highlightJavaScript(this.litCode)}</code></pre>
+                <pre
+                    class="code"
+                ><code>${highlightJavaScript(this.litCode)}</code></pre>
                 <h3><code>delivery-data.ts</code></h3>
-                <pre class="code"><code>${highlightJavaScript(this.dataCode)}</code></pre>
+                <pre
+                    class="code"
+                ><code>${highlightJavaScript(this.dataCode)}</code></pre>
             </div>
         </section>`;
     }

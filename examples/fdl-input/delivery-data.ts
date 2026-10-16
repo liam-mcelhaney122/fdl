@@ -58,15 +58,19 @@ const stateOptions = [
 ].map(([value, text]) => ({ text, value }));
 
 // Sample data only: this example does not call a store-location service.
-export const storesByZip: { [zip: string]: { text: string; value: string }[] } = {
-    '28202': [
-        { text: 'Uptown store', value: 'uptown' },
-        { text: 'South End store', value: 'south-end' },
-    ],
-    '10001': [
-        { text: 'Chelsea store', value: 'chelsea' },
-        { text: 'Midtown store', value: 'midtown' },
-    ],
-};
+export const storesByZip: { [zip: string]: { text: string; value: string }[] } =
+    {
+        '28202': [
+            { text: 'Uptown store', value: 'uptown' },
+            { text: 'South End store', value: 'south-end' },
+        ],
+        '10001': [
+            { text: 'Chelsea store', value: 'chelsea' },
+            { text: 'Midtown store', value: 'midtown' },
+        ],
+    };
 
-export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];
+export const shippingStateOptions = [
+    { text: 'Select a state', value: '' },
+    ...stateOptions,
+];

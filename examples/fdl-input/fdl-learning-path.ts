@@ -48,9 +48,15 @@ const lessons = [
         rule: 'A Recordset reuses the field definitions for multiple records.',
     },
 ];
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const currency = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
 
-export type LearningState = { step: number; values: { method: string; charge: any } };
+export type LearningState = {
+    step: number;
+    values: { method: string; charge: any };
+};
 export class FdlLearningPath extends LitElement {
     static properties = { session: { attribute: false } };
     session?: LearningState;
@@ -64,26 +70,34 @@ export class FdlLearningPath extends LitElement {
                         ? undefined
                         : Number(String(value).replace(/[$,]/g, ''))
                 )
-                .formatter((value: unknown, _record?: unknown, context?: string) =>
-                    value == null
-                        ? ''
-                        : context === 'input-focus'
-                          ? String(value)
-                          : currency.format(Number(value))
+                .formatter(
+                    (value: unknown, _record?: unknown, context?: string) =>
+                        value == null
+                            ? ''
+                            : context === 'input-focus'
+                              ? String(value)
+                              : currency.format(Number(value))
                 );
         if (this.step >= 2) {
             charge = charge.validator({
                 name: 'must be a finite, non-negative number',
                 validate: value =>
                     value == null ||
-                    (typeof value === 'number' && Number.isFinite(value) && value >= 0),
+                    (typeof value === 'number' &&
+                        Number.isFinite(value) &&
+                        value >= 0),
             });
             charge =
                 this.step >= 3
-                    ? charge.required(record => record.getField('method') === 'ship')
+                    ? charge.required(
+                          record => record.getField('method') === 'ship'
+                      )
                     : charge.required();
         }
-        if (this.step >= 3) charge = charge.visible(record => record.getField('method') === 'ship');
+        if (this.step >= 3)
+            charge = charge.visible(
+                record => record.getField('method') === 'ship'
+            );
         return {
             method: field.label('Delivery method').options([
                 { text: 'Ship', value: 'ship' },
@@ -92,7 +106,10 @@ export class FdlLearningPath extends LitElement {
             charge,
         };
     }
-    private record = new Record(this.definitions(), { method: 'ship', charge: '$25.00' as any });
+    private record = new Record(this.definitions(), {
+        method: 'ship',
+        charge: '$25.00' as any,
+    });
     private table = new Recordset(this.definitions(), []);
     private refresh = () => {
         this.updateTable();
@@ -108,7 +125,9 @@ export class FdlLearningPath extends LitElement {
     connectedCallback() {
         if (this.session) {
             this.step = this.session.step;
-            this.record = new Record(this.definitions(), { ...this.session.values });
+            this.record = new Record(this.definitions(), {
+                ...this.session.values,
+            });
             this.table = new Recordset(this.definitions(), []);
         }
         super.connectedCallback();
@@ -118,7 +137,9 @@ export class FdlLearningPath extends LitElement {
     disconnectedCallback() {
         if (this.session) {
             this.session.step = this.step;
-            this.session.values = { ...this.record.values } as LearningState['values'];
+            this.session.values = {
+                ...this.record.values,
+            } as LearningState['values'];
         }
         this.record.removeEventListener('change', this.refresh);
         super.disconnectedCallback();
@@ -146,7 +167,10 @@ export class FdlLearningPath extends LitElement {
         );
     }
     private reset = () => {
-        this.record.setFields({ method: 'ship', charge: this.step === 0 ? '$25.00' : 25 });
+        this.record.setFields({
+            method: 'ship',
+            charge: this.step === 0 ? '$25.00' : 25,
+        });
         this.requestUpdate();
     };
     private code() {
@@ -184,12 +208,14 @@ export class FdlLearningPath extends LitElement {
                         @change=${(event: Event) => this.go(Number((event.target as HTMLSelectElement).value))}
                         >${lessons.map((item, index) => html`<option value=${index} ?selected=${this.step === index}>${index + 1} of ${lessons.length}: ${item.question}</option>`)}</select
                     ></label
-                ><button class="reset-lesson" @click=${this.reset}>Reset this example</button></div
+                ><button class="reset-lesson" @click=${this.reset}
+                    >Reset this example</button
+                ></div
             >
             <section aria-labelledby="lesson-title"
                 ><p class="continuity"
-                    >Your entered value carries forward between questions. Reset restores this
-                    question’s starting values.</p
+                    >Your entered value carries forward between questions. Reset
+                    restores this question’s starting values.</p
                 ><h2 id="lesson-title" tabindex="-1">${lesson.question}</h2
                 ><p>${lesson.explanation}</p>
                 <div class="lesson-grid"
@@ -205,8 +231,10 @@ export class FdlLearningPath extends LitElement {
                                   ><h3>Review the same record</h3
                                   ><p
                                       >Delivery:
-                                      <strong>${this.record.getField('method')}</strong> · Stored
-                                      charge:
+                                      <strong
+                                          >${this.record.getField('method')}</strong
+                                      >
+                                      · Stored charge:
                                       <code
                                           >${JSON.stringify(this.record.getField('charge'))}</code
                                       ></p
@@ -220,11 +248,14 @@ export class FdlLearningPath extends LitElement {
                                           >${this.record.isValid() ? 'Valid' : 'Invalid'}</strong
                                       ></p
                                   ></section
-                              ><h3>Current delivery, another shipment, and a pickup</h3
+                              ><h3
+                                  >Current delivery, another shipment, and a
+                                  pickup</h3
                               ><p
-                                  >The table reuses these definitions over separate records. Its
-                                  first row is a refreshed snapshot of the form, rather than the
-                                  same record object.</p
+                                  >The table reuses these definitions over
+                                  separate records. Its first row is a refreshed
+                                  snapshot of the form, rather than the same
+                                  record object.</p
                               ><fdl-table .recordset=${this.table}
                                   ><fdl-column field="method"></fdl-column
                                   ><fdl-column field="charge"></fdl-column
@@ -241,7 +272,8 @@ export class FdlLearningPath extends LitElement {
                 >><pre><code>${highlightJavaScript(this.code())}</code></pre>
                 <p
                     ><a href=${`#${lesson.reference}`}
-                        >Explore ${lesson.reference} in the modifier reference</a
+                        >Explore ${lesson.reference} in the modifier
+                        reference</a
                     ></p
                 >
                 ${
@@ -251,31 +283,36 @@ export class FdlLearningPath extends LitElement {
                                   ><ul
                                       ><li
                                           ><a href="#parser"
-                                              >Predict stored numbers versus display text</a
+                                              >Predict stored numbers versus
+                                              display text</a
                                           >
                                           by editing a currency value.</li
                                       ><li
                                           ><a href="#composition"
-                                              >Explain why a hidden field can remain invalid</a
+                                              >Explain why a hidden field can
+                                              remain invalid</a
                                           >
                                           by changing one independent rule.</li
                                       ><li
                                           ><a href="#how-it-works"
-                                              >Reuse definitions across a form and table</a
+                                              >Reuse definitions across a form
+                                              and table</a
                                           >
-                                          while distinguishing shared rules from shared record
-                                          identity.</li
+                                          while distinguishing shared rules from
+                                          shared record identity.</li
                                       ></ul
                                   ></section
                               ><details class="transfer-challenge"
                                   ><summary
-                                      >Optional challenge: model a cancellation request</summary
+                                      >Optional challenge: model a cancellation
+                                      request</summary
                                   ><fdl-transfer-challenge></fdl-transfer-challenge></details
                               ><p
                                   ><a
                                       class="continue-delivery"
                                       href=${compositionLink(this.record.values)}
-                                      >Next: combine the rules and investigate their outcomes →</a
+                                      >Next: combine the rules and investigate
+                                      their outcomes →</a
                                   ></p
                               >`
                         : ''

@@ -1,9 +1,14 @@
 import { field } from '../../index';
 import { inputTypes, type inputType } from '../../types/input-types.types';
 
-export const inputTypeChoices = inputTypes.map(value => ({ text: value, value }));
+export const inputTypeChoices = inputTypes.map(value => ({
+    text: value,
+    value,
+}));
 
-const initialValues: Partial<{ [name in inputType]: string | number | boolean }> = {
+const initialValues: Partial<{
+    [name in inputType]: string | number | boolean;
+}> = {
     text: 'Ada Lovelace',
     search: 'Design systems',
     email: 'ada@example.com',
@@ -26,8 +31,10 @@ const initialValues: Partial<{ [name in inputType]: string | number | boolean }>
     image: 'Example image button',
 };
 
-export const inputTypeInitialValue = (type: inputType) => initialValues[type] ?? '';
-export const inputTypeNeedsNumber = (type: inputType) => type === 'number' || type === 'range';
+export const inputTypeInitialValue = (type: inputType) =>
+    initialValues[type] ?? '';
+export const inputTypeNeedsNumber = (type: inputType) =>
+    type === 'number' || type === 'range';
 export function inputTypeField(type: inputType) {
     const definition = field.label(`Example: ${type}`).type(type);
     return inputTypeNeedsNumber(type) ? definition.parser(Number) : definition;
@@ -38,7 +45,8 @@ export function inputTypeNote(type: inputType) {
         return 'Hidden inputs have no visible control. Inspect the stored value in the record.';
     if (type === 'file')
         return 'Choose a file to see the browser-provided filename in the record. This demo does not upload it. Browsers do not allow restoring a file selection from a stored value.';
-    if (type === 'checkbox') return 'Check or uncheck the box to store true or false.';
+    if (type === 'checkbox')
+        return 'Check or uncheck the box to store true or false.';
     if (type === 'radio')
         return 'Select the radio to store true. Reset the example to clear it. Grouped choices require a component that coordinates the group.';
     if (type === 'image')
