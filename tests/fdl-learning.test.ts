@@ -49,6 +49,9 @@ it('reveals the FDL delivery model behind the interactive example', async () => 
     expect(codePanel.textContent).toContain("import { delivery } from './delivery-model';");
     expect(codePanel.textContent).toContain('const deliveryMethod = field.label');
     expect(codePanel.textContent).toContain('const shippingAddress = field.label');
+    expect(codePanel.textContent).toContain('const whenDeliveryMethodRequiresAddress = record =>');
+    expect(codePanel.textContent).toContain('.visibleWhen(whenDeliveryMethodRequiresAddress)');
+    expect(codePanel.textContent).toContain('.required(whenDeliveryMethodRequiresAddress)');
     expect(codePanel.textContent).toContain('<fdl-field .record=${delivery} field="fulfillment"></fdl-field>');
     expect(codePanel.querySelectorAll('.syntax-keyword, .syntax-builtin, .syntax-string').length).toBeGreaterThan(0);
     expect(demo.shadowRoot!.querySelector('#delivery-example-panel')!.hasAttribute('hidden')).toBe(true);

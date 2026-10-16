@@ -5,9 +5,14 @@ import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
 
+const whenDeliveryMethodRequiresAddress = (record: Record<any>) => record.getField('fulfillment') === 'ship';
+
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
+
+const whenDeliveryMethodRequiresAddress = record =>
+  record.getField('fulfillment') === 'ship';
 
 const deliveryMethod = field.label('Delivery method')
     .tag('select')
@@ -16,8 +21,8 @@ const deliveryMethod = field.label('Delivery method')
       { text: 'Pick up in person', value: 'pickup' },
     ]);
 const shippingAddress = field.label('Shipping address')
-    .visibleWhen(record => record.getField('fulfillment') === 'ship')
-    .required(record => record.getField('fulfillment') === 'ship');
+    .visibleWhen(whenDeliveryMethodRequiresAddress)
+    .required(whenDeliveryMethodRequiresAddress);
 
 export const delivery = new Record({
   fulfillment: deliveryMethod,
@@ -41,8 +46,8 @@ customElements.define('delivery-form', DeliveryForm);`;
         { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
     ]);
     private shippingAddress = field.label('Shipping address')
-        .visibleWhen(record => record.getField('fulfillment') === 'ship')
-        .required(record => record.getField('fulfillment') === 'ship');
+        .visibleWhen(whenDeliveryMethodRequiresAddress)
+        .required(whenDeliveryMethodRequiresAddress);
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
