@@ -1,3 +1,4 @@
+import { renderIntegration } from './integration-page';
 import { renderQuickstart } from './quickstart-page';
 import { renderCategoryOverview } from './category-overview';
 import type { ExplorerRecipe } from './modifier-explorer-recipes';
@@ -13,6 +14,7 @@ export const sitePages = [
     { id: 'home', title: 'Home' },
     { id: 'how-it-works', title: 'How it Works' },
     { id: 'quickstart', title: 'Your first form' },
+    { id: 'integration', title: 'Adapter and API contracts' },
     { id: 'learn', title: 'Learn by exploring' },
     { id: 'composition', title: 'Combine the rules' },
     { id: 'categories', title: 'Modifier categories' },
@@ -35,6 +37,7 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement, recipes: readonly ExplorerRecipe[] = []) {
+    if (page === 'integration') return renderIntegration();
     if (page === 'quickstart') return renderQuickstart();
     if (page === 'categories') return renderCategoryOverview(recipes);
     if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1>${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</article>`;
@@ -95,11 +98,11 @@ person.isValid(); // true`)}</code></pre>
             <h2>3. Bind a component</h2><p><a href="#quickstart">Your first form</a> supplies the installation, adapter registration, and complete rendering setup for this binding.</p>
             <p>In these examples, <code>fdl-field</code> connects a record field to a native control. It handles the label, input events, and accessible field state. A view binds the record object using Lit’s property syntax:</p>
             <pre class="code markup"><code>${highlightMarkup('<fdl-field .record=${person} field="name"></fdl-field>')}</code></pre>
-            <p>The component is the integration layer. FDL does not choose your page layout or visual theme. Other adapters can interpret the model for different interfaces.</p>
+            <p>The component is the integration layer. FDL does not choose your page layout or visual theme. Other adapters can interpret the model for different interfaces. <a href="#integration">Integrate an existing component system</a>: read the adapter obligations, public types, composition rules, and current limits.</p>
             <h2>4. Express dependencies as predicates</h2>
             <p>For rules that depend on another field, a callback reads the current record. For example, <a href="#visibleWhen">visibleWhen()</a> can show an address only when shipping is selected. <a href="#required">required()</a> separately controls whether that address is required.</p>
             <h2>5. Reuse definitions in a collection</h2>
-            <p>A <code>Recordset</code> applies field definitions to multiple records. The table example reads comparison, filtering, formatting, and alignment behavior from those definitions. Start with <a href="#compareFunction">compareFunction()</a> or <a href="#filter">filter()</a>.</p>
+            <p>A <code>Recordset</code> applies field definitions to multiple records. The table example reads comparison, filtering, formatting, and alignment behavior from those definitions. Read the <a href="#integration">Record and Recordset API references</a> for loading, events, and lifecycle. Start with <a href="#compareFunction">compareFunction()</a> or <a href="#filter">filter()</a>.</p>
             <h2>Who owns what?</h2>
             <dl class="concepts"><dt>FDL</dt><dd>Reusable parsing, formatting, validation, dependencies, and field state.</dd><dt>Component</dt><dd>Accessible markup, labels, keyboard interaction, focus, and input events.</dd><dt>Application and CSS</dt><dd>Workflow, page layout, and visual presentation.</dd></dl>
         </article>`;
