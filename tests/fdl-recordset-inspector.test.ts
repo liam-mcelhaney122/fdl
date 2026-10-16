@@ -45,7 +45,7 @@ it('shows raw values, row validity and counts, with selectable field order', asy
     inspector.fields = ['amount', 'name'];
     await inspector.updateComplete;
     expect([...root.querySelectorAll('thead th')].map(cell => cell.textContent)).toEqual([
-        'Status',
+        '',
         'Row',
         'amount',
         'name',
@@ -205,7 +205,7 @@ it('shows only applicable icons on the left without a validation column or valid
     const inspector = await inspect(data());
     const root = inspector.shadowRoot!;
     const headers = [...root.querySelectorAll('thead th')].map(cell => cell.textContent);
-    expect(headers[0]).toBe('Status');
+    expect(headers[0]).toBe('');
     expect(headers).not.toContain('Validation');
     expect(root.querySelector('[aria-label="Valid"]')).toBeNull();
     expect(root.querySelector('tbody tr:first-child .row-status')!.textContent!.trim()).toBe('');

@@ -151,7 +151,7 @@ export class FdlRecordsetInspector extends LitElement {
                                       <thead
                                           ><tr>
                                               <th scope="col" class="row-status"
-                                                  >Status</th
+                                                  ></th
                                               >
                                               <th scope="col">Row</th>
                                               ${fields.map(name => html`<th scope="col">${name}</th>`)}
