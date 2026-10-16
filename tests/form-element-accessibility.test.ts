@@ -109,17 +109,28 @@ describe('FormElement accessibility', () => {
 });
 
 it('resolves field settings from the current value and record as dependencies change', async () => {
-    const label = jest.fn((record: Record<any>) => `${record.getField('prefix')}:${record.getField('text')}`);
+    const label = jest.fn(
+        (record: Record<any>) => `${record.getField('prefix')}:${record.getField('text')}`
+    );
     const required = jest.fn((record: Record<any>) => record.getField('locked'));
-    const text = new FieldTypeBuilder<string>().label(label)
+    const text = new FieldTypeBuilder<string>()
+        .label(label)
         .placeholder(record => `${record.getField('prefix')}:${record.getField('text')}`)
-        .type(record => record.getField('locked') ? 'password' : 'text')
+        .type(record => (record.getField('locked') ? 'password' : 'text'))
         .required(required)
         .disabled(record => record.getField('locked'))
         .minLength(record => record.getField('minimum'))
         .maxLength(record => record.getField('maximum'));
-    const record = new Record({ text, prefix: new FieldTypeBuilder(), locked: new FieldTypeBuilder(), minimum: new FieldTypeBuilder(), maximum: new FieldTypeBuilder() },
-        { text: 'Ada', prefix: 'Name', locked: false, minimum: 2, maximum: 10 });
+    const record = new Record(
+        {
+            text,
+            prefix: new FieldTypeBuilder(),
+            locked: new FieldTypeBuilder(),
+            minimum: new FieldTypeBuilder(),
+            maximum: new FieldTypeBuilder(),
+        },
+        { text: 'Ada', prefix: 'Name', locked: false, minimum: 2, maximum: 10 }
+    );
     const element = await renderField(record, 'text');
     const input = element.shadowRoot!.querySelector('input')!;
     expect(input.placeholder).toBe('Name:Ada');
@@ -141,23 +152,33 @@ it('resolves field settings from the current value and record as dependencies ch
     expect(required).toHaveBeenCalledWith(record);
 });
 
-
 it('shows a spinner, busy state, and disabled select while options load, and ignores stale results', async () => {
     let resolveFirst!: (options: { text: string; value: string }[]) => void;
     let resolveSecond!: (options: { text: string; value: string }[]) => void;
-    const first = new Promise<{ text: string; value: string }[]>(resolve => { resolveFirst = resolve; });
-    const second = new Promise<{ text: string; value: string }[]>(resolve => { resolveSecond = resolve; });
-    const fetch = jest.fn((record: Record<any>) => record.getField('zip') === '28202' ? first : second);
-    const record = new Record({
-        zip: new FieldTypeBuilder(),
-        store: new FieldTypeBuilder().label('Pickup store').options({ fields: ['zip'], fetch }),
-    }, { zip: '28202', store: '' });
+    const first = new Promise<{ text: string; value: string }[]>(resolve => {
+        resolveFirst = resolve;
+    });
+    const second = new Promise<{ text: string; value: string }[]>(resolve => {
+        resolveSecond = resolve;
+    });
+    const fetch = jest.fn((record: Record<any>) =>
+        record.getField('zip') === '28202' ? first : second
+    );
+    const record = new Record(
+        {
+            zip: new FieldTypeBuilder(),
+            store: new FieldTypeBuilder().label('Pickup store').options({ fields: ['zip'], fetch }),
+        },
+        { zip: '28202', store: '' }
+    );
     const element = await renderField(record, 'store');
     const select = element.shadowRoot!.querySelector('select')!;
     expect(select.disabled).toBe(true);
     expect(select.getAttribute('aria-busy')).toBe('true');
     expect(element.shadowRoot!.querySelector('.options-spinner')).not.toBeNull();
-    expect(element.shadowRoot!.querySelector('[role="status"]')!.textContent).toContain('Loading choices');
+    expect(element.shadowRoot!.querySelector('[role="status"]')!.textContent).toContain(
+        'Loading choices'
+    );
     // Changes during the initial request must be observed immediately.
     record.setField('zip', '10001');
     await element.updateComplete;

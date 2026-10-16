@@ -10,14 +10,14 @@ Use `fieldTypeForField(name)` to inspect a field's runtime behavior.
 import { Record, string } from 'digital-fdl';
 
 const account = new Record(
-  {
-    name: string.label('Account name'),
-    accountNumber: string,
-  },
-  {
-    name: 'Checking',
-    accountNumber: '92120391',
-  }
+    {
+        name: string.label('Account name'),
+        accountNumber: string,
+    },
+    {
+        name: 'Checking',
+        accountNumber: '92120391',
+    }
 );
 ```
 
@@ -62,7 +62,7 @@ with the same detail shape. Assigning the existing value still dispatches `chang
 
 ```js
 account.addEventListener('change', event => {
-  console.log(event.detail.field);
+    console.log(event.detail.field);
 });
 
 account.setField('name', 'Savings');
@@ -117,7 +117,7 @@ errors are needed. `print(fieldName)` formats a value for display, and
 
 ```js
 if (!account.isValid()) {
-  console.log(account.readableRecordErrors());
+    console.log(account.readableRecordErrors());
 }
 
 account.print('name');

@@ -5,8 +5,5 @@ export interface Constructor<T = unknown> extends Function {
 /**
  * Represents built-in and/or primitive constructor types.
  */
-export type PrimitiveConstructor = NumberConstructor |
-    ArrayConstructor|
-    DateConstructor|
-    StringConstructor|
-    ObjectConstructor;
+export type PrimitiveConstructor =
+    NumberConstructor | ArrayConstructor | DateConstructor | StringConstructor | ObjectConstructor;

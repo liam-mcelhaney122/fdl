@@ -51,8 +51,8 @@ class FormElement extends ListeningElement {
         const controlTag = this.fieldType.hasOptions()
             ? 'select'
             : this.fieldType.hasRowCount()
-                ? 'textarea'
-                : 'input';
+              ? 'textarea'
+              : 'input';
         this.element = document.createElement(controlTag);
         this.addListenersToElement();
         this.addListenersToRecord();
@@ -66,8 +66,10 @@ class FormElement extends ListeningElement {
     private parsingNativeInput = false;
 
     private get nativeTextControl(): HTMLInputElement | HTMLTextAreaElement | undefined {
-        return this.element instanceof HTMLInputElement || this.element instanceof HTMLTextAreaElement
-            ? this.element : undefined;
+        return this.element instanceof HTMLInputElement ||
+            this.element instanceof HTMLTextAreaElement
+            ? this.element
+            : undefined;
     }
 
     private acceptedInput(text: string) {
@@ -80,7 +82,7 @@ class FormElement extends ListeningElement {
         const value = control.value;
         const accepted = this.acceptedInput(value);
         if (accepted === value) return;
-        const {selectionStart, selectionEnd, selectionDirection} = control;
+        const { selectionStart, selectionEnd, selectionDirection } = control;
         control.value = accepted;
         if (selectionStart !== null && selectionEnd !== null) {
             control.setSelectionRange(
@@ -100,15 +102,22 @@ class FormElement extends ListeningElement {
             });
             this.listenTo(this.element, 'beforeinput', (event: Event) => {
                 if (!(event instanceof InputEvent)) return;
-                if (!this.composing && !event.isComposing && event.data &&
-                    event.inputType.startsWith('insert') && this.acceptedInput(event.data) === '') {
+                if (
+                    !this.composing &&
+                    !event.isComposing &&
+                    event.data &&
+                    event.inputType.startsWith('insert') &&
+                    this.acceptedInput(event.data) === ''
+                ) {
                     event.preventDefault();
                 }
             });
-            this.listenTo(this.element, 'compositionstart', () => { this.composing = true; });
+            this.listenTo(this.element, 'compositionstart', () => {
+                this.composing = true;
+            });
             this.listenTo(this.element, 'compositionend', () => {
                 this.composing = false;
-                this.element.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+                this.element.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
             });
         }
         Events.forEach(e => {
@@ -120,7 +129,10 @@ class FormElement extends ListeningElement {
                     value = event.detail.value ?? event.detail.values ?? event.detail;
                 } else if (this.element instanceof HTMLSelectElement && this.element.multiple) {
                     value = [...this.element.selectedOptions].map(option => option.value);
-                } else if (this.element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(this.element.type)) {
+                } else if (
+                    this.element instanceof HTMLInputElement &&
+                    ['checkbox', 'radio'].includes(this.element.type)
+                ) {
                     value = this.element.checked;
                 } else {
                     value = event.target.value;
@@ -166,41 +178,70 @@ class FormElement extends ListeningElement {
         select.hidden = true;
         return html`<div class="control">
             ${select}
-            <details class="multiple-values" ?data-disabled=${select.disabled}
+            <details
+                class="multiple-values"
+                ?data-disabled=${select.disabled}
                 @keydown=${(event: KeyboardEvent) => {
                     if (event.key === 'Escape') {
                         this.finishMultipleSelection(event);
                         event.stopPropagation();
                     }
-                }}>
-                <summary id=${`${this.controlId}-trigger`}
+                }}
+            >
+                <summary
+                    id=${`${this.controlId}-trigger`}
                     aria-labelledby=${`${this.labelId} ${this.controlId}-selection`}
                     aria-disabled=${select.disabled ? 'true' : nothing}
                     aria-required=${select.required ? 'true' : nothing}
                     aria-invalid=${invalid ? 'true' : nothing}
                     aria-describedby=${invalid ? this.errorId : nothing}
                     tabindex=${select.disabled ? '-1' : '0'}
-                    @click=${(event: Event) => { if (select.disabled) event.preventDefault(); }}>
-                    <span id=${`${this.controlId}-selection`}>${selected.length === 0 ? 'Select…' : selected.length === 1 ? selected[0].textContent : `${selected.length} selected`}</span>
+                    @click=${(event: Event) => {
+                        if (select.disabled) event.preventDefault();
+                    }}
+                >
+                    <span id=${`${this.controlId}-selection`}
+                        >${selected.length === 0 ? 'Select…' : selected.length === 1 ? selected[0].textContent : `${selected.length} selected`}</span
+                    >
                     <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"></path></svg>
                 </summary>
                 <div class="multiple-menu">
                     <fieldset ?disabled=${select.disabled}>
-                        <legend class="visually-hidden">${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}</legend>
+                        <legend class="visually-hidden"
+                            >${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}</legend
+                        >
                         <p class="multiple-hint">Select any combination.</p>
-                        <div class="multiple-options">${[...select.options].map(option => html`
-                            <label><input type="checkbox" .checked=${option.selected} ?disabled=${option.disabled}
-                                @change=${(event: Event) => {
-                                    option.selected = (event.target as HTMLInputElement).checked;
-                                    select.dispatchEvent(new Event('input'));
-                                }}><span>${option.textContent}</span></label>`)}
+                        <div class="multiple-options"
+                            >${[...select.options].map(
+                                option =>
+                                    html` <label
+                                        ><input
+                                            type="checkbox"
+                                            .checked=${option.selected}
+                                            ?disabled=${option.disabled}
+                                            @change=${(event: Event) => {
+                                                option.selected = (
+                                                    event.target as HTMLInputElement
+                                                ).checked;
+                                                select.dispatchEvent(new Event('input'));
+                                            }}
+                                        /><span>${option.textContent}</span></label
+                                    >`
+                            )}
                         </div>
                     </fieldset>
                     <div class="multiple-actions">
-                        <button type="button" ?disabled=${select.disabled} @click=${() => {
-                            [...select.options].forEach(option => { option.selected = false; });
-                            select.dispatchEvent(new Event('input'));
-                        }}>Clear selection</button>
+                        <button
+                            type="button"
+                            ?disabled=${select.disabled}
+                            @click=${() => {
+                                [...select.options].forEach(option => {
+                                    option.selected = false;
+                                });
+                                select.dispatchEvent(new Event('input'));
+                            }}
+                            >Clear selection</button
+                        >
                         <button type="button" @click=${this.finishMultipleSelection}>Done</button>
                     </div>
                 </div>
@@ -229,7 +270,11 @@ class FormElement extends ListeningElement {
          * assign all standard properties we can from the modifiers
          */
         if (this.element instanceof HTMLInputElement) {
-            const type = this.fieldType?.type(this.record?.getField(this.field), this.record, 'form');
+            const type = this.fieldType?.type(
+                this.record?.getField(this.field),
+                this.record,
+                'form'
+            );
             if (typeof type === 'string') this.element.type = type;
         }
         // Native selects use option identities, not formatted labels. Keep all
@@ -237,7 +282,10 @@ class FormElement extends ListeningElement {
         if (this.element instanceof HTMLSelectElement) {
             this.element.multiple = this.fieldType?.hasMultipleValues() ?? false;
             this.syncSelectValue();
-        } else if (this.element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(this.element.type)) {
+        } else if (
+            this.element instanceof HTMLInputElement &&
+            ['checkbox', 'radio'].includes(this.element.type)
+        ) {
             this.element.checked = Boolean(this.record?.getField(this.field));
         } else if (this.element instanceof HTMLInputElement && this.element.type === 'file') {
             // Browsers only allow clearing a file picker programmatically.
@@ -247,19 +295,49 @@ class FormElement extends ListeningElement {
             this.element.value = this.record?.getFormattedField(this.field, 'input-focus');
         }
         this.element.id = this.controlId;
-        this.element.required = this.fieldType?.required(this.record?.getField(this.field), this.record, 'model');
-        this.element.visible = this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model');
-        this.element.readonly = this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model');
-        this.element.label = this.fieldType?.label(this.record?.getField(this.field), this.record, 'form');
+        this.element.required = this.fieldType?.required(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        );
+        this.element.visible = this.fieldType?.visible(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        );
+        this.element.readonly = this.fieldType?.readonly(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        );
+        this.element.label = this.fieldType?.label(
+            this.record?.getField(this.field),
+            this.record,
+            'form'
+        );
         this.element.inline = this.fieldType?.inline(this.record);
         this.element.segmented = this.fieldType?.segmented(this.record);
         this.element.empty = this.fieldType?.empty(this.record, this.field);
-        this.element.disabled = Boolean(this.element.loading) || this.fieldType?.isDisabled(this.record?.getField(this.field), this.record, 'model');
+        this.element.disabled =
+            Boolean(this.element.loading) ||
+            this.fieldType?.isDisabled(this.record?.getField(this.field), this.record, 'model');
         this.element.name = this.field;
         this.element.rows = this.fieldType?.rowCount();
-        this.element.maxLength = this.fieldType?.maxLength(this.record?.getField(this.field), this.record, 'model');
-        this.element.minLength = this.fieldType?.minLength(this.record?.getField(this.field), this.record, 'model');
-        this.element.placeholder = this.fieldType?.placeholder(this.record?.getField(this.field), this.record, 'form');
+        this.element.maxLength = this.fieldType?.maxLength(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        );
+        this.element.minLength = this.fieldType?.minLength(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        );
+        this.element.placeholder = this.fieldType?.placeholder(
+            this.record?.getField(this.field),
+            this.record,
+            'form'
+        );
         if (this.element instanceof HTMLSelectElement) {
             this.element.toggleAttribute('multiple', this.fieldType?.hasMultipleValues() ?? false);
         } else {
@@ -290,7 +368,11 @@ class FormElement extends ListeningElement {
         this.element.hasSearch = this.fieldType?.hasSearch();
         this.element.hasFilter = this.fieldType?.hasFilter();
         this.element.readonlyexception = this.fieldType?.readonlyexception(this.record);
-        this.element.readOnly = this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model'); // case change only on omega-frequency - should update there and remove this
+        this.element.readOnly = this.fieldType?.readonly(
+            this.record?.getField(this.field),
+            this.record,
+            'model'
+        ); // case change only on omega-frequency - should update there and remove this
         this.element.readOnlyException = this.fieldType?.readonlyexception(this.record); // case change only on omega-frequency - should update there and remove this
         this.element.parseDynamicRange = this.fieldType?.getParseDynamicRange();
         this.element.dateDisabledFunction =
@@ -308,7 +390,7 @@ class FormElement extends ListeningElement {
                 this.element.setAttribute('aria-busy', 'true');
                 this.requestUpdate();
                 try {
-                    const options = await request as Array<{ text: unknown; value: unknown }>;
+                    const options = (await request) as Array<{ text: unknown; value: unknown }>;
                     // Only the latest dependency values may populate this control.
                     if (version !== this.optionsRequestVersion) return;
                     if (this.element instanceof HTMLSelectElement) {
@@ -329,7 +411,11 @@ class FormElement extends ListeningElement {
                 } finally {
                     if (version === this.optionsRequestVersion) {
                         this.element.loading = false;
-                        this.element.disabled = this.fieldType.isDisabled(this.record?.getField(this.field), this.record, 'model');
+                        this.element.disabled = this.fieldType.isDisabled(
+                            this.record?.getField(this.field),
+                            this.record,
+                            'model'
+                        );
                         this.element.removeAttribute('aria-busy');
                         this.requestUpdate();
                     }
@@ -345,7 +431,9 @@ class FormElement extends ListeningElement {
         const value = (this.record as any)?.getField(this.field);
         if (select.multiple) {
             const selectedValues = (Array.isArray(value) ? value : [value]).map(String);
-            [...select.options].forEach(option => { option.selected = selectedValues.includes(option.value); });
+            [...select.options].forEach(option => {
+                option.selected = selectedValues.includes(option.value);
+            });
         } else {
             select.value = String(value ?? '');
         }
@@ -359,7 +447,8 @@ class FormElement extends ListeningElement {
 
     private visibleValidationErrors() {
         if (!this.showValidationErrors || !this.record || !this.fieldType) return [];
-        if (!this.fieldType.visible(this.record?.getField(this.field), this.record, 'model')) return [];
+        if (!this.fieldType.visible(this.record?.getField(this.field), this.record, 'model'))
+            return [];
         return this.record.readableFieldErrors(this.field);
     }
 
@@ -370,9 +459,7 @@ class FormElement extends ListeningElement {
         else this.element.removeAttribute('aria-invalid');
 
         const describedBy = new Set(
-            (this.element.getAttribute('aria-describedby') ?? '')
-                .split(/\s+/)
-                .filter(Boolean)
+            (this.element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean)
         );
         describedBy.delete(this.errorId);
         if (hasVisibleErrors) describedBy.add(this.errorId);
@@ -386,19 +473,27 @@ class FormElement extends ListeningElement {
 
     renderRequired() {
         if (!this.fieldType) return nothing;
-        if (!this.fieldType?.required(this.record?.getField(this.field), this.record, 'model')) return nothing;
-        if (this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model')) return nothing;
+        if (!this.fieldType?.required(this.record?.getField(this.field), this.record, 'model'))
+            return nothing;
+        if (this.fieldType?.readonly(this.record?.getField(this.field), this.record, 'model'))
+            return nothing;
         return html`<span class="required">&nbsp;*</span>`;
     }
 
     renderLabel() {
         if (!this.record) return nothing;
-        if (!this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')) return nothing;
+        if (!this.fieldType?.label(this.record?.getField(this.field), this.record, 'form'))
+            return nothing;
         if (this.fieldType?.hideLabel()) return nothing;
-        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model')) return nothing;
-        return html`<label id=${this.labelId} for=${this.controlId}
+        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model'))
+            return nothing;
+        return html`<label
+            id=${this.labelId}
+            for=${this.controlId}
             @click=${() => this.shadowRoot?.querySelector<HTMLElement>('.multiple-values summary')?.focus()}
-            >${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}${this.renderRequired()}<slot name="label"></slot
+            >${this.fieldType?.label(this.record?.getField(this.field), this.record, 'form')}${this.renderRequired()}<slot
+                name="label"
+            ></slot
         ></label>`;
     }
 
@@ -412,7 +507,8 @@ class FormElement extends ListeningElement {
     renderElement() {
         if (!this.record) return nothing;
         if (!this.element) return nothing;
-        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model')) return nothing;
+        if (!this.fieldType?.visible(this.record?.getField(this.field), this.record, 'model'))
+            return nothing;
         if (this.element.readonly && !this.fieldType?.usesCustomPrint()) {
             const hasVisibleErrors = this.visibleValidationErrors().length > 0;
             return html`<div class="control">
@@ -427,7 +523,8 @@ class FormElement extends ListeningElement {
                 ${this.renderValidationErrors()}
             </div>`;
         }
-        if (this.element instanceof HTMLSelectElement && this.element.multiple) return this.renderMultipleSelect(this.element);
+        if (this.element instanceof HTMLSelectElement && this.element.multiple)
+            return this.renderMultipleSelect(this.element);
         this.element.hidden = false;
         return html`<div class="control">
             <div class="control-input" ?data-loading=${this.element.loading}>
@@ -467,28 +564,154 @@ class FormElement extends ListeningElement {
                 font-weight: var(--field-control-font-weight);
                 flex: var(--field-control-width, 250px) 3 1;
             }
-            .control-input { position:relative; }
-            .control-input[data-loading] select { padding-right:3.5rem; }
-            .options-spinner { position:absolute; right:2rem; top:calc(50% - 8px); width:16px; height:16px; border:2px solid #94a3b8; border-top-color:#2563eb; border-radius:50%; animation:options-spin .7s linear infinite; pointer-events:none; }
-            .options-loading { margin:6px 0 0; font-size:.875rem; }
-            @keyframes options-spin { to { transform:rotate(360deg); } }
-            @media(prefers-reduced-motion:reduce) { .options-spinner { animation:none; } }
-            .multiple-values { position:relative; }
-            .multiple-values summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:white; font:inherit; cursor:pointer; list-style:none; }
-            .multiple-values summary::-webkit-details-marker { display:none; }
-            .multiple-values summary svg { width:16px; height:16px; flex-shrink:0; fill:none; stroke:#64748b; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
-            .multiple-values summary:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
-            .multiple-values summary[aria-invalid='true'] { border-color:#a42b20; }
-            .multiple-values[data-disabled] summary { background:#e2e8f0; border-style:dashed; color:#475569; cursor:not-allowed; }
-            .multiple-menu { position:absolute; z-index:10; inset:calc(100% + 6px) 0 auto; min-width:240px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; background:white; box-shadow:0 12px 28px #0f172a24; }
-            .multiple-menu fieldset { border:0; padding:0; margin:0; }
-            .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-            .multiple-hint { margin:6px 0 10px; font-size:.875rem; color:#475569; line-height:1.5; }
-            .multiple-options { display:grid; gap:2px; max-height:240px; overflow:auto; }
-            .multiple-options label { display:flex; align-items:center; gap:10px; min-height:36px; margin:0; font-size:1rem; cursor:pointer; }
-            .multiple-options input[type='checkbox'] { width:20px; height:20px; min-height:0; padding:0; margin:0; accent-color:#2563eb; flex-shrink:0; }
-            .multiple-actions { display:flex; justify-content:space-between; gap:12px; margin-top:12px; border-top:1px solid #e2e8f0; padding-top:8px; }
-            .multiple-actions button { min-height:36px; border:0; background:none; color:#2563eb; font:inherit; text-decoration:underline; cursor:pointer; }
+            .control-input {
+                position: relative;
+            }
+            .control-input[data-loading] select {
+                padding-right: 3.5rem;
+            }
+            .options-spinner {
+                position: absolute;
+                right: 2rem;
+                top: calc(50% - 8px);
+                width: 16px;
+                height: 16px;
+                border: 2px solid #94a3b8;
+                border-top-color: #2563eb;
+                border-radius: 50%;
+                animation: options-spin 0.7s linear infinite;
+                pointer-events: none;
+            }
+            .options-loading {
+                margin: 6px 0 0;
+                font-size: 0.875rem;
+            }
+            @keyframes options-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .options-spinner {
+                    animation: none;
+                }
+            }
+            .multiple-values {
+                position: relative;
+            }
+            .multiple-values summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                min-height: 48px;
+                padding: 10px 14px;
+                border: 1px solid #94a3b8;
+                border-radius: 6px;
+                background: white;
+                font: inherit;
+                cursor: pointer;
+                list-style: none;
+            }
+            .multiple-values summary::-webkit-details-marker {
+                display: none;
+            }
+            .multiple-values summary svg {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+                fill: none;
+                stroke: #64748b;
+                stroke-width: 1.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            .multiple-values summary:focus-visible {
+                outline: 3px solid #2563eb;
+                outline-offset: 3px;
+            }
+            .multiple-values summary[aria-invalid='true'] {
+                border-color: #a42b20;
+            }
+            .multiple-values[data-disabled] summary {
+                background: #e2e8f0;
+                border-style: dashed;
+                color: #475569;
+                cursor: not-allowed;
+            }
+            .multiple-menu {
+                position: absolute;
+                z-index: 10;
+                inset: calc(100% + 6px) 0 auto;
+                min-width: 240px;
+                padding: 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 12px 28px #0f172a24;
+            }
+            .multiple-menu fieldset {
+                border: 0;
+                padding: 0;
+                margin: 0;
+            }
+            .visually-hidden {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip-path: inset(50%);
+                white-space: nowrap;
+            }
+            .multiple-hint {
+                margin: 6px 0 10px;
+                font-size: 0.875rem;
+                color: #475569;
+                line-height: 1.5;
+            }
+            .multiple-options {
+                display: grid;
+                gap: 2px;
+                max-height: 240px;
+                overflow: auto;
+            }
+            .multiple-options label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-height: 36px;
+                margin: 0;
+                font-size: 1rem;
+                cursor: pointer;
+            }
+            .multiple-options input[type='checkbox'] {
+                width: 20px;
+                height: 20px;
+                min-height: 0;
+                padding: 0;
+                margin: 0;
+                accent-color: #2563eb;
+                flex-shrink: 0;
+            }
+            .multiple-actions {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                margin-top: 12px;
+                border-top: 1px solid #e2e8f0;
+                padding-top: 8px;
+            }
+            .multiple-actions button {
+                min-height: 36px;
+                border: 0;
+                background: none;
+                color: #2563eb;
+                font: inherit;
+                text-decoration: underline;
+                cursor: pointer;
+            }
             .required {
                 color: var(--error);
             }

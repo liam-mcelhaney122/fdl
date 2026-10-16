@@ -46,16 +46,18 @@ export default class Record extends EventTarget {
         const revision = ++this.optionsRevision;
         this.optionsRefresh = Promise.resolve().then(async () => {
             if (revision !== this.optionsRevision) return;
-            const results = await Promise.all(Object.entries(this.fieldTypes)
-                .filter(([, fieldType]) => fieldType.hasOptions())
-                .map(async ([field, fieldType]) => {
-                    try {
-                        return { field, fieldType, options: await fieldType.options(this) };
-                    } catch {
-                        // A failed lookup is not an empty list of available choices.
-                        return undefined;
-                    }
-                }));
+            const results = await Promise.all(
+                Object.entries(this.fieldTypes)
+                    .filter(([, fieldType]) => fieldType.hasOptions())
+                    .map(async ([field, fieldType]) => {
+                        try {
+                            return { field, fieldType, options: await fieldType.options(this) };
+                        } catch {
+                            // A failed lookup is not an empty list of available choices.
+                            return undefined;
+                        }
+                    })
+            );
             if (revision !== this.optionsRevision) return;
             const changes = {};
             for (const result of results) {
@@ -165,9 +167,16 @@ export default class Record extends EventTarget {
                 const fieldType = this.fieldTypeForField(key);
                 if (fieldType.hasParts) {
                     return Promise.all(
-                        fieldType.parts().map(part =>
-                            part.type.validateAsync(part.key, this.values[key][part.key], null, this)
-                        )
+                        fieldType
+                            .parts()
+                            .map(part =>
+                                part.type.validateAsync(
+                                    part.key,
+                                    this.values[key][part.key],
+                                    null,
+                                    this
+                                )
+                            )
                     );
                 }
                 return fieldType.validateAsync(key, this.values[key], null, this);
@@ -200,7 +209,10 @@ export default class Record extends EventTarget {
             }
             return this.fieldTypeForField(key)
                 .validate(key, this.values[key], null, this)
-                .map(v => ({ ...v, label: this.fieldTypeForField(key).label(this.getField(key), this, 'model') }));
+                .map(v => ({
+                    ...v,
+                    label: this.fieldTypeForField(key).label(this.getField(key), this, 'model'),
+                }));
         });
         return fieldValidationErrors
             .map(field => field.map(error => `${error.label}: ${error.name}`))
@@ -215,7 +227,10 @@ export default class Record extends EventTarget {
     readableFieldErrors(field) {
         return this.fieldTypeForField(field)
             .validate(field, this.values[field], null, this)
-            .map(v => ({ ...v, label: this.fieldTypeForField(field).label(this.getField(field), this, 'model') }))
+            .map(v => ({
+                ...v,
+                label: this.fieldTypeForField(field).label(this.getField(field), this, 'model'),
+            }))
             .map(error => `${error.label} ${error.name}`)
             .flat();
     }
@@ -238,8 +253,10 @@ export default class Record extends EventTarget {
 
     async isValidAsync(key, value = this.values[key]) {
         if (key) {
-            return (await this.fieldTypeForField(key).validateAsync(key, value, null, this))
-                .length === 0;
+            return (
+                (await this.fieldTypeForField(key).validateAsync(key, value, null, this)).length ===
+                0
+            );
         }
 
         return (await this.errorsAsync()).flat(2).length === 0;
@@ -408,7 +425,11 @@ export default class Record extends EventTarget {
             const fieldsToClone = fields ?? Object.keys(this.fieldTypes);
             const entries = Object.entries(this.values).map(([fieldName, value]) => {
                 if (!fieldsToClone.includes(fieldName)) {
-                    value = this.fieldTypeForField(fieldName).defaultValue(undefined, this, 'model');
+                    value = this.fieldTypeForField(fieldName).defaultValue(
+                        undefined,
+                        this,
+                        'model'
+                    );
                 }
 
                 return [fieldName, value];

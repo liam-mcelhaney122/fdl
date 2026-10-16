@@ -41,13 +41,9 @@ describe('FieldType', () => {
             },
         };
         it('validates a field', () => {
-            const errors = accountNumber.valueOf().validate(
-                'accountNumber',
-                '1111',
-                '1111',
-                invalidRecord,
-                options
-            );
+            const errors = accountNumber
+                .valueOf()
+                .validate('accountNumber', '1111', '1111', invalidRecord, options);
 
             expect(errors).toEqual([
                 {
@@ -88,7 +84,9 @@ describe('FieldType', () => {
             const fieldType = new FieldTypeBuilder().validator(badAccountTypeAsyncValidator);
 
             await expect(
-                fieldType.valueOf().validateAsync('accountNumber', '1111', '1111', invalidRecord, options)
+                fieldType
+                    .valueOf()
+                    .validateAsync('accountNumber', '1111', '1111', invalidRecord, options)
             ).resolves.toEqual([
                 expect.objectContaining({
                     field: 'accountNumber',
@@ -96,7 +94,9 @@ describe('FieldType', () => {
                 }),
             ]);
             await expect(
-                fieldType.valueOf().validateAsync('accountNumber', '2222', '2222', invalidRecord, options)
+                fieldType
+                    .valueOf()
+                    .validateAsync('accountNumber', '2222', '2222', invalidRecord, options)
             ).resolves.toEqual([]);
         });
 
@@ -104,7 +104,9 @@ describe('FieldType', () => {
             const fieldType = new FieldTypeBuilder().validator(badAccountTypeAsyncValidator);
 
             expect(() =>
-                fieldType.valueOf().validate('accountNumber', '1111', '1111', invalidRecord, options)
+                fieldType
+                    .valueOf()
+                    .validate('accountNumber', '1111', '1111', invalidRecord, options)
             ).toThrow(/validateAsync/);
         });
     });
@@ -187,7 +189,10 @@ describe('FieldType', () => {
         it('extension', () => {
             const ed = new FieldTypeBuilder().parser(word => `${word}ed`);
             const reed = ed.parser(word => `re${word}`);
-            expect([ed.valueOf().parse('test'), reed.valueOf().parse('test')]).toEqual(['tested', 'retested']);
+            expect([ed.valueOf().parse('test'), reed.valueOf().parse('test')]).toEqual([
+                'tested',
+                'retested',
+            ]);
         });
     });
 
@@ -222,14 +227,17 @@ describe('FieldType', () => {
             const x = new FieldTypeBuilder().cellClass('x');
             const y = x.cellClass('y');
 
-            expect([x.valueOf().cellClasses(), y.valueOf().cellClasses()]).toEqual([['x'], ['x', 'y']]);
+            expect([x.valueOf().cellClasses(), y.valueOf().cellClasses()]).toEqual([
+                ['x'],
+                ['x', 'y'],
+            ]);
         });
 
         it('cellClass', () => {
             const fd = new FieldTypeBuilder()
                 .cellClass('number')
-                .cellClass(n => n % 2 === 1 ? 'odd' : [])
-                .cellClass(n => n % 2 === 0 ? 'even' : []);
+                .cellClass(n => (n % 2 === 1 ? 'odd' : []))
+                .cellClass(n => (n % 2 === 0 ? 'even' : []));
             expect(fd.valueOf().cellClasses(1)).toEqual(['number', 'odd']);
             expect(fd.valueOf().cellClasses(2)).toEqual(['number', 'even']);
         });
@@ -238,14 +246,17 @@ describe('FieldType', () => {
             const x = new FieldTypeBuilder().cellClass(() => 'x');
             const xy = x.cellClass(() => 'y');
 
-            expect([x.valueOf().cellClasses(1), xy.valueOf().cellClasses(1)]).toEqual([['x'], ['x', 'y']]);
+            expect([x.valueOf().cellClasses(1), xy.valueOf().cellClasses(1)]).toEqual([
+                ['x'],
+                ['x', 'y'],
+            ]);
         });
     });
 
     it('keeps fixed and conditional classes isolated when specializing a field', () => {
         const base = new FieldTypeBuilder().cellClass('amount');
-        const high = base.cellClass(value => value > 100 ? 'high' : []);
-        const low = base.cellClass(value => value < 100 ? 'low' : []);
+        const high = base.cellClass(value => (value > 100 ? 'high' : []));
+        const low = base.cellClass(value => (value < 100 ? 'low' : []));
         expect(base.valueOf().cellClasses(150)).toEqual(['amount']);
         expect(high.valueOf().cellClasses(150)).toEqual(['amount', 'high']);
         expect(high.valueOf().cellClasses(50)).toEqual(['amount']);
@@ -263,14 +274,21 @@ describe('FieldType', () => {
                 .rowClass(record => (record.hasError ? ['error'] : []))
                 .rowClass(record => (record.speed === 'same-day' ? ['ach', 'sda'] : ['ach']));
 
-            expect(fd.valueOf().rowClasses({ hasError: true, speed: 'same-day' })).toEqual(['error', 'ach', 'sda']);
+            expect(fd.valueOf().rowClasses({ hasError: true, speed: 'same-day' })).toEqual([
+                'error',
+                'ach',
+                'sda',
+            ]);
         });
 
         it('extension', () => {
             const x = new FieldTypeBuilder().rowClass(() => ['x']);
             const xy = x.rowClass(() => ['y']);
 
-            expect([x.valueOf().rowClasses(), xy.valueOf().rowClasses()]).toEqual([['x'], ['x', 'y']]);
+            expect([x.valueOf().rowClasses(), xy.valueOf().rowClasses()]).toEqual([
+                ['x'],
+                ['x', 'y'],
+            ]);
         });
     });
 
@@ -279,11 +297,19 @@ describe('FieldType', () => {
         ['rowClass', 'rowClasses'],
     ])('%s class declarations', (modifier, getter) => {
         it('accumulates strings, arrays, and callback results in declaration order', () => {
-            const field = new FieldTypeBuilder()[modifier]('base')
-                [modifier](value => value > 100 ? ['warning', 'over-limit'] : [])
+            const field = new FieldTypeBuilder()
+                [modifier]('base')
+                [modifier](value => (value > 100 ? ['warning', 'over-limit'] : []))
                 [modifier](['numeric', 'currency'])
-                [modifier](value => value > 100 ? 'review' : []);
-            expect(field.valueOf()[getter](150)).toEqual(['base', 'warning', 'over-limit', 'numeric', 'currency', 'review']);
+                [modifier](value => (value > 100 ? 'review' : []));
+            expect(field.valueOf()[getter](150)).toEqual([
+                'base',
+                'warning',
+                'over-limit',
+                'numeric',
+                'currency',
+                'review',
+            ]);
             expect(field.valueOf()[getter](50)).toEqual(['base', 'numeric', 'currency']);
         });
 
@@ -304,10 +330,19 @@ describe('FieldType', () => {
     });
 
     it('computes cell classes from the current value and containing record', () => {
-        const record = new Record({ amount: new FieldTypeBuilder(), limit: new FieldTypeBuilder() }, { amount: 150, limit: 100 });
-        const callback = jest.fn((value, owner) => value > owner.getField('limit') ? ['warning', 'review'] : []);
+        const record = new Record(
+            { amount: new FieldTypeBuilder(), limit: new FieldTypeBuilder() },
+            { amount: 150, limit: 100 }
+        );
+        const callback = jest.fn((value, owner) =>
+            value > owner.getField('limit') ? ['warning', 'review'] : []
+        );
         const field = new FieldTypeBuilder().cellClass('amount').cellClass(callback);
-        expect(field.valueOf().cellClasses(record.getField('amount'), record)).toEqual(['amount', 'warning', 'review']);
+        expect(field.valueOf().cellClasses(record.getField('amount'), record)).toEqual([
+            'amount',
+            'warning',
+            'review',
+        ]);
         expect(callback).toHaveBeenLastCalledWith(150, record);
         record.setField('limit', 200);
         expect(field.valueOf().cellClasses(record.getField('amount'), record)).toEqual(['amount']);
@@ -389,10 +424,12 @@ describe('FieldType', () => {
         });
 
         it('array of options', async () => {
-            const state = new FieldTypeBuilder().options([
-                { text: 'NC', value: 'north' },
-                { text: 'SC', value: 'south' },
-            ]).valueOf();
+            const state = new FieldTypeBuilder()
+                .options([
+                    { text: 'NC', value: 'north' },
+                    { text: 'SC', value: 'south' },
+                ])
+                .valueOf();
 
             expect(await state.options()).toEqual([
                 { text: 'NC', value: 'north' },
@@ -401,14 +438,16 @@ describe('FieldType', () => {
         });
 
         it('data property as an array', async () => {
-            const state = new FieldTypeBuilder().options({
-                data: [
-                    { abbr: 'NC', location: 'north' },
-                    { abbr: 'SC', location: 'south' },
-                ],
-                text: 'abbr',
-                value: 'location',
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    data: [
+                        { abbr: 'NC', location: 'north' },
+                        { abbr: 'SC', location: 'south' },
+                    ],
+                    text: 'abbr',
+                    value: 'location',
+                })
+                .valueOf();
             expect(await state.options()).toEqual([
                 { text: 'NC', value: 'north', abbr: 'NC', location: 'north' },
                 { text: 'SC', value: 'south', abbr: 'SC', location: 'south' },
@@ -416,14 +455,16 @@ describe('FieldType', () => {
         });
 
         it('text and value keys as functions', async () => {
-            const state = new FieldTypeBuilder().options({
-                data: [
-                    { abbr: 'NC', location: 'north' },
-                    { abbr: 'SC', location: 'south' },
-                ],
-                text: s => s.abbr,
-                value: s => s.location,
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    data: [
+                        { abbr: 'NC', location: 'north' },
+                        { abbr: 'SC', location: 'south' },
+                    ],
+                    text: s => s.abbr,
+                    value: s => s.location,
+                })
+                .valueOf();
             expect(await state.options()).toEqual([
                 { text: 'NC', value: 'north', abbr: 'NC', location: 'north' },
                 { text: 'SC', value: 'south', abbr: 'SC', location: 'south' },
@@ -456,14 +497,16 @@ describe('FieldType', () => {
         });
 
         it('function with options', async () => {
-            const state = new FieldTypeBuilder().options({
-                fetch() {
-                    return Promise.resolve([
-                        { text: 'NC', value: 'north' },
-                        { text: 'SC', value: 'south' },
-                    ]);
-                },
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    fetch() {
+                        return Promise.resolve([
+                            { text: 'NC', value: 'north' },
+                            { text: 'SC', value: 'south' },
+                        ]);
+                    },
+                })
+                .valueOf();
             expect(await state.options()).toEqual([
                 { text: 'NC', value: 'north' },
                 { text: 'SC', value: 'south' },
@@ -484,15 +527,17 @@ describe('FieldType', () => {
 
                 return 0;
             };
-            const state = new FieldTypeBuilder().options({
-                data: [
-                    { text: 'VA', value: 'va' },
-                    { text: 'NC', value: 'nc' },
-                    { text: 'SC', value: 'sc' },
-                    { text: 'GA', value: 'ga' },
-                ],
-                compareFunction: sortOptions,
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    data: [
+                        { text: 'VA', value: 'va' },
+                        { text: 'NC', value: 'nc' },
+                        { text: 'SC', value: 'sc' },
+                        { text: 'GA', value: 'ga' },
+                    ],
+                    compareFunction: sortOptions,
+                })
+                .valueOf();
             expect(await state.options()).toEqual([
                 { text: 'GA', value: 'ga' },
                 { text: 'NC', value: 'nc' },
@@ -501,21 +546,35 @@ describe('FieldType', () => {
             ]);
         });
 
-        it.each([false, true])('refreshes direct options functions when record values change (async: %s)', async asynchronous => {
-            const source = record => [{text: record.getField('department'), value: 'shared'}];
-            const fetch = asynchronous ? async record => source(record) : source;
-            const type = new FieldTypeBuilder().options(fetch).valueOf();
-            const record = new Record({department: new FieldTypeBuilder()}, {department: 'engineering'});
-            expect(await type.options(record)).toEqual([{text: 'engineering', value: 'shared'}]);
-            record.setField('department', 'finance');
-            expect(await type.options(record)).toEqual([{text: 'finance', value: 'shared'}]);
-        });
+        it.each([false, true])(
+            'refreshes direct options functions when record values change (async: %s)',
+            async asynchronous => {
+                const source = record => [{ text: record.getField('department'), value: 'shared' }];
+                const fetch = asynchronous ? async record => source(record) : source;
+                const type = new FieldTypeBuilder().options(fetch).valueOf();
+                const record = new Record(
+                    { department: new FieldTypeBuilder() },
+                    { department: 'engineering' }
+                );
+                expect(await type.options(record)).toEqual([
+                    { text: 'engineering', value: 'shared' },
+                ]);
+                record.setField('department', 'finance');
+                expect(await type.options(record)).toEqual([{ text: 'finance', value: 'shared' }]);
+            }
+        );
 
         it('continues to cache direct options functions without record arguments', async () => {
             let calls = 0;
-            const fetch = () => { calls++; return [{text: 'Shared', value: 'shared'}]; };
+            const fetch = () => {
+                calls++;
+                return [{ text: 'Shared', value: 'shared' }];
+            };
             const type = new FieldTypeBuilder().options(fetch).valueOf();
-            const record = new Record({department: new FieldTypeBuilder()}, {department: 'engineering'});
+            const record = new Record(
+                { department: new FieldTypeBuilder() },
+                { department: 'engineering' }
+            );
             await type.options(record);
             record.setField('department', 'finance');
             await type.options(record);
@@ -523,20 +582,22 @@ describe('FieldType', () => {
         });
 
         it('fetch with a record object', async () => {
-            const state = new FieldTypeBuilder().options({
-                fetch(record) {
-                    if (record.getField('isDakota')) {
+            const state = new FieldTypeBuilder()
+                .options({
+                    fetch(record) {
+                        if (record.getField('isDakota')) {
+                            return Promise.resolve([
+                                { text: 'ND', value: 'north' },
+                                { text: 'SD', value: 'south' },
+                            ]);
+                        }
                         return Promise.resolve([
-                            { text: 'ND', value: 'north' },
-                            { text: 'SD', value: 'south' },
+                            { text: 'NC', value: 'north' },
+                            { text: 'SC', value: 'south' },
                         ]);
-                    }
-                    return Promise.resolve([
-                        { text: 'NC', value: 'north' },
-                        { text: 'SC', value: 'south' },
-                    ]);
-                },
-            }).valueOf();
+                    },
+                })
+                .valueOf();
             const record = new Record({ isDakota: new FieldTypeBuilder() }, { isDakota: false });
 
             expect(await state.options(record)).toEqual([
@@ -555,14 +616,16 @@ describe('FieldType', () => {
         it('does not recompute the options if the relevant fields have not changed', async () => {
             let timesFetched = 0;
 
-            const state = new FieldTypeBuilder().options({
-                fetch(record) {
-                    return Promise.resolve([
-                        { text: record.getField('label'), value: ++timesFetched },
-                    ]);
-                },
-                fields: ['label'],
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    fetch(record) {
+                        return Promise.resolve([
+                            { text: record.getField('label'), value: ++timesFetched },
+                        ]);
+                    },
+                    fields: ['label'],
+                })
+                .valueOf();
             const record = new Record(
                 { label: new FieldTypeBuilder(), irrelevant: new FieldTypeBuilder() },
                 { label: 'original', irrelevant: "You're an elephant!" }
@@ -578,12 +641,14 @@ describe('FieldType', () => {
         it('does not recompute the options if the fetch function has no arguments', async () => {
             let timesFetched = 0;
 
-            const state = new FieldTypeBuilder().options({
-                fetch() {
-                    return Promise.resolve([{ text: 'original', value: ++timesFetched }]);
-                },
-                fields: ['label'],
-            }).valueOf();
+            const state = new FieldTypeBuilder()
+                .options({
+                    fetch() {
+                        return Promise.resolve([{ text: 'original', value: ++timesFetched }]);
+                    },
+                    fields: ['label'],
+                })
+                .valueOf();
             const record = new Record(
                 { label: new FieldTypeBuilder(), irrelevant: new FieldTypeBuilder() },
                 { label: 'original', irrelevant: "You're an elephant!" }
@@ -602,7 +667,8 @@ describe('FieldType', () => {
                     { text: 'NC', value: 'north' },
                     { text: 'SC', value: 'south' },
                 ])
-                .multipleValues().valueOf();
+                .multipleValues()
+                .valueOf();
             expect(await states.options()).toEqual([
                 { text: 'NC', value: 'north' },
                 { text: 'SC', value: 'south' },
@@ -702,8 +768,9 @@ describe('FieldType', () => {
         it('tests every character independently with global or sticky regexes', () => {
             for (const regex of [/[0-9]/g, /[0-9]/y]) {
                 const type = new FieldTypeBuilder().inputMask(regex);
-                expect(['1', '2', 'x', '3', '😀'].map(char => type.valueOf().allowInputChar(char)))
-                    .toEqual([true, true, false, true, false]);
+                expect(
+                    ['1', '2', 'x', '3', '😀'].map(char => type.valueOf().allowInputChar(char))
+                ).toEqual([true, true, false, true, false]);
                 expect(regex.lastIndex).toBe(0);
             }
         });
@@ -746,7 +813,14 @@ describe('FieldType', () => {
                 .label('Hello')
                 .label(record => `${record.getField('title')} World`)
                 .label(record => `${record.getField('title')} WORLD`);
-            expect(type.valueOf().label(undefined, new Record({ title: new FieldTypeBuilder() }, { title: 'HELLO' }))).toEqual('HELLO WORLD');
+            expect(
+                type
+                    .valueOf()
+                    .label(
+                        undefined,
+                        new Record({ title: new FieldTypeBuilder() }, { title: 'HELLO' })
+                    )
+            ).toEqual('HELLO WORLD');
         });
     });
 
@@ -905,8 +979,11 @@ describe('FieldType', () => {
                 { text: 'Ben', value: { name: 'Ben', id: 0 } },
                 { text: 'Aaron', value: { name: 'Aaron', value: 1 } },
             ])
-            .hashFunction(item => item?.id).valueOf();
-        expect(withHashAndOptions.valueOf().properties.hashFunction({ name: 'Ben', id: 0 })).toEqual(0);
+            .hashFunction(item => item?.id)
+            .valueOf();
+        expect(
+            withHashAndOptions.valueOf().properties.hashFunction({ name: 'Ben', id: 0 })
+        ).toEqual(0);
     });
 
     describe('iconMessage', () => {
@@ -972,9 +1049,13 @@ describe('consolidated state modifiers', () => {
     });
 
     it('keeps required state and validation in sync as record dependencies change', () => {
-        const required = new FieldTypeBuilder().emptyWhen(value => value === 'N/A')
+        const required = new FieldTypeBuilder()
+            .emptyWhen(value => value === 'N/A')
             .required(record => record.getField('needsReference'));
-        const record = new Record({needsReference: new FieldTypeBuilder(), reference: required}, {needsReference:false, reference:'N/A'});
+        const record = new Record(
+            { needsReference: new FieldTypeBuilder(), reference: required },
+            { needsReference: false, reference: 'N/A' }
+        );
         expect(required.valueOf().required(undefined, record)).toBe(false);
         expect(record.isValid('reference')).toBe(true);
         record.setField('needsReference', true);
@@ -989,12 +1070,16 @@ describe('consolidated state modifiers', () => {
 
     it('composes predicates and unconditional rules without changing their baselines', () => {
         const base = new FieldTypeBuilder();
-        const conditional = base.required(record => record.getField('first'))
+        const conditional = base
+            .required(record => record.getField('first'))
             .required(record => record.getField('second'))
             .disabled(record => record.getField('first'))
             .disabled(record => record.getField('second'));
         const always = conditional.required().disabled();
-        const record = new Record({first:new FieldTypeBuilder(),second:new FieldTypeBuilder(),value:conditional}, {first:false,second:false,value:''});
+        const record = new Record(
+            { first: new FieldTypeBuilder(), second: new FieldTypeBuilder(), value: conditional },
+            { first: false, second: false, value: '' }
+        );
         expect(conditional.valueOf().required(undefined, record)).toBe(false);
         expect(conditional.valueOf().isDisabled(undefined, record)).toBe(false);
         expect(always.valueOf().required(undefined, record)).toBe(true);

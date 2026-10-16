@@ -1,8 +1,12 @@
-import {createAccount} from '../examples/fdl-input/conditional-validation-model';
+import { createAccount } from '../examples/fdl-input/conditional-validation-model';
 
 it.each([
-    ['US', '', true], ['US', 'invalid', true], ['US', 'CA123456', true],
-    ['CA', '', false], ['CA', 'invalid', false], ['CA', 'CA123456', true],
+    ['US', '', true],
+    ['US', 'invalid', true],
+    ['US', 'CA123456', true],
+    ['CA', '', false],
+    ['CA', 'invalid', false],
+    ['CA', 'CA123456', true],
 ] as const)('validates %s / %s independently of rendering', (country, taxId, valid) => {
     const account = createAccount(country, taxId);
     const type = account.fieldTypeForField('taxId');

@@ -8,11 +8,18 @@ export const middleName = string.label('Middle name').autocomplete('additional-n
 export const lastName = string.label('Last name').autocomplete('family-name');
 
 /** Practical email syntax validation; this does not verify mailbox ownership. */
-export const email = string.label('Email').type('email').autocomplete('email').validator({
-    name: 'must be an email address',
-    validate: value => value == null || (typeof value === 'string' &&
-        (/^\s*$/.test(value) || (value.trim() === value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)))),
-});
+export const email = string
+    .label('Email')
+    .type('email')
+    .autocomplete('email')
+    .validator({
+        name: 'must be an email address',
+        validate: value =>
+            value == null ||
+            (typeof value === 'string' &&
+                (/^\s*$/.test(value) ||
+                    (value.trim() === value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)))),
+    });
 
 // Telephone formats vary internationally; applications can add their own validator.
 export const phoneNumber = string.label('Phone number').type('tel').autocomplete('tel');
@@ -28,7 +35,19 @@ export const username = string.label('Username').autocomplete('username');
 
 /** Common definitions, also available as individual named exports. */
 export const fieldDefinitions = Object.freeze({
-    name, firstName, middleName, lastName, email, phoneNumber,
-    streetAddress, addressLine1, addressLine2, city, state, postalCode,
-    country, organization, username,
+    name,
+    firstName,
+    middleName,
+    lastName,
+    email,
+    phoneNumber,
+    streetAddress,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    postalCode,
+    country,
+    organization,
+    username,
 });

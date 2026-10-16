@@ -6,10 +6,15 @@ import { boolean, date, field, number, Record, Recordset, string } from '../inde
 // fail here instead of in a reader's first application.
 function readmeAppointment() {
     const markdown = fs.readFileSync(path.join(__dirname, '../README.md'), 'utf8');
-    const source = markdown.slice(markdown.indexOf('## Example: Dog Walking Service')).match(/```js\n([\s\S]*?)```/)[1]
+    const source = markdown
+        .slice(markdown.indexOf('## Example: Dog Walking Service'))
+        .match(/```js\n([\s\S]*?)```/)[1]
         .replace(/^import .*;\n/m, '');
     return new Function('string', 'boolean', 'date', 'Record', `${source}\nreturn appointment;`)(
-        string, boolean, date, Record
+        string,
+        boolean,
+        date,
+        Record
     );
 }
 
@@ -65,12 +70,19 @@ describe('documentation examples', () => {
     it('loads and sorts the table reference example before reading rows', async () => {
         const markdown = fs.readFileSync(path.join(__dirname, '../docs/field-type.md'), 'utf8');
         const source = [...markdown.matchAll(/```js\n([\s\S]*?)```/g)]
-            .map(match => match[1]).find(code => code.includes('const people ='))
+            .map(match => match[1])
+            .find(code => code.includes('const people ='))
             .replace(/^import .*;\n/m, '');
-        const execute = new Function('field', 'Recordset',
-            `return (async () => { ${source}\nreturn people; })();`);
+        const execute = new Function(
+            'field',
+            'Recordset',
+            `return (async () => { ${source}\nreturn people; })();`
+        );
         const people = await execute(field, Recordset);
-        expect(people.currentPage.map(record => record.getField('name')))
-            .toEqual(['Alpha', 'Mike', 'Zulu']);
+        expect(people.currentPage.map(record => record.getField('name'))).toEqual([
+            'Alpha',
+            'Mike',
+            'Zulu',
+        ]);
     });
 });

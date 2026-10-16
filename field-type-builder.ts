@@ -7,8 +7,13 @@ import { TemplateResult } from 'lit';
 import type Record from './record.js';
 import _FieldType from './field-type.js';
 import {
-    FieldSetting, ColumnSetting, DefaultSetting, RecordSetting, ValueSetting,
-    resolveRecordSetting, resolveValueSetting,
+    FieldSetting,
+    ColumnSetting,
+    DefaultSetting,
+    RecordSetting,
+    ValueSetting,
+    resolveRecordSetting,
+    resolveValueSetting,
 } from './field-setting';
 import { inputType } from './types/input-types.types';
 
@@ -21,7 +26,9 @@ function classCallback<Args extends unknown[]>(
 }
 
 function caseInsensitiveTextMatch(searchText: string, value: any) {
-    return String(value ?? '').toLowerCase().includes(searchText.toLowerCase());
+    return String(value ?? '')
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
 }
 
 const defaultTrueFunction = () => true;
@@ -418,7 +425,10 @@ export default class FieldTypeBuilder<T = unknown> {
     /** Add classes shared by the entire column, without a row or cell context. */
     columnClass(classes: string | string[] | (() => string | string[])) {
         const copy = this.copy();
-        copy.properties.columnClassFunctions = [...copy.properties.columnClassFunctions, classCallback(classes)];
+        copy.properties.columnClassFunctions = [
+            ...copy.properties.columnClassFunctions,
+            classCallback(classes),
+        ];
         return copy;
     }
 
@@ -597,7 +607,11 @@ export default class FieldTypeBuilder<T = unknown> {
     }
 
     options<O = T, F = Record<any>>(
-        optionsConfig: OptionsApi<O, F> | ((record: Record<any>) => O[] | Promise<O[]>) | Promise<O[]> | Array<O>
+        optionsConfig:
+            | OptionsApi<O, F>
+            | ((record: Record<any>) => O[] | Promise<O[]>)
+            | Promise<O[]>
+            | Array<O>
     ) {
         const copy = this.copy();
         if (!optionsConfig) return copy;
@@ -712,10 +726,7 @@ export default class FieldTypeBuilder<T = unknown> {
      */
     readOnly(predicate: RecordSetting<boolean> = true) {
         const copy = this.copy();
-        copy.properties.readonlyFunctions = [
-            ...copy.properties.readonlyFunctions,
-            predicate,
-        ];
+        copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, predicate];
         copy.properties.descriptions = [...copy.properties.descriptions, `read only`];
         return copy;
     }
@@ -799,9 +810,18 @@ export default class FieldTypeBuilder<T = unknown> {
             ...copy.properties.validators,
             {
                 name: 'is required',
-                validate: (modelValue: any, viewValue: any, record: Record<any>, options: OptionsApi, field: any) =>
+                validate: (
+                    modelValue: any,
+                    viewValue: any,
+                    record: Record<any>,
+                    options: OptionsApi,
+                    field: any
+                ) =>
                     !resolveRecordSetting(predicate, record) ||
-                    !(record?.fieldTypeForField(field) ?? copy).properties.emptyFunctions.some((fn: ValueSetting<T, boolean>) => resolveValueSetting(fn, modelValue, record)),
+                    !(record?.fieldTypeForField(field) ?? copy).properties.emptyFunctions.some(
+                        (fn: ValueSetting<T, boolean>) =>
+                            resolveValueSetting(fn, modelValue, record)
+                    ),
             },
         ];
         copy.properties.descriptions = [
@@ -849,7 +869,8 @@ export default class FieldTypeBuilder<T = unknown> {
     inputMask(regex: RegExp) {
         const copy = this.copy();
         const characterPattern = new RegExp(regex.source, regex.flags.replace(/[gy]/g, ''));
-        copy.properties.allowInputChar = (char: string) => [...char].length !== 1 || characterPattern.test(char);
+        copy.properties.allowInputChar = (char: string) =>
+            [...char].length !== 1 || characterPattern.test(char);
         copy.properties.descriptions = [...copy.properties.descriptions, `input mask: ${regex}`];
         return copy;
     }

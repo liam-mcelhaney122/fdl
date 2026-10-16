@@ -1,11 +1,11 @@
 // src from 'fast-deep-equal'
 /**
- * 
- * @param {Object | Array} a 
- * @param {Object | Array} b 
+ *
+ * @param {Object | Array} a
+ * @param {Object | Array} b
  * @returns boolean
  */
-const equal = (a: any , b: any) => {
+const equal = (a: any, b: any) => {
     if (a === b) return true;
 
     if (a && b && typeof a === 'object' && typeof b === 'object') {
@@ -17,7 +17,7 @@ const equal = (a: any , b: any) => {
         if (Array.isArray(a)) {
             length = a.length;
             if (length != b.length) return false;
-            for (i = length; i-- !== 0; ) if (!equal(a[i], b[i])) return false;
+            for (i = length; i-- !== 0;) if (!equal(a[i], b[i])) return false;
             return true;
         }
 
@@ -29,10 +29,10 @@ const equal = (a: any , b: any) => {
         length = keys.length;
         if (length !== Object.keys(b).length) return false;
 
-        for (i = length; i-- !== 0; )
+        for (i = length; i-- !== 0;)
             if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
 
-        for (i = length; i-- !== 0; ) {
+        for (i = length; i-- !== 0;) {
             const key = keys[i];
 
             if (!equal(a[key], b[key])) return false;
@@ -45,5 +45,5 @@ const equal = (a: any , b: any) => {
     return a !== a && b !== b;
 };
 
-const deepEquality = (element1:any, element2:any) => equal(element1, element2);
+const deepEquality = (element1: any, element2: any) => equal(element1, element2);
 export default deepEquality;

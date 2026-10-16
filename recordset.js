@@ -488,16 +488,21 @@ export default class Recordset extends EventTarget {
 
     appendRecord() {
         const firstRecord = this._.records[0];
-        const hasClassValues = firstRecord &&
-            Object.getPrototypeOf(firstRecord.values) !== Object.prototype;
+        const hasClassValues =
+            firstRecord && Object.getPrototypeOf(firstRecord.values) !== Object.prototype;
         const values = hasClassValues ? clone(firstRecord.values) : {};
-        Object.keys(this._.fieldTypes).forEach(field => { values[field] = undefined; });
+        Object.keys(this._.fieldTypes).forEach(field => {
+            values[field] = undefined;
+        });
 
         const record = this.createRecord(values);
         // Resolve against the same newly created record before applying any defaults.
-        const defaults = Object.fromEntries(Object.entries(this._.fieldTypes).map(
-            ([field, type]) => [field, type.defaultValue(undefined, record, 'model')]
-        ));
+        const defaults = Object.fromEntries(
+            Object.entries(this._.fieldTypes).map(([field, type]) => [
+                field,
+                type.defaultValue(undefined, record, 'model'),
+            ])
+        );
         Object.assign(record.values, defaults);
         record.initialValues = clone(record.values);
         this.insertRecord(record, this._.sortedFilteredRecords.length);
@@ -689,7 +694,12 @@ export default class Recordset extends EventTarget {
 
     setColumnValue(field, value) {
         this._.records
-            .filter(record => !record.fieldTypeForField(field).isDisabled(record.getField(field), record, 'model'))
+            .filter(
+                record =>
+                    !record
+                        .fieldTypeForField(field)
+                        .isDisabled(record.getField(field), record, 'model')
+            )
             .forEach(record => record.setField(field, value));
 
         this.dispatchEvent(new CustomEvent(RecordsetEvent.Changed)); // deprecated

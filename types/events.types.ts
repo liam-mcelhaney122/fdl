@@ -10,7 +10,7 @@ export type EventTypes = [
     'blur',
     'beforeinput',
     'submit',
-    'select'
+    'select',
 ];
 
 /**

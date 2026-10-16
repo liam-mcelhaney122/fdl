@@ -4,7 +4,10 @@ import Record from '../record.js';
 function deferred() {
     let resolve;
     let reject;
-    const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+    const promise = new Promise((yes, no) => {
+        resolve = yes;
+        reject = no;
+    });
     return { promise, resolve, reject };
 }
 
@@ -13,7 +16,10 @@ function choice(value) {
 }
 
 it('clears an unavailable initial selection without a rendered control', async () => {
-    const record = new Record({ store: new FieldTypeBuilder().required().options([choice('uptown')]) }, { store: 'missing' });
+    const record = new Record(
+        { store: new FieldTypeBuilder().required().options([choice('uptown')]) },
+        { store: 'missing' }
+    );
     const changed = jest.fn();
     record.addEventListener('change', changed);
     await record.whenOptionsReady();
@@ -24,12 +30,21 @@ it('clears an unavailable initial selection without a rendered control', async (
 });
 
 it('keeps valid shared choices and clears unavailable choices after dependencies change', async () => {
-    const choices = { a: [choice('shared'), choice('a-only')], b: [choice('shared'), choice('b-only')] };
-    const record = new Record({
-        group: new FieldTypeBuilder(),
-        shared: new FieldTypeBuilder().options(record => choices[record.getField('group')]),
-        exclusive: new FieldTypeBuilder().options({ fields: ['group'], fetch: record => choices[record.getField('group')] }),
-    }, { group: 'a', shared: 'shared', exclusive: 'a-only' });
+    const choices = {
+        a: [choice('shared'), choice('a-only')],
+        b: [choice('shared'), choice('b-only')],
+    };
+    const record = new Record(
+        {
+            group: new FieldTypeBuilder(),
+            shared: new FieldTypeBuilder().options(record => choices[record.getField('group')]),
+            exclusive: new FieldTypeBuilder().options({
+                fields: ['group'],
+                fetch: record => choices[record.getField('group')],
+            }),
+        },
+        { group: 'a', shared: 'shared', exclusive: 'a-only' }
+    );
     await record.whenOptionsReady();
     record.setField('group', 'b');
     await record.whenOptionsReady();
@@ -41,18 +56,28 @@ it('keeps valid shared choices and clears unavailable choices after dependencies
 });
 
 it('removes only unavailable items from multiple selections and preserves typed option identities', async () => {
-    const record = new Record({
-        selected: new FieldTypeBuilder().multipleValues().options([choice(0), choice(false), choice({ id: 1 })]),
-        scalar: new FieldTypeBuilder().options([choice(0)]),
-    }, { selected: [0, false, { id: 1 }, '0', 'missing'], scalar: 0 });
+    const record = new Record(
+        {
+            selected: new FieldTypeBuilder()
+                .multipleValues()
+                .options([choice(0), choice(false), choice({ id: 1 })]),
+            scalar: new FieldTypeBuilder().options([choice(0)]),
+        },
+        { selected: [0, false, { id: 1 }, '0', 'missing'], scalar: 0 }
+    );
     await record.whenOptionsReady();
     expect(record.getField('selected')).toEqual([0, false, { id: 1 }]);
     expect(record.getField('scalar')).toBe(0);
 });
 
 it('uses an empty array when no multiple selections remain and leaves unconstrained fields alone', async () => {
-    const record = new Record({ selected: new FieldTypeBuilder().multipleValues().options([]), free: new FieldTypeBuilder() },
-        { selected: ['gone'], free: 'anything' });
+    const record = new Record(
+        {
+            selected: new FieldTypeBuilder().multipleValues().options([]),
+            free: new FieldTypeBuilder(),
+        },
+        { selected: ['gone'], free: 'anything' }
+    );
     await record.whenOptionsReady();
     expect(record.values).toEqual({ selected: [], free: 'anything' });
 });
@@ -60,9 +85,16 @@ it('uses an empty array when no multiple selections remain and leaves unconstrai
 it('ignores an older async response and reconciles the latest value when current choices arrive', async () => {
     const old = deferred();
     const current = deferred();
-    const record = new Record({ zip: new FieldTypeBuilder(), store: new FieldTypeBuilder().options({
-        fields: ['zip'], fetch: record => record.getField('zip') === 'old' ? old.promise : current.promise,
-    }) }, { zip: 'old', store: 'keep' });
+    const record = new Record(
+        {
+            zip: new FieldTypeBuilder(),
+            store: new FieldTypeBuilder().options({
+                fields: ['zip'],
+                fetch: record => (record.getField('zip') === 'old' ? old.promise : current.promise),
+            }),
+        },
+        { zip: 'old', store: 'keep' }
+    );
     await Promise.resolve();
     record.setField('zip', 'current');
     await Promise.resolve();
@@ -76,7 +108,10 @@ it('ignores an older async response and reconciles the latest value when current
 
 it('retains the current value while loading and after a failed lookup', async () => {
     const lookup = deferred();
-    const record = new Record({ store: new FieldTypeBuilder().options(() => lookup.promise) }, { store: 'keep' });
+    const record = new Record(
+        { store: new FieldTypeBuilder().options(() => lookup.promise) },
+        { store: 'keep' }
+    );
     await Promise.resolve();
     expect(record.getField('store')).toBe('keep');
     lookup.reject(new Error('lookup failed'));
@@ -85,10 +120,15 @@ it('retains the current value while loading and after a failed lookup', async ()
 });
 
 it('settles cascaded dependent choices and rechecks reset and added fields', async () => {
-    const record = new Record({
-        parent: new FieldTypeBuilder().options([choice('a')]),
-        child: new FieldTypeBuilder().options(record => record.getField('parent') === 'a' ? [choice('b')] : []),
-    }, { parent: 'a', child: 'b' });
+    const record = new Record(
+        {
+            parent: new FieldTypeBuilder().options([choice('a')]),
+            child: new FieldTypeBuilder().options(record =>
+                record.getField('parent') === 'a' ? [choice('b')] : []
+            ),
+        },
+        { parent: 'a', child: 'b' }
+    );
     await record.whenOptionsReady();
     record.setField('parent', 'gone');
     await record.whenOptionsReady();

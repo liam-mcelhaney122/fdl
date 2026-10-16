@@ -46,9 +46,7 @@ export function resizeColumnWidths(
     const shrink = delta > 0;
     for (let index = leftIndex + 1; index < next.length && remaining > 0; index += 1) {
         const limit = limits[index];
-        const capacity = shrink
-            ? next[index] - limit.min
-            : (limit.max ?? Infinity) - next[index];
+        const capacity = shrink ? next[index] - limit.min : (limit.max ?? Infinity) - next[index];
         const adjustment = Math.min(remaining, capacity);
         next[index] += shrink ? -adjustment : adjustment;
         remaining -= adjustment;
@@ -72,21 +70,20 @@ export class FdlColumn extends HTMLElement {
     set label(value: string) {
         this.setAttribute('label', value);
     }
-
 }
 
 export class FdlTable extends LitElement {
     static properties = {
         recordset: { attribute: false },
         filters: { attribute: false },
-        showWidthDiagnostics: {type:Boolean, attribute:'show-width-diagnostics'},
+        showWidthDiagnostics: { type: Boolean, attribute: 'show-width-diagnostics' },
     };
 
     recordset?: Recordset<any>;
     showWidthDiagnostics = false;
     private resizeMessage = '';
     /** Optional controlled filter text, keyed by field. */
-    filters?: {[field: string]: string};
+    filters?: { [field: string]: string };
 
     private observedRecordset?: Recordset<any>;
 
@@ -146,7 +143,7 @@ export class FdlTable extends LitElement {
             void this.observedRecordset?.requestUpdate();
         }
         if (this.filters) {
-            const next = Object.entries(this.filters).filter(([,value]) => value.trim());
+            const next = Object.entries(this.filters).filter(([, value]) => value.trim());
             if (JSON.stringify(next) !== JSON.stringify([...this.columnFilters])) {
                 this.columnFilters = new Map(next);
                 this.applyRecordsetFilter();
@@ -190,8 +187,7 @@ export class FdlTable extends LitElement {
     }
 
     private openFilter(column: FdlColumn) {
-        this.activeFilterField =
-            this.activeFilterField === column.field ? undefined : column.field;
+        this.activeFilterField = this.activeFilterField === column.field ? undefined : column.field;
         this.requestUpdate();
         if (this.activeFilterField) {
             void this.updateComplete.then(() => {
@@ -216,16 +212,24 @@ export class FdlTable extends LitElement {
 
     private closeFilterFromOutside = (event: MouseEvent) => {
         if (!this.activeFilterField) return;
-        const clickedFilter = event.composedPath().some(
-            target =>
-                target instanceof Element &&
-                (target.matches('.filter-button') || target.matches('.filter-popover'))
-        );
+        const clickedFilter = event
+            .composedPath()
+            .some(
+                target =>
+                    target instanceof Element &&
+                    (target.matches('.filter-button') || target.matches('.filter-popover'))
+            );
         if (!clickedFilter) this.closeFilter(this.activeFilterField, false);
     };
 
     private notifyFilters() {
-        this.dispatchEvent(new CustomEvent('filters-changed', {detail: Object.fromEntries(this.columnFilters), bubbles:true, composed:true}));
+        this.dispatchEvent(
+            new CustomEvent('filters-changed', {
+                detail: Object.fromEntries(this.columnFilters),
+                bubbles: true,
+                composed: true,
+            })
+        );
     }
 
     private updateFilter(column: FdlColumn, value: string) {
@@ -307,10 +311,7 @@ export class FdlTable extends LitElement {
         const headerWidths = headers
             ? [...headers].map(header => header.getBoundingClientRect().width)
             : [];
-        if (
-            headerWidths.length === this.columns.length &&
-            headerWidths.every(width => width > 0)
-        ) {
+        if (headerWidths.length === this.columns.length && headerWidths.every(width => width > 0)) {
             return headerWidths;
         }
 
@@ -345,15 +346,21 @@ export class FdlTable extends LitElement {
             `min-width:${limits.min}px`,
             limits.max === undefined ? '' : `max-width:${limits.max}px`,
             width === undefined ? '' : `width:${width}px`,
-        ].filter(Boolean).join(';');
+        ]
+            .filter(Boolean)
+            .join(';');
     }
 
     private resizeWidths() {
-        return this.columnWidths ?? this.measureColumnWidths() ?? this.columns.map(column => {
-            const limits = this.columnLimits(column);
-            const target = this.recordset?.getFieldType(column.field).targetColumnWidth();
-            return Math.max(limits.min, Math.min(limits.max ?? Infinity, target ?? 160));
-        });
+        return (
+            this.columnWidths ??
+            this.measureColumnWidths() ??
+            this.columns.map(column => {
+                const limits = this.columnLimits(column);
+                const target = this.recordset?.getFieldType(column.field).targetColumnWidth();
+                return Math.max(limits.min, Math.min(limits.max ?? Infinity, target ?? 160));
+            })
+        );
     }
 
     private resizeRange(widths: number[], leftIndex: number) {
@@ -402,11 +409,18 @@ export class FdlTable extends LitElement {
         const width = this.columnWidths?.[index];
         if (width === undefined) return;
         const limit = this.columnLimits(this.columns[index]);
-        const neighborAtLimit = this.columnWidths!.slice(index + 1).some((value, offset) => { const neighbor = this.columnLimits(this.columns[index + offset + 1]); return value <= neighbor.min || (neighbor.max !== undefined && value >= neighbor.max); });
-        this.resizeMessage = width <= limit.min ? 'Minimum reached.'
-            : limit.max !== undefined && width >= limit.max ? 'Maximum reached.'
-            : neighborAtLimit || Math.abs(width - requested) > 0.5 ? 'A neighboring column reached its limit; total table width is preserved.'
-            : 'Resizing within the configured limits.';
+        const neighborAtLimit = this.columnWidths!.slice(index + 1).some((value, offset) => {
+            const neighbor = this.columnLimits(this.columns[index + offset + 1]);
+            return value <= neighbor.min || (neighbor.max !== undefined && value >= neighbor.max);
+        });
+        this.resizeMessage =
+            width <= limit.min
+                ? 'Minimum reached.'
+                : limit.max !== undefined && width >= limit.max
+                  ? 'Maximum reached.'
+                  : neighborAtLimit || Math.abs(width - requested) > 0.5
+                    ? 'A neighboring column reached its limit; total table width is preserved.'
+                    : 'Resizing within the configured limits.';
     }
 
     private startResize(
@@ -443,7 +457,10 @@ export class FdlTable extends LitElement {
             this.resizing.leftIndex,
             event.clientX - this.resizing.startX
         );
-        this.describeResize(this.resizing.leftIndex, this.resizing.widths[this.resizing.leftIndex] + event.clientX - this.resizing.startX);
+        this.describeResize(
+            this.resizing.leftIndex,
+            this.resizing.widths[this.resizing.leftIndex] + event.clientX - this.resizing.startX
+        );
         this.requestUpdate();
     };
 
@@ -484,7 +501,9 @@ export class FdlTable extends LitElement {
         const fieldType = this.recordset?.getFieldType(column.field);
         const record = this.recordset?.currentPage[0];
         if (!record && typeof fieldType?.properties.textAlign === 'function') return 'left';
-        return fieldType?.textAlign(record?.getField(column.field), record, 'table-header') ?? 'left';
+        return (
+            fieldType?.textAlign(record?.getField(column.field), record, 'table-header') ?? 'left'
+        );
     }
 
     private heading(column: FdlColumn) {
@@ -492,13 +511,13 @@ export class FdlTable extends LitElement {
         const fieldType = this.recordset?.getFieldType(column.field);
         const configuredLabel = record
             ? fieldType?.label(record.getField(column.field), record, 'table-header')
-            : fieldType?.properties.labelFunctions.filter((setting: unknown) => typeof setting === 'string').slice(-1)[0];
+            : fieldType?.properties.labelFunctions
+                  .filter((setting: unknown) => typeof setting === 'string')
+                  .slice(-1)[0];
         return (
             column.label ||
             configuredLabel ||
-            column.field
-                .replace(/[-_]+/g, ' ')
-                .replace(/\b\w/g, letter => letter.toUpperCase())
+            column.field.replace(/[-_]+/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase())
         );
     }
 
@@ -514,113 +533,126 @@ export class FdlTable extends LitElement {
         const activeSort = this.sortFor(column.field);
         const priority = this.sortPriority(column.field);
         const indicator =
-            activeSort?.sort === 'ascending'
-                ? '↑'
-                : activeSort?.sort === 'descending'
-                  ? '↓'
-                  : '';
-        const ariaSort =
-            priority === 1 && activeSort
-                ? activeSort.sort
-                : nothing;
+            activeSort?.sort === 'ascending' ? '↑' : activeSort?.sort === 'descending' ? '↓' : '';
+        const ariaSort = priority === 1 && activeSort ? activeSort.sort : nothing;
 
         const heading = this.heading(column);
         const filterText = this.filterFor(column.field);
         const filterOpen = this.activeFilterField === column.field;
         const resizeRange = this.resizeRange(this.resizeWidths(), index);
 
-        return html`<th class=${classes} aria-sort=${ariaSort} style=${`text-align:${this.columnAlignment(column)}`}>
+        return html`<th
+            class=${classes}
+            aria-sort=${ariaSort}
+            style=${`text-align:${this.columnAlignment(column)}`}
+        >
             <div class="heading-actions">
-                ${this.isSortable(column)
-                    ? html`<button
-                      type="button"
-                      class=${`sort-button ${activeSort ? 'sorted' : ''}`}
-                      title=${activeSort
-                          ? `${heading}: ${activeSort.sort}, sort priority ${priority}`
-                          : `Sort by ${heading}`}
-                      @click=${() => this.sort(column)}
-                  >
-                      <span>${heading}</span>
-                      ${indicator
-                          ? html`<span class="sort-indicator" aria-hidden="true"
-                                >${indicator}<small>${priority}</small></span
-                            >`
-                          : nothing}
-                  </button>`
-                    : html`<span class="heading-label">${heading}</span>`}
-                ${this.isFilterable(column)
-                    ? html`<button
-                          type="button"
-                          class=${`filter-button ${filterText ? 'filtered' : ''}`}
-                          data-filter-button=${column.field}
-                          aria-label=${`Filter ${heading}`}
-                          aria-controls=${`filter-popover-${index}`}
-                          aria-expanded=${filterOpen ? 'true' : 'false'}
-                          title=${filterText
-                              ? `${heading} is filtered by “${filterText}”`
-                              : `Filter ${heading}`}
-                          @click=${() => this.openFilter(column)}
-                      >
-                          <svg aria-hidden="true" viewBox="0 0 20 20">
-                              <path d="M3 4h14l-5.4 6.2v4.6l-3.2 1.7v-6.3z"></path>
-                          </svg>
-                      </button>`
-                    : nothing}
+                ${
+                    this.isSortable(column)
+                        ? html`<button
+                              type="button"
+                              class=${`sort-button ${activeSort ? 'sorted' : ''}`}
+                              title=${
+                                  activeSort
+                                      ? `${heading}: ${activeSort.sort}, sort priority ${priority}`
+                                      : `Sort by ${heading}`
+                              }
+                              @click=${() => this.sort(column)}
+                          >
+                              <span>${heading}</span>
+                              ${
+                                  indicator
+                                      ? html`<span class="sort-indicator" aria-hidden="true"
+                                            >${indicator}<small>${priority}</small></span
+                                        >`
+                                      : nothing
+                              }
+                          </button>`
+                        : html`<span class="heading-label">${heading}</span>`
+                }
+                ${
+                    this.isFilterable(column)
+                        ? html`<button
+                              type="button"
+                              class=${`filter-button ${filterText ? 'filtered' : ''}`}
+                              data-filter-button=${column.field}
+                              aria-label=${`Filter ${heading}`}
+                              aria-controls=${`filter-popover-${index}`}
+                              aria-expanded=${filterOpen ? 'true' : 'false'}
+                              title=${
+                                  filterText
+                                      ? `${heading} is filtered by “${filterText}”`
+                                      : `Filter ${heading}`
+                              }
+                              @click=${() => this.openFilter(column)}
+                          >
+                              <svg aria-hidden="true" viewBox="0 0 20 20">
+                                  <path d="M3 4h14l-5.4 6.2v4.6l-3.2 1.7v-6.3z"></path>
+                              </svg>
+                          </button>`
+                        : nothing
+                }
             </div>
-            ${filterOpen
-                ? html`<div
-                      class="filter-popover"
-                      id=${`filter-popover-${index}`}
-                      role="dialog"
-                      aria-label=${`Filter ${heading}`}
-                      @keydown=${(event: KeyboardEvent) => {
-                          if (event.key === 'Escape') this.closeFilter(column.field);
-                      }}
-                  >
-                      <label>
-                          <span>Filter ${heading}</span>
-                          <input
-                              type="search"
-                              data-filter-input=${column.field}
-                              .value=${filterText}
-                              placeholder="Type to filter"
-                              @input=${(event: InputEvent) =>
-                                  this.updateFilter(
-                                      column,
-                                      (event.currentTarget as HTMLInputElement).value
-                                  )}
-                          />
-                      </label>
-                      <div class="filter-popover-actions">
-                          <button
-                              type="button"
-                              class="clear-filter"
-                              ?disabled=${!filterText}
-                              @click=${() => this.clearFilter(column.field)}
-                          >Clear</button>
-                          <button
-                              type="button"
-                              class="close-filter"
-                              @click=${() => this.closeFilter(column.field)}
-                          >Done</button>
-                      </div>
-                  </div>`
-                : nothing}
-            ${index < this.columns.length - 1
-                ? html`<div
-                      class="resize-handle"
-                      role="separator"
-                      tabindex="0"
-                      aria-label=${`Resize ${this.heading(column)} column`}
-                      aria-orientation="vertical"
-                      aria-valuemin=${resizeRange.min}
-                      aria-valuemax=${resizeRange.max}
-                      aria-valuenow=${resizeRange.now}
-                      @keydown=${(event: KeyboardEvent) => this.resizeWithKeyboard(event, index)}
-                      @pointerdown=${(event: PointerEvent) => this.startResize(event, index, 'pointer')}
-                      @mousedown=${(event: MouseEvent) => this.startResize(event, index, 'mouse')}
-                  ></div>`
-                : nothing}
+            ${
+                filterOpen
+                    ? html`<div
+                          class="filter-popover"
+                          id=${`filter-popover-${index}`}
+                          role="dialog"
+                          aria-label=${`Filter ${heading}`}
+                          @keydown=${(event: KeyboardEvent) => {
+                              if (event.key === 'Escape') this.closeFilter(column.field);
+                          }}
+                      >
+                          <label>
+                              <span>Filter ${heading}</span>
+                              <input
+                                  type="search"
+                                  data-filter-input=${column.field}
+                                  .value=${filterText}
+                                  placeholder="Type to filter"
+                                  @input=${(event: InputEvent) =>
+                                      this.updateFilter(
+                                          column,
+                                          (event.currentTarget as HTMLInputElement).value
+                                      )}
+                              />
+                          </label>
+                          <div class="filter-popover-actions">
+                              <button
+                                  type="button"
+                                  class="clear-filter"
+                                  ?disabled=${!filterText}
+                                  @click=${() => this.clearFilter(column.field)}
+                                  >Clear</button
+                              >
+                              <button
+                                  type="button"
+                                  class="close-filter"
+                                  @click=${() => this.closeFilter(column.field)}
+                                  >Done</button
+                              >
+                          </div>
+                      </div>`
+                    : nothing
+            }
+            ${
+                index < this.columns.length - 1
+                    ? html`<div
+                          class="resize-handle"
+                          role="separator"
+                          tabindex="0"
+                          aria-label=${`Resize ${this.heading(column)} column`}
+                          aria-orientation="vertical"
+                          aria-valuemin=${resizeRange.min}
+                          aria-valuemax=${resizeRange.max}
+                          aria-valuenow=${resizeRange.now}
+                          @keydown=${(event: KeyboardEvent) => this.resizeWithKeyboard(event, index)}
+                          @pointerdown=${(event: PointerEvent) => this.startResize(event, index, 'pointer')}
+                          @mousedown=${(event: MouseEvent) => this.startResize(event, index, 'mouse')}
+                      ></div>`
+                    : nothing
+            }
         </th>`;
     }
 
@@ -638,8 +670,9 @@ export class FdlTable extends LitElement {
     render() {
         const columns = this.columns;
         const records = this.recordset?.currentPage ?? [];
-        const columnClasses = columns.map(column =>
-            this.recordset?.getFieldType(column.field).columnClasses().join(' ') ?? '');
+        const columnClasses = columns.map(
+            column => this.recordset?.getFieldType(column.field).columnClasses().join(' ') ?? ''
+        );
         const activeFilters = [...this.columnFilters].map(([field, value]) => ({
             field,
             value,
@@ -647,49 +680,85 @@ export class FdlTable extends LitElement {
         }));
 
         return html`
-            ${activeFilters.length
-                ? html`<div class="active-filters" role="region" aria-label="Active table filters">
-                      <span>Filters</span>
-                      ${activeFilters.map(
-                          filter => html`<button
-                              type="button"
-                              class="filter-chip"
-                              aria-label=${`Remove ${filter.heading} filter`}
-                              @click=${() => this.clearFilter(filter.field)}
-                          >${filter.heading}: “${filter.value}” <span aria-hidden="true">×</span></button>`
-                      )}
-                      <button type="button" class="clear-all" @click=${this.clearFilters}
-                          >Clear all</button
+            ${
+                activeFilters.length
+                    ? html`<div
+                          class="active-filters"
+                          role="region"
+                          aria-label="Active table filters"
                       >
-                  </div>`
-                : nothing}
+                          <span>Filters</span>
+                          ${activeFilters.map(
+                              filter =>
+                                  html`<button
+                                      type="button"
+                                      class="filter-chip"
+                                      aria-label=${`Remove ${filter.heading} filter`}
+                                      @click=${() => this.clearFilter(filter.field)}
+                                      >${filter.heading}: “${filter.value}”
+                                      <span aria-hidden="true">×</span></button
+                                  >`
+                          )}
+                          <button type="button" class="clear-all" @click=${this.clearFilters}
+                              >Clear all</button
+                          >
+                      </div>`
+                    : nothing
+            }
             <div class=${`table-frame ${this.activeFilterField ? 'filter-open' : ''}`}>
-                <table style=${this.columnWidths ? `width:${this.columnWidths.reduce((total, width) => total + width, 0)}px` : ''}>
+                <table
+                    style=${this.columnWidths ? `width:${this.columnWidths.reduce((total, width) => total + width, 0)}px` : ''}
+                >
                     <colgroup>
                         ${columns.map((column, index) => html`<col class=${columnClasses[index]} style=${this.columnStyle(column, index)} />`)}
                     </colgroup>
                     <thead>
-                        <tr>${columns.map((column, index) => this.renderHeading(column, index, columnClasses[index]))}</tr>
+                        <tr
+                            >${columns.map((column, index) => this.renderHeading(column, index, columnClasses[index]))}</tr
+                        >
                     </thead>
                     <tbody>
-                        ${records.length
-                            ? records.map(
-                                  record => html`<tr class=${this.rowClasses(record)}>
-                                      ${columns.map((column, index) => this.renderCell(record, column, columnClasses[index]))}
-                                  </tr>`
-                              )
-                            : html`<tr><td class="empty-state" colspan=${columns.length}
-                                  >${activeFilters.length
-                                      ? 'No rows match the active filters.'
-                                      : 'No rows to display.'}</td
-                              ></tr>`}
+                        ${
+                            records.length
+                                ? records.map(
+                                      record =>
+                                          html`<tr class=${this.rowClasses(record)}>
+                                              ${columns.map((column, index) => this.renderCell(record, column, columnClasses[index]))}
+                                          </tr>`
+                                  )
+                                : html`<tr
+                                      ><td class="empty-state" colspan=${columns.length}
+                                          >${
+                                              activeFilters.length
+                                                  ? 'No rows match the active filters.'
+                                                  : 'No rows to display.'
+                                          }</td
+                                      ></tr
+                                  >`
+                        }
                     </tbody>
                 </table>
             </div>
-            ${this.showWidthDiagnostics ? html`<section class="width-diagnostics" aria-label="Column width measurements"><h3>Live column widths</h3><ul>${columns.map((column,index) => {
-                const fieldType = this.recordset?.getFieldType(column.field);
-                return html`<li><strong>${this.heading(column)}</strong>: ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'} · min ${this.columnLimits(column).min}px${fieldType?.targetColumnWidth() ? ` · preferred ${fieldType.targetColumnWidth()}px` : ''}${fieldType?.maxColumnWidth() ? ` · max ${fieldType.maxColumnWidth()}px` : ''}</li>`;
-            })}</ul><p role="status">${this.resizeMessage || 'Drag a divider or use its arrow keys. The table keeps its total width.'}</p></section>` : nothing}
+            ${
+                this.showWidthDiagnostics
+                    ? html`<section class="width-diagnostics" aria-label="Column width measurements"
+                          ><h3>Live column widths</h3
+                          ><ul
+                              >${columns.map((column, index) => {
+                                  const fieldType = this.recordset?.getFieldType(column.field);
+                                  return html`<li
+                                      ><strong>${this.heading(column)}</strong>:
+                                      ${this.columnWidths ? `${Math.round(this.columnWidths[index])}px` : 'Measuring…'}
+                                      · min
+                                      ${this.columnLimits(column).min}px${fieldType?.targetColumnWidth() ? ` · preferred ${fieldType.targetColumnWidth()}px` : ''}${fieldType?.maxColumnWidth() ? ` · max ${fieldType.maxColumnWidth()}px` : ''}</li
+                                  >`;
+                              })}</ul
+                          ><p role="status"
+                              >${this.resizeMessage || 'Drag a divider or use its arrow keys. The table keeps its total width.'}</p
+                          ></section
+                      >`
+                    : nothing
+            }
             <slot></slot>
         `;
     }
@@ -901,7 +970,9 @@ export class FdlTable extends LitElement {
             border: 1px solid #b8bfcc;
             border-radius: 0.4rem;
             color: #172033;
-            font: 400 var(--fdl-table-control-font-size, 0.9rem)/1.3 system-ui, sans-serif;
+            font:
+                400 var(--fdl-table-control-font-size, 0.9rem)/1.3 system-ui,
+                sans-serif;
             padding: 0.55rem 0.65rem;
         }
 
@@ -916,7 +987,9 @@ export class FdlTable extends LitElement {
             border: 0;
             border-radius: 0.4rem;
             cursor: pointer;
-            font: 700 var(--fdl-table-control-font-size, 0.78rem)/1 system-ui, sans-serif;
+            font:
+                700 var(--fdl-table-control-font-size, 0.78rem)/1 system-ui,
+                sans-serif;
             padding: 0.5rem 0.65rem;
         }
 
@@ -959,10 +1032,26 @@ export class FdlTable extends LitElement {
             text-align: center;
         }
 
-        .width-diagnostics { margin-top:16px; padding:12px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; font-size:.875rem; line-height:1.6; }
-        .width-diagnostics h3 { margin:0 0 8px; font-size:1rem; }
-        .width-diagnostics ul { margin:0; padding-left:20px; }
-        .width-diagnostics p { margin:8px 0 0; }
+        .width-diagnostics {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        .width-diagnostics h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+        .width-diagnostics ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .width-diagnostics p {
+            margin: 8px 0 0;
+        }
         slot {
             display: none;
         }

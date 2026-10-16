@@ -91,42 +91,42 @@ future retirement work from losing historical context.
 
 ## Modifier retirement inventory
 
-| Modifier | Status | Replacement or destination | Reason |
-| --- | --- | --- | --- |
-| `accept` | Deprecated | Renderer-specific input configuration | Browser input attribute; not model validation. |
-| `additionalProperties` | Deprecated | Renderer integration | Arbitrary renderer-property pass-through. |
-| `autocomplete` | Deprecated | Renderer-specific input configuration | Browser interaction hint. |
-| `autofocus` | Deprecated | Renderer-specific input configuration | Focus behavior belongs to the component. |
-| `conditionalCellClass` | Removed — 2026-10-15 | `cellClass((value, record) => classes)` | Consolidate fixed and conditional cell classes in one modifier. |
-| `disabledWhen` | Removed — 2026-10-15 | `disabled(predicate)` | Consolidate unconditional and conditional disabled state in one modifier. |
-| `exampleValue` | Removed — 2026-10-15 | Application/test fixtures or an explicit `ExampleRecordset` row factory | Sample-data generation belongs to application tooling rather than reusable field behavior. |
-| `field` | Deprecated | Record/renderer binding | View binding alias, not field behavior. |
-| `filtering` | Deprecated | Renderer-specific option-control configuration | Interactive option-control behavior is not reusable field behavior. |
-| `formElement` | Deprecated | Renderer integration | Component selection and private properties. |
-| `formatOnChange` | Deprecated | Renderer and value pipeline | Input-event formatting policy. |
-| `hasSearch` | Deprecated | `search(config)` | Redundant shorthand for search configuration. |
-| `hideLabel` | Deprecated | Renderer | Label visibility is presentation. |
-| `iconMessage` | Deprecated | Renderer | Tooltip presentation is renderer-specific. |
-| `inline` | Deprecated | View and CSS | Layout instruction. |
-| `inlineWhen` | Deprecated | View and CSS | Conditional layout instruction. |
-| `list` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
-| `max` | Deprecated | Model validation or renderer input configuration | Browser constraint is not model-enforced. |
-| `onValueChange` | Deprecated | Record or application model | Imperative cross-field orchestration. |
-| `parseDynamicRange` | Deprecated | `parser(...)` | Parsing belongs in the value pipeline. |
-| `pattern` | Deprecated | Model validation or renderer input configuration | Browser constraint is not model-enforced. |
-| `readOnlyExceptionWhen` | Deprecated | Renderer | Composite-control exception. |
-| `requiredWhen` | Removed — 2026-10-15 | `required(predicate)` | Consolidate unconditional and conditional requiredness while preserving model validation. |
-| `rowClasses` | Removed — 2026-10-15 | `rowClass(classes)` | Use a singular modifier for each declaration; strings, arrays, and functions returning either compose consistently with `cellClass`. |
-| `rowCount` | Deprecated | `fdl-field` presentation configuration | Textarea sizing is a presentation concern rather than reusable field behavior. |
-| `schema` | Deprecated | Application metadata outside `FieldType` | Legacy metadata without reusable field behavior. |
-| `selectionDisabledFunctions` | Deprecated | Renderer or form adapter | Individual choice disabling is renderer-specific and is not enforced by the FDL model or native controls. |
-| `selectOnFocus` | Removed — 2026-10-15 | Component or form adapter | Focus and text selection are control interactions, not reusable field behavior. |
-| `segmented` | Deprecated | Renderer-specific control configuration | Control presentation choice. |
-| `step` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
-| `tag` | Removed — 2026-10-16 | Adapter control selection inferred from options and row-count metadata | Renderer-specific control selection does not belong in the reusable field model. |
-| `toggle` | Removed — 2026-10-15 | Component or form adapter | Boolean-control presentation and interaction belong to the component, not the field model. |
-| `visibleWhen` | Deprecated | `visible(predicate)` | Use the concise name for reusable conditional visibility behavior. |
-| `usesCustomPrint` | Deprecated | Renderer | Custom print behavior. |
+| Modifier                     | Status               | Replacement or destination                                              | Reason                                                                                                                               |
+| ---------------------------- | -------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `accept`                     | Deprecated           | Renderer-specific input configuration                                   | Browser input attribute; not model validation.                                                                                       |
+| `additionalProperties`       | Deprecated           | Renderer integration                                                    | Arbitrary renderer-property pass-through.                                                                                            |
+| `autocomplete`               | Deprecated           | Renderer-specific input configuration                                   | Browser interaction hint.                                                                                                            |
+| `autofocus`                  | Deprecated           | Renderer-specific input configuration                                   | Focus behavior belongs to the component.                                                                                             |
+| `conditionalCellClass`       | Removed — 2026-10-15 | `cellClass((value, record) => classes)`                                 | Consolidate fixed and conditional cell classes in one modifier.                                                                      |
+| `disabledWhen`               | Removed — 2026-10-15 | `disabled(predicate)`                                                   | Consolidate unconditional and conditional disabled state in one modifier.                                                            |
+| `exampleValue`               | Removed — 2026-10-15 | Application/test fixtures or an explicit `ExampleRecordset` row factory | Sample-data generation belongs to application tooling rather than reusable field behavior.                                           |
+| `field`                      | Deprecated           | Record/renderer binding                                                 | View binding alias, not field behavior.                                                                                              |
+| `filtering`                  | Deprecated           | Renderer-specific option-control configuration                          | Interactive option-control behavior is not reusable field behavior.                                                                  |
+| `formElement`                | Deprecated           | Renderer integration                                                    | Component selection and private properties.                                                                                          |
+| `formatOnChange`             | Deprecated           | Renderer and value pipeline                                             | Input-event formatting policy.                                                                                                       |
+| `hasSearch`                  | Deprecated           | `search(config)`                                                        | Redundant shorthand for search configuration.                                                                                        |
+| `hideLabel`                  | Deprecated           | Renderer                                                                | Label visibility is presentation.                                                                                                    |
+| `iconMessage`                | Deprecated           | Renderer                                                                | Tooltip presentation is renderer-specific.                                                                                           |
+| `inline`                     | Deprecated           | View and CSS                                                            | Layout instruction.                                                                                                                  |
+| `inlineWhen`                 | Deprecated           | View and CSS                                                            | Conditional layout instruction.                                                                                                      |
+| `list`                       | Deprecated           | Renderer-specific input configuration                                   | Browser input attribute.                                                                                                             |
+| `max`                        | Deprecated           | Model validation or renderer input configuration                        | Browser constraint is not model-enforced.                                                                                            |
+| `onValueChange`              | Deprecated           | Record or application model                                             | Imperative cross-field orchestration.                                                                                                |
+| `parseDynamicRange`          | Deprecated           | `parser(...)`                                                           | Parsing belongs in the value pipeline.                                                                                               |
+| `pattern`                    | Deprecated           | Model validation or renderer input configuration                        | Browser constraint is not model-enforced.                                                                                            |
+| `readOnlyExceptionWhen`      | Deprecated           | Renderer                                                                | Composite-control exception.                                                                                                         |
+| `requiredWhen`               | Removed — 2026-10-15 | `required(predicate)`                                                   | Consolidate unconditional and conditional requiredness while preserving model validation.                                            |
+| `rowClasses`                 | Removed — 2026-10-15 | `rowClass(classes)`                                                     | Use a singular modifier for each declaration; strings, arrays, and functions returning either compose consistently with `cellClass`. |
+| `rowCount`                   | Deprecated           | `fdl-field` presentation configuration                                  | Textarea sizing is a presentation concern rather than reusable field behavior.                                                       |
+| `schema`                     | Deprecated           | Application metadata outside `FieldType`                                | Legacy metadata without reusable field behavior.                                                                                     |
+| `selectionDisabledFunctions` | Deprecated           | Renderer or form adapter                                                | Individual choice disabling is renderer-specific and is not enforced by the FDL model or native controls.                            |
+| `selectOnFocus`              | Removed — 2026-10-15 | Component or form adapter                                               | Focus and text selection are control interactions, not reusable field behavior.                                                      |
+| `segmented`                  | Deprecated           | Renderer-specific control configuration                                 | Control presentation choice.                                                                                                         |
+| `step`                       | Deprecated           | Renderer-specific input configuration                                   | Browser input attribute.                                                                                                             |
+| `tag`                        | Removed — 2026-10-16 | Adapter control selection inferred from options and row-count metadata  | Renderer-specific control selection does not belong in the reusable field model.                                                     |
+| `toggle`                     | Removed — 2026-10-15 | Component or form adapter                                               | Boolean-control presentation and interaction belong to the component, not the field model.                                           |
+| `visibleWhen`                | Deprecated           | `visible(predicate)`                                                    | Use the concise name for reusable conditional visibility behavior.                                                                   |
+| `usesCustomPrint`            | Deprecated           | Renderer                                                                | Custom print behavior.                                                                                                               |
 
 ### Inventory maintenance
 

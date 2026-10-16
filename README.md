@@ -39,19 +39,22 @@ and edits to their existing components and accessible semantics.
 Use named exports or the `fieldDefinitions` collection as reusable starting points:
 
 ```js
-import { firstName, email, fieldDefinitions, Record } from "digital-fdl";
+import { firstName, email, fieldDefinitions, Record } from 'digital-fdl';
 
-const contact = new Record({
-  firstName: firstName.required(),
-  email: email.required(),
-  streetAddress: fieldDefinitions.streetAddress,
-  postalCode: fieldDefinitions.postalCode.label("ZIP / postal code"),
-}, {
-  firstName: "Ada",
-  email: "ada@example.com",
-  streetAddress: "",
-  postalCode: "",
-});
+const contact = new Record(
+    {
+        firstName: firstName.required(),
+        email: email.required(),
+        streetAddress: fieldDefinitions.streetAddress,
+        postalCode: fieldDefinitions.postalCode.label('ZIP / postal code'),
+    },
+    {
+        firstName: 'Ada',
+        email: 'ada@example.com',
+        streetAddress: '',
+        postalCode: '',
+    }
+);
 ```
 
 The exports are `name`, `firstName`, `middleName`, `lastName`, `email`,
@@ -81,65 +84,63 @@ handlers makes them difficult to reuse and maintain. With FDL, define the
 rules alongside each field type; the view only decides where to render fields.
 
 ```js
-import { string, boolean, date, Record } from "digital-fdl";
+import { string, boolean, date, Record } from 'digital-fdl';
 
-const existingCustomers = ["Ada", "Grace"];
+const existingCustomers = ['Ada', 'Grace'];
 const holidays = [new Date(2026, 11, 25).toDateString()];
 
-const name = string
-  .required()
-  .minLength(2)
-  .maxLength(20)
-  .formatter(capitalize);
+const name = string.required().minLength(2).maxLength(20).formatter(capitalize);
 const newCustomer = boolean
-  .type("checkbox")
-  .defaultValue(false)
-  .disabled(record =>
-    !existingCustomers.includes(record.getField("name")));
+    .type('checkbox')
+    .defaultValue(false)
+    .disabled(record => !existingCustomers.includes(record.getField('name')));
 const appointmentDate = date
-  .required()
-  .validator({ name: "weekday", validate: isWeekday })
-  .validator({ name: "not-holiday", validate: isNotHoliday })
-  .validator({
-    name: "new-customer-day",
-    validate: isExistingCustomerOrNewCustomerDay,
-  });
+    .required()
+    .validator({ name: 'weekday', validate: isWeekday })
+    .validator({ name: 'not-holiday', validate: isNotHoliday })
+    .validator({
+        name: 'new-customer-day',
+        validate: isExistingCustomerOrNewCustomerDay,
+    });
 const comments = string.required(isNewCustomer);
 
-const appointment = new Record({
-  name,
-  newCustomer,
-  date: appointmentDate,
-  comments,
-}, {
-  name: "",
-  newCustomer: false,
-  date: null,
-  comments: "",
-});
+const appointment = new Record(
+    {
+        name,
+        newCustomer,
+        date: appointmentDate,
+        comments,
+    },
+    {
+        name: '',
+        newCustomer: false,
+        date: null,
+        comments: '',
+    }
+);
 
 function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function isNewCustomer(record) {
-  return record.getField("newCustomer");
+    return record.getField('newCustomer');
 }
 
 function isDate(value) {
-  return value instanceof Date && !Number.isNaN(value.getTime());
+    return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 function isWeekday(value) {
-  return isDate(value) && value.getDay() !== 0 && value.getDay() !== 6;
+    return isDate(value) && value.getDay() !== 0 && value.getDay() !== 6;
 }
 
 function isNotHoliday(value) {
-  return isDate(value) && !holidays.includes(value.toDateString());
+    return isDate(value) && !holidays.includes(value.toDateString());
 }
 
 function isExistingCustomerOrNewCustomerDay(value, _, record) {
-  return isDate(value) && (!record.getField("newCustomer") || value.getDay() === 5);
+    return isDate(value) && (!record.getField('newCustomer') || value.getDay() === 5);
 }
 ```
 
@@ -214,3 +215,10 @@ claims of shipped support.
 
 FDL is available under the [Apache License 2.0](./LICENSE). Preserve the
 repository’s existing copyright and attribution notices when redistributing it.
+
+## Formatting
+
+Run `npm run format` to apply Prettier to source, tests, documentation, and examples,
+including complete static code snippets displayed on the documentation site. Run
+`npm run format:check` to check formatting without changing files. Generated build
+output, dependencies, worktrees, and bundled agent skills are excluded.

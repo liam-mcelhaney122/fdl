@@ -107,7 +107,17 @@ it('exports typed builder primitives and removes sentence aliases', () => {
     for (const primitive of [string, number, boolean, date]) {
         expect(primitive).toBeInstanceOf(FieldTypeBuilder);
         expect(primitive.valueOf()).toBeInstanceOf(FieldType);
-        for (const alias of ['with', 'and', 'thatIs', 'thatHas', 'andIs', 'as', 'thatWill', 'thatUses', 'that']) {
+        for (const alias of [
+            'with',
+            'and',
+            'thatIs',
+            'thatHas',
+            'andIs',
+            'as',
+            'thatWill',
+            'thatUses',
+            'that',
+        ]) {
             expect(primitive).not.toHaveProperty(alias);
             expect(primitive.valueOf()).not.toHaveProperty(alias);
         }
@@ -136,15 +146,16 @@ function checkDefinitionTypes() {
     type.with.required();
 }
 
-
 it('exports a reusable field instance without exposing the builder constructor', () => {
     expect(publicApi).not.toHaveProperty('FieldTypeBuilder');
     expect(field).toBeInstanceOf(FieldTypeBuilder);
     const name = field.label('Name');
     const requiredName = name.required();
     const nickname = name.label('Nickname');
-    const person = new Record({ plain: field, name: requiredName, nickname },
-        { plain: '', name: '', nickname: '' });
+    const person = new Record(
+        { plain: field, name: requiredName, nickname },
+        { plain: '', name: '', nickname: '' }
+    );
 
     expect(person.isValid('plain')).toBe(true);
     expect(person.isValid('name')).toBe(false);
@@ -160,7 +171,9 @@ it('exports a reusable field instance without exposing the builder constructor',
 });
 
 it('uses custom field chains directly in recordsets and added fields', async () => {
-    const amount: FieldDefinition<number> = field.parser(Number).defaultValue(0)
+    const amount: FieldDefinition<number> = field
+        .parser(Number)
+        .defaultValue(0)
         .validator({ name: 'positive', validate: value => value > 0 });
     const table = new Recordset({ amount }, [{ amount: 2 }, { amount: -1 }]);
     await table.requestUpdate();

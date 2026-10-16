@@ -14,9 +14,9 @@ Use the same definition map for every row:
 import { boolean, Recordset, string } from 'digital-fdl';
 
 const fields = {
-  id: string,
-  title: string,
-  isFavorite: boolean,
+    id: string,
+    title: string,
+    isFavorite: boolean,
 };
 ```
 
@@ -27,27 +27,22 @@ one request object and may return data synchronously or as a promise. It can
 return either an array of row values or `{ data, totalCount, summary }`.
 
 ```js
-const reports = new Recordset(fields, async ({
-  parameters,
-  startIndex,
-  pageSize,
-  sort,
-}) => {
-  const response = await reportsApi.fetch({
-    type: parameters.type,
-    startIndex,
-    pageSize,
-    sort,
-  });
+const reports = new Recordset(fields, async ({ parameters, startIndex, pageSize, sort }) => {
+    const response = await reportsApi.fetch({
+        type: parameters.type,
+        startIndex,
+        pageSize,
+        sort,
+    });
 
-  return {
-    data: response.items.map(report => ({
-      id: report.id,
-      title: report.customTitle ?? report.title,
-      isFavorite: report.favorite,
-    })),
-    totalCount: response.totalCount,
-  };
+    return {
+        data: response.items.map(report => ({
+            id: report.id,
+            title: report.customTitle ?? report.title,
+            isFavorite: report.favorite,
+        })),
+        totalCount: response.totalCount,
+    };
 });
 
 await reports.requestHardUpdate();
@@ -101,9 +96,9 @@ number of rows using an explicit row factory owned by the application.
 import ExampleRecordset from '../example-recordset';
 
 const exampleReports = new ExampleRecordset(fields, 100, index => ({
-  id: String(index + 1),
-  title: `Report ${index + 1}`,
-  isFavorite: false,
+    id: String(index + 1),
+    title: `Report ${index + 1}`,
+    isFavorite: false,
 }));
 await exampleReports.requestHardUpdate();
 ```

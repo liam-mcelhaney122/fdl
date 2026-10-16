@@ -9,19 +9,19 @@ reusable starting points with type-specific defaults.
 import { field } from 'digital-fdl';
 
 const number = field
-  .validator({
-    name: 'numeric',
-    validate: value => Number.isFinite(Number(value)),
-  })
-  .cellClass('numeric')
-  .cellClass(value => value < 0 ? 'negative' : []);
+    .validator({
+        name: 'numeric',
+        validate: value => Number.isFinite(Number(value)),
+    })
+    .cellClass('numeric')
+    .cellClass(value => (value < 0 ? 'negative' : []));
 
 const money = number
-  .formatter(formatUsd)
-  .parser(parseUsd)
-  .minColumnWidth(50)
-  .targetColumnWidth(80)
-  .maxColumnWidth(200);
+    .formatter(formatUsd)
+    .parser(parseUsd)
+    .minColumnWidth(50)
+    .targetColumnWidth(80)
+    .maxColumnWidth(200);
 ```
 
 ## Definitions and runtime behavior
@@ -69,14 +69,14 @@ constructor export have been removed.
 Settings accept a fixed result or a pure, synchronous callback. A callback's
 inputs follow the scope of the setting:
 
-| Modifiers | Callback | Exported setting type |
-| --- | --- | --- |
-| `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visible`, `minLength`, `maxLength` | `(record) => result` | `RecordSetting<Result, R>` |
-| `defaultValue` | `(record) => value` | `DefaultSetting<T, R>` |
-| `emptyWhen`, `cellClass` | `(value, record) => result` | `ValueSetting<T, Result, R>` |
-| `columnClass` | `() => string or string[]` | Fixed classes or a callback with no arguments |
-| `textAlign` | `(value, record, context) => result` | `FieldSetting<T, Result, R>` |
-| `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth` | `() => result` | `ColumnSetting<Result>` |
+| Modifiers                                                                                                                           | Callback                             | Exported setting type                         |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------- |
+| `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visible`, `minLength`, `maxLength` | `(record) => result`                 | `RecordSetting<Result, R>`                    |
+| `defaultValue`                                                                                                                      | `(record) => value`                  | `DefaultSetting<T, R>`                        |
+| `emptyWhen`, `cellClass`                                                                                                            | `(value, record) => result`          | `ValueSetting<T, Result, R>`                  |
+| `columnClass`                                                                                                                       | `() => string or string[]`           | Fixed classes or a callback with no arguments |
+| `textAlign`                                                                                                                         | `(value, record, context) => result` | `FieldSetting<T, Result, R>`                  |
+| `sortable`, `minColumnWidth`, `maxColumnWidth`, `targetColumnWidth`                                                                 | `() => result`                       | `ColumnSetting<Result>`                       |
 
 `T` is the stored field type and `R` is the record's backing-data type. Import
 these types from `digital-fdl`. Record settings describe the record's state or
@@ -88,12 +88,13 @@ the record, even when the modifier is attached to a particular field.
 
 ```ts
 const amount = field
-  .label(record => `Amount for ${record.getField('customer')}`)
-  .placeholder('Enter an amount')
-  .required(record => record.getField('submitted'))
-  .cellClass((value, record) =>
-    value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric')
-  .rowClass(record => record.getField('overdue') ? 'overdue' : []);
+    .label(record => `Amount for ${record.getField('customer')}`)
+    .placeholder('Enter an amount')
+    .required(record => record.getField('submitted'))
+    .cellClass((value, record) =>
+        value > record.getField('limit') ? ['numeric', 'over-limit'] : 'numeric'
+    )
+    .rowClass(record => (record.getField('overdue') ? 'overdue' : []));
 ```
 
 Callbacks resolve on every read, so changes to dependencies appear on the next
@@ -154,8 +155,7 @@ values. Supply an initial value for every declared field when constructing a
 record. For example:
 
 ```ts
-const reference = field
-  .defaultValue(record => `${record.getField('prefix')}-draft`);
+const reference = field.defaultValue(record => `${record.getField('prefix')}-draft`);
 ```
 
 Clearing a record evaluates all defaults against the same pre-clear record,
@@ -179,9 +179,7 @@ arguments from getter calls, and use separate field definitions for distinct
 consumer policies.
 
 ```ts
-const amount = field
-  .minColumnWidth(() => 100)
-  .sortable(true);
+const amount = field.minColumnWidth(() => 100).sortable(true);
 ```
 
 ### Operations and structural configuration
@@ -234,16 +232,16 @@ appropriate parser.
 
 ```js
 const currency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
+    style: 'currency',
+    currency: 'USD',
 });
 
 function formatUsd(value) {
-  return currency.format(value);
+    return currency.format(value);
 }
 
 function parseUsd(value) {
-  return Number(value.replace(/[$,]/g, ''));
+    return Number(value.replace(/[$,]/g, ''));
 }
 ```
 
@@ -253,8 +251,8 @@ either `true`/`false` or a promise of `true`/`false`.
 
 ```js
 const positiveNumber = number.validator({
-  name: 'positive',
-  validate: value => value > 0,
+    name: 'positive',
+    validate: value => value > 0,
 });
 ```
 
@@ -285,41 +283,39 @@ The current adapter interprets the following metadata. `autocomplete` and
 `autofocus` are deprecated compatibility APIs; their configuration belongs
 in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md)).
 
-| Modifier | Purpose |
-| --- | --- |
-| `type(name)` | Choose the native input type for input controls. |
-| `label(value)` | Set a string label or compute one from the record. |
-| `placeholder(value)`, `autocomplete(value)`, `autofocus()` | Configure common input attributes. |
-| `defaultValue(valueOrFactory)` | Provide defaults for clearing a record, appending a row, and omitted values in a partial clone; constructor values are kept as supplied. |
-| `disabled(predicate)`, `readOnlyWhen(predicate)`, `visible(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
-| `multipleValues(min, max)` | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators. |
-| `options(config)` | Provide options for a select-like control. |
+| Modifier                                                               | Purpose                                                                                                                                  |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `type(name)`                                                           | Choose the native input type for input controls.                                                                                         |
+| `label(value)`                                                         | Set a string label or compute one from the record.                                                                                       |
+| `placeholder(value)`, `autocomplete(value)`, `autofocus()`             | Configure common input attributes.                                                                                                       |
+| `defaultValue(valueOrFactory)`                                         | Provide defaults for clearing a record, appending a row, and omitted values in a partial clone; constructor values are kept as supplied. |
+| `disabled(predicate)`, `readOnlyWhen(predicate)`, `visible(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state.                                                      |
+| `multipleValues(min, max)`                                             | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators.               |
+| `options(config)`                                                      | Provide options for a select-like control.                                                                                               |
 
 For the built-in adapter, providing options creates a native dropdown. Option
 objects use `text` and `value` properties:
 
 ```js
-const contactMethod = field
-  .label('Preferred contact method')
-  .options([
+const contactMethod = field.label('Preferred contact method').options([
     { text: 'Choose a method', value: '' },
     { text: 'Email', value: 'email' },
     { text: 'Phone', value: 'phone' },
-  ]);
+]);
 ```
 
 `options()` can also receive a regular function or an async function. Both
 receive the current record:
 
 ```js
-const localAssignee = field
-  .options(record => directory[record.getField('department')]);
+const localAssignee = field.options(record => directory[record.getField('department')]);
 
-const remoteAssignee = field
-  .options(async record => {
-    const response = await fetch(`/assignees?department=${encodeURIComponent(record.getField('department'))}`);
+const remoteAssignee = field.options(async record => {
+    const response = await fetch(
+        `/assignees?department=${encodeURIComponent(record.getField('department'))}`
+    );
     return response.json();
-  });
+});
 ```
 
 If the selected value exists in both the old and new option lists, it remains
@@ -336,10 +332,10 @@ fields.
 
 ```js
 const users = field.options({
-  fetch: record => userService.fetchUsers(record.getField('companyId')),
-  fields: ['companyId'],
-  text: user => user.name,
-  value: user => user.id,
+    fetch: record => userService.fetchUsers(record.getField('companyId')),
+    fields: ['companyId'],
+    text: user => user.name,
+    value: user => user.id,
 });
 ```
 
@@ -353,14 +349,10 @@ column:
 import { field, Recordset } from 'digital-fdl';
 
 const fields = {
-  name: field.compareFunction((a, b) => a.localeCompare(b)),
+    name: field.compareFunction((a, b) => a.localeCompare(b)),
 };
 
-const people = new Recordset(fields, [
-  { name: 'Zulu' },
-  { name: 'Alpha' },
-  { name: 'Mike' },
-]);
+const people = new Recordset(fields, [{ name: 'Zulu' }, { name: 'Alpha' }, { name: 'Mike' }]);
 
 await people.requestHardUpdate();
 people.sortColumns = [{ field: 'name', sort: 'ascending' }];
@@ -384,10 +376,8 @@ filters with AND semantics and preserves any predicate already assigned to the
 
 ```js
 const fields = {
-  name: field.filter(),
-  accountCode: field.filter((text, value) =>
-    value.toLowerCase().startsWith(text.toLowerCase())
-  ),
+    name: field.filter(),
+    accountCode: field.filter((text, value) => value.toLowerCase().startsWith(text.toLowerCase())),
 };
 ```
 
@@ -452,11 +442,11 @@ order without changing the source definition.
 
 ```ts
 const status = field
-  .columnClass('status-column')
-  .cellClass('status-cell')
-  .cellClass(value => value === 'Disputed' ? ['warning', 'needs-review'] : [])
-  .rowClass('invoice-row')
-  .rowClass(record => record.getField('status') === 'Disputed' ? 'disputed-row' : []);
+    .columnClass('status-column')
+    .cellClass('status-cell')
+    .cellClass(value => (value === 'Disputed' ? ['warning', 'needs-review'] : []))
+    .rowClass('invoice-row')
+    .rowClass(record => (record.getField('status') === 'Disputed' ? 'disputed-row' : []));
 ```
 
 The supported cell and row class signatures are:
@@ -487,11 +477,10 @@ exceptions:
 
 ```ts
 const amount = field
-  .textAlign('right')
-  .columnClass('amount-column')
-  .columnClass(['numeric', 'currency'])
-  .cellClass((value, record) =>
-    value > record.getField('limit') ? 'over-limit' : []);
+    .textAlign('right')
+    .columnClass('amount-column')
+    .columnClass(['numeric', 'currency'])
+    .cellClass((value, record) => (value > record.getField('limit') ? 'over-limit' : []));
 ```
 
 Column classes do not propagate to individual cells through HTML automatically;
@@ -509,10 +498,12 @@ fields through `record.getField(name)`, for example:
 
 ```ts
 const amount = field
-  .cellClass((value, record) =>
-    value > record.getField('limit') ? ['warning', 'over-limit'] : [])
-  .rowClass(record =>
-    record.getField('amount') > record.getField('limit') ? 'over-limit-row' : []);
+    .cellClass((value, record) =>
+        value > record.getField('limit') ? ['warning', 'over-limit'] : []
+    )
+    .rowClass(record =>
+        record.getField('amount') > record.getField('limit') ? 'over-limit-row' : []
+    );
 ```
 
 The old two-argument predicate form is no longer supported. Replace

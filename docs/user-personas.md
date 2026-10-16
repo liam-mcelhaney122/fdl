@@ -24,7 +24,7 @@ schema fragments into the shared components. The result is subtle drift: a
 field that is required in a review table is optional in the editor; a date
 formatter is copied into a CSV export; a dependency is evaluated in one
 component but not another. Maya is investigating FDL because she wants a
-renderer-independent definition of field behavior. She does *not* want a
+renderer-independent definition of field behavior. She does _not_ want a
 library that chooses DOM structure, replaces her design system, or turns a
 component's private props into the application model.
 

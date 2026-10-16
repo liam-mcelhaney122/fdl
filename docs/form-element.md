@@ -29,11 +29,11 @@ The complete ownership boundary is documented in the
 
 ## Properties
 
-| Property | Required | Purpose |
-| --- | --- | --- |
-| `field` | Yes | Names the field in `record` that this instance renders. |
-| `record` | Yes | Supplies the field definition, value, and model behavior. |
-| `showValidationErrors` | No | When `true`, exposes current synchronous FDL errors in the UI and accessibility tree. Defaults to `false`; the application or adapter decides when to set it. The corresponding attribute is `show-validation-errors`. |
+| Property               | Required | Purpose                                                                                                                                                                                                                |
+| ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `field`                | Yes      | Names the field in `record` that this instance renders.                                                                                                                                                                |
+| `record`               | Yes      | Supplies the field definition, value, and model behavior.                                                                                                                                                              |
+| `showValidationErrors` | No       | When `true`, exposes current synchronous FDL errors in the UI and accessibility tree. Defaults to `false`; the application or adapter decides when to set it. The corresponding attribute is `show-validation-errors`. |
 
 ## A unified field component
 
@@ -47,17 +47,17 @@ import { css } from 'lit';
 import FormElement from '../form-element';
 
 export class FdlField extends FormElement {
-  static get styles() {
-    return css`
-      ${FormElement.styles}
+    static get styles() {
+        return css`
+            ${FormElement.styles}
 
-      input, select, textarea {
-        border: 1px solid #9ca3af;
-        border-radius: 0.25rem;
-        padding: 0.5rem;
-      }
-    `;
-  }
+            input, select, textarea {
+                border: 1px solid #9ca3af;
+                border-radius: 0.25rem;
+                padding: 0.5rem;
+            }
+        `;
+    }
 }
 
 customElements.define('fdl-field', FdlField);
@@ -69,19 +69,17 @@ field. Fields with options render as native selects:
 ```ts
 import { field, Record } from 'digital-fdl';
 
-const contactMethod = field
-  .label('Preferred contact method')
-  .options([
+const contactMethod = field.label('Preferred contact method').options([
     { text: 'Choose a method', value: '' },
     { text: 'Email', value: 'email' },
     { text: 'Phone', value: 'phone' },
-  ]);
+]);
 
 const record = new Record({ contactMethod }, { contactMethod: '' });
 ```
 
 ```ts
-html`<fdl-field field="contactMethod" .record=${record}></fdl-field>`
+html`<fdl-field field="contactMethod" .record=${record}></fdl-field>`;
 ```
 
 Do not create separate `<fdl-input>`, `<fdl-select>`, or `<fdl-textarea>` APIs.
@@ -109,10 +107,10 @@ through the adapter property:
 
 ```ts
 html`<fdl-field
-  field="contactMethod"
-  .record=${record}
-  .showValidationErrors=${submissionAttempted}
-></fdl-field>`
+    field="contactMethod"
+    .record=${record}
+    .showValidationErrors=${submissionAttempted}
+></fdl-field>`;
 ```
 
 When the property is true and the field has synchronous model errors,

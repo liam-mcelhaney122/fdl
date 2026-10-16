@@ -21,43 +21,64 @@ const settle = async (table: TestTable) => {
 };
 
 describe('<fdl-table>', () => {
-    it.each(['cellClass', 'rowClass'] as const)('%s evaluates classes with each row record and updates them when another field changes', async modifier => {
-        const classForAmount = jest.fn((value: number, record: Record<any>) =>
-            value > record.getField('limit') ? ['warning', 'over-limit'] : []);
-        const recordset = new Recordset(
-            {
-                amount: modifier === 'cellClass'
-                    ? new FieldTypeBuilder<number>().cellClass('amount').cellClass(['numeric']).cellClass(classForAmount)
-                    : new FieldTypeBuilder<number>().rowClass('amount').rowClass(['numeric']).rowClass(record => classForAmount(record.getField('amount'), record)),
-                limit: new FieldTypeBuilder<number>(),
-            },
-            [{ amount: 150, limit: 100 }, { amount: 150, limit: 200 }]
-        );
-        const table = document.createElement('fdl-table') as TestTable;
-        table.recordset = recordset;
-        table.innerHTML = '<fdl-column field="amount"></fdl-column>';
-        document.body.append(table);
-        await settle(table);
+    it.each(['cellClass', 'rowClass'] as const)(
+        '%s evaluates classes with each row record and updates them when another field changes',
+        async modifier => {
+            const classForAmount = jest.fn((value: number, record: Record<any>) =>
+                value > record.getField('limit') ? ['warning', 'over-limit'] : []
+            );
+            const recordset = new Recordset(
+                {
+                    amount:
+                        modifier === 'cellClass'
+                            ? new FieldTypeBuilder<number>()
+                                  .cellClass('amount')
+                                  .cellClass(['numeric'])
+                                  .cellClass(classForAmount)
+                            : new FieldTypeBuilder<number>()
+                                  .rowClass('amount')
+                                  .rowClass(['numeric'])
+                                  .rowClass(record =>
+                                      classForAmount(record.getField('amount'), record)
+                                  ),
+                    limit: new FieldTypeBuilder<number>(),
+                },
+                [
+                    { amount: 150, limit: 100 },
+                    { amount: 150, limit: 200 },
+                ]
+            );
+            const table = document.createElement('fdl-table') as TestTable;
+            table.recordset = recordset;
+            table.innerHTML = '<fdl-column field="amount"></fdl-column>';
+            document.body.append(table);
+            await settle(table);
 
-        const targets = () => [...table.shadowRoot!.querySelectorAll(modifier === 'cellClass' ? 'tbody td' : 'tbody tr')];
-        expect(targets().map(target => target.className)).toEqual(['amount numeric warning over-limit', 'amount numeric']);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0]);
-        expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1]);
+            const targets = () => [
+                ...table.shadowRoot!.querySelectorAll(
+                    modifier === 'cellClass' ? 'tbody td' : 'tbody tr'
+                ),
+            ];
+            expect(targets().map(target => target.className)).toEqual([
+                'amount numeric warning over-limit',
+                'amount numeric',
+            ]);
+            expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[0]);
+            expect(classForAmount).toHaveBeenCalledWith(150, recordset.currentPage[1]);
 
-        recordset.currentPage[0].setField('limit', 200);
-        await settle(table);
-        expect(targets().map(target => target.className)).toEqual(['amount numeric', 'amount numeric']);
-        table.remove();
-    });
+            recordset.currentPage[0].setField('limit', 200);
+            await settle(table);
+            expect(targets().map(target => target.className)).toEqual([
+                'amount numeric',
+                'amount numeric',
+            ]);
+            table.remove();
+        }
+    );
 
     it('resizes the left column and distributes the difference to columns on its right', () => {
         expect(
-            resizeColumnWidths(
-                [150, 100, 100],
-                [{ min: 50 }, { min: 80 }, { min: 50 }],
-                0,
-                40
-            )
+            resizeColumnWidths([150, 100, 100], [{ min: 50 }, { min: 80 }, { min: 50 }], 0, 40)
         ).toEqual([190, 80, 80]);
     });
 
@@ -65,7 +86,10 @@ describe('<fdl-table>', () => {
         expect(
             resizeColumnWidths(
                 [150, 100],
-                [{ min: 100, max: 160 }, { min: 90, max: 110 }],
+                [
+                    { min: 100, max: 160 },
+                    { min: 90, max: 110 },
+                ],
                 0,
                 30
             )
@@ -73,7 +97,10 @@ describe('<fdl-table>', () => {
         expect(
             resizeColumnWidths(
                 [150, 100],
-                [{ min: 100, max: 160 }, { min: 90, max: 110 }],
+                [
+                    { min: 100, max: 160 },
+                    { min: 90, max: 110 },
+                ],
                 0,
                 -30
             )
@@ -102,8 +129,8 @@ describe('<fdl-table>', () => {
         await settle(table);
 
         const headers = table.shadowRoot?.querySelectorAll<HTMLTableCellElement>('th');
-        headers![0].getBoundingClientRect = () => ({ width: 150 } as DOMRect);
-        headers![1].getBoundingClientRect = () => ({ width: 100 } as DOMRect);
+        headers![0].getBoundingClientRect = () => ({ width: 150 }) as DOMRect;
+        headers![1].getBoundingClientRect = () => ({ width: 100 }) as DOMRect;
 
         const press = async (key: string, shiftKey = false) => {
             const handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
@@ -143,8 +170,12 @@ describe('<fdl-table>', () => {
             'width:80px'
         );
 
-        expect(table.shadowRoot!.querySelector('.width-diagnostics')!.textContent).toContain('170px');
-        expect(table.shadowRoot!.querySelector('.width-diagnostics [role=status]')!.textContent).toContain('neighboring column');
+        expect(table.shadowRoot!.querySelector('.width-diagnostics')!.textContent).toContain(
+            '170px'
+        );
+        expect(
+            table.shadowRoot!.querySelector('.width-diagnostics [role=status]')!.textContent
+        ).toContain('neighboring column');
         await press('Home');
         handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
         expect(handle?.getAttribute('aria-valuenow')).toBe('130');
@@ -179,8 +210,8 @@ describe('<fdl-table>', () => {
 
         const columns = table.shadowRoot?.querySelectorAll<HTMLTableColElement>('col');
         expect(columns).toHaveLength(2);
-        columns![0].getBoundingClientRect = () => ({ width: 150 } as DOMRect);
-        columns![1].getBoundingClientRect = () => ({ width: 100 } as DOMRect);
+        columns![0].getBoundingClientRect = () => ({ width: 150 }) as DOMRect;
+        columns![1].getBoundingClientRect = () => ({ width: 100 }) as DOMRect;
         const handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
 
         handle?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, clientX: 100 }));
@@ -216,8 +247,8 @@ describe('<fdl-table>', () => {
         await settle(table);
 
         const columns = table.shadowRoot?.querySelectorAll<HTMLTableColElement>('col');
-        columns![0].getBoundingClientRect = () => ({ width: 150 } as DOMRect);
-        columns![1].getBoundingClientRect = () => ({ width: 100 } as DOMRect);
+        columns![0].getBoundingClientRect = () => ({ width: 150 }) as DOMRect;
+        columns![1].getBoundingClientRect = () => ({ width: 100 }) as DOMRect;
         const handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
 
         handle?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 100 }));
@@ -253,11 +284,11 @@ describe('<fdl-table>', () => {
         await settle(table);
 
         const columns = table.shadowRoot?.querySelectorAll<HTMLTableColElement>('col');
-        columns![0].getBoundingClientRect = () => ({ width: 0 } as DOMRect);
-        columns![1].getBoundingClientRect = () => ({ width: 0 } as DOMRect);
+        columns![0].getBoundingClientRect = () => ({ width: 0 }) as DOMRect;
+        columns![1].getBoundingClientRect = () => ({ width: 0 }) as DOMRect;
         const headers = table.shadowRoot?.querySelectorAll<HTMLTableCellElement>('th');
-        headers![0].getBoundingClientRect = () => ({ width: 150 } as DOMRect);
-        headers![1].getBoundingClientRect = () => ({ width: 100 } as DOMRect);
+        headers![0].getBoundingClientRect = () => ({ width: 150 }) as DOMRect;
+        headers![1].getBoundingClientRect = () => ({ width: 100 }) as DOMRect;
         const handle = table.shadowRoot?.querySelector<HTMLElement>('.resize-handle');
 
         handle?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 100 }));
@@ -311,8 +342,7 @@ describe('<fdl-table>', () => {
     });
 
     it('promotes the newest sort while retaining earlier sorts as tie-breakers', async () => {
-        const compare = (left: string, right: string) =>
-            left.localeCompare(right) as -1 | 0 | 1;
+        const compare = (left: string, right: string) => left.localeCompare(right) as -1 | 0 | 1;
         const recordset = new Recordset(
             {
                 firstName: new FieldTypeBuilder<string>().compareFunction(compare),
@@ -368,11 +398,14 @@ describe('<fdl-table>', () => {
         headers?.[1].click();
         await settle(table);
         expect(recordset.sortColumns).toEqual([
-            {field:'lastName',sort:'descending'},
-            {field:'firstName',sort:'descending'},
+            { field: 'lastName', sort: 'descending' },
+            { field: 'firstName', sort: 'descending' },
         ]);
         expect(rows(table)).toEqual([
-            ['Ada','Zulu'], ['Ada','Mike'], ['Grace','Beta'], ['Grace','Alpha'],
+            ['Ada', 'Zulu'],
+            ['Ada', 'Mike'],
+            ['Grace', 'Beta'],
+            ['Grace', 'Alpha'],
         ]);
         expect(headers?.[1].title).toContain('sort priority 1');
         expect(headers?.[0].title).toContain('sort priority 2');
@@ -383,29 +416,35 @@ describe('<fdl-table>', () => {
         headers?.[1].click();
         await settle(table);
         expect(recordset.sortColumns).toEqual([
-            {field:'lastName',sort:'ascending'},
-            {field:'firstName',sort:'descending'},
+            { field: 'lastName', sort: 'ascending' },
+            { field: 'firstName', sort: 'descending' },
         ]);
         expect(rows(table)).toEqual([
-            ['Grace','Alpha'], ['Grace','Beta'], ['Ada','Mike'], ['Ada','Zulu'],
+            ['Grace', 'Alpha'],
+            ['Grace', 'Beta'],
+            ['Ada', 'Mike'],
+            ['Ada', 'Zulu'],
         ]);
         headers?.[0].click();
         await settle(table);
         expect(recordset.sortColumns).toEqual([
-            {field:'firstName',sort:'ascending'},
-            {field:'lastName',sort:'ascending'},
+            { field: 'firstName', sort: 'ascending' },
+            { field: 'lastName', sort: 'ascending' },
         ]);
         expect(rows(table)).toEqual([
-            ['Ada','Mike'], ['Ada','Zulu'], ['Grace','Alpha'], ['Grace','Beta'],
+            ['Ada', 'Mike'],
+            ['Ada', 'Zulu'],
+            ['Grace', 'Alpha'],
+            ['Grace', 'Beta'],
         ]);
         table.remove();
     });
 
     it('does not sort fields configured with sortable(false)', async () => {
-        const recordset = new Recordset(
-            { name: new FieldTypeBuilder().sortable(false) },
-            [{ name: 'Zulu' }, { name: 'Alpha' }]
-        );
+        const recordset = new Recordset({ name: new FieldTypeBuilder().sortable(false) }, [
+            { name: 'Zulu' },
+            { name: 'Alpha' },
+        ]);
         const table = document.createElement('fdl-table') as TestTable;
         table.recordset = recordset;
         table.innerHTML = '<fdl-column field="name"></fdl-column>';
@@ -449,7 +488,9 @@ describe('<fdl-table>', () => {
         await table.updateComplete;
 
         expect(filterButton?.getAttribute('aria-expanded')).toBe('true');
-        const input = table.shadowRoot?.querySelector<HTMLInputElement>('[data-filter-input="name"]');
+        const input = table.shadowRoot?.querySelector<HTMLInputElement>(
+            '[data-filter-input="name"]'
+        );
         expect(table.shadowRoot?.activeElement).toBe(input);
         input?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
         await table.updateComplete;
@@ -513,7 +554,9 @@ describe('<fdl-table>', () => {
 
         const setColumnFilter = async (field: string, value: string) => {
             table.shadowRoot
-                ?.querySelector<HTMLButtonElement>(`[aria-label="Filter ${field[0].toUpperCase()}${field.slice(1)}"]`)
+                ?.querySelector<HTMLButtonElement>(
+                    `[aria-label="Filter ${field[0].toUpperCase()}${field.slice(1)}"]`
+                )
                 ?.click();
             await table.updateComplete;
             const input = table.shadowRoot?.querySelector<HTMLInputElement>(
@@ -545,20 +588,32 @@ describe('<fdl-table>', () => {
     });
 });
 
-
 it.each([true, false])('aligns table headings and cells for sortable=%s', async sortable => {
-    const recordset = new Recordset(Object.fromEntries((['left', 'center', 'right'] as const).map(alignment => [
-        alignment, new FieldTypeBuilder().label(alignment).textAlign(alignment).sortable(sortable),
-    ])), [{left:'Ada', center:'Ada', right:'Ada'}]);
+    const recordset = new Recordset(
+        Object.fromEntries(
+            (['left', 'center', 'right'] as const).map(alignment => [
+                alignment,
+                new FieldTypeBuilder().label(alignment).textAlign(alignment).sortable(sortable),
+            ])
+        ),
+        [{ left: 'Ada', center: 'Ada', right: 'Ada' }]
+    );
     const table = document.createElement('fdl-table') as TestTable;
     table.recordset = recordset;
-    table.innerHTML = '<fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column>';
+    table.innerHTML =
+        '<fdl-column field="left"></fdl-column><fdl-column field="center"></fdl-column><fdl-column field="right"></fdl-column>';
     document.body.append(table);
     await table.updateComplete;
     await recordset.requestUpdate();
     await settle(table);
-    expect([...table.shadowRoot!.querySelectorAll('th')].map(header => header.style.textAlign)).toEqual(['left', 'center', 'right']);
-    expect([...table.shadowRoot!.querySelectorAll('tbody td')].map(cell => (cell as HTMLElement).style.textAlign)).toEqual(['left', 'center', 'right']);
+    expect(
+        [...table.shadowRoot!.querySelectorAll('th')].map(header => header.style.textAlign)
+    ).toEqual(['left', 'center', 'right']);
+    expect(
+        [...table.shadowRoot!.querySelectorAll('tbody td')].map(
+            cell => (cell as HTMLElement).style.textAlign
+        )
+    ).toEqual(['left', 'center', 'right']);
     expect(table.shadowRoot!.querySelectorAll('.sort-button')).toHaveLength(sortable ? 3 : 0);
     table.remove();
 });
@@ -567,9 +622,13 @@ it('resolves column settings without a row and field settings with header and ce
     const width = jest.fn(() => 120);
     const sortable = jest.fn(() => true);
     const label = jest.fn((record: Record<any>) => `Amount:${record.getField('amount')}`);
-    const amount = new FieldTypeBuilder<number>().label(label).minColumnWidth(width)
-        .maxColumnWidth(200).targetColumnWidth(150).sortable(sortable)
-        .textAlign((_value, _record, context) => context === 'table' ? 'right' : 'center');
+    const amount = new FieldTypeBuilder<number>()
+        .label(label)
+        .minColumnWidth(width)
+        .maxColumnWidth(200)
+        .targetColumnWidth(150)
+        .sortable(sortable)
+        .textAlign((_value, _record, context) => (context === 'table' ? 'right' : 'center'));
     const recordset = new Recordset({ amount }, [{ amount: 150 }]);
     const table = document.createElement('fdl-table') as TestTable;
     table.recordset = recordset;
@@ -586,7 +645,9 @@ it('resolves column settings without a row and field settings with header and ce
 });
 
 it('renders an empty table without invoking per-record header settings', async () => {
-    const callback = jest.fn(() => { throw new Error('no record'); });
+    const callback = jest.fn(() => {
+        throw new Error('no record');
+    });
     const amount = new FieldTypeBuilder<number>().label(callback).textAlign(callback);
     const recordset = new Recordset<{ amount: number }>({ amount }, []);
     const table = document.createElement('fdl-table') as TestTable;

@@ -1,8 +1,14 @@
 import { render } from 'lit';
-import { highlightJavaScript, highlightModifier, modifierLineRange, highlightMarkup } from '../examples/fdl-input/highlight-javascript';
+import {
+    highlightJavaScript,
+    highlightModifier,
+    modifierLineRange,
+    highlightMarkup,
+} from '../examples/fdl-input/highlight-javascript';
 
 it('highlights JavaScript without changing source text or interpreting it as HTML', () => {
-    const code = "// example\nconst definition = field.label('<img src=x onerror=alert(1)>').validator({ name: 'code', validate: value => /^PRJ-\\d{4}$/.test(value) });";
+    const code =
+        "// example\nconst definition = field.label('<img src=x onerror=alert(1)>').validator({ name: 'code', validate: value => /^PRJ-\\d{4}$/.test(value) });";
     const container = document.createElement('div');
     render(highlightJavaScript(code), container);
     expect(container.textContent).toBe(code);
@@ -22,28 +28,37 @@ it('links modifier calls to their documentation without changing syntax color', 
     expect(link.textContent).toBe('required');
     expect(link.getAttribute('style')).toContain('color:inherit');
     expect(link.getAttribute('style')).toContain('text-decoration:underline');
-    expect(link.getAttribute('title')).toBe('Requires a value for “Name”; leaving it empty fails validation.');
-    expect(link.getAttribute('aria-label')).toBe('required modifier. Requires a value for “Name”; leaving it empty fails validation.');
+    expect(link.getAttribute('title')).toBe(
+        'Requires a value for “Name”; leaving it empty fails validation.'
+    );
+    expect(link.getAttribute('aria-label')).toBe(
+        'required modifier. Requires a value for “Name”; leaving it empty fails validation.'
+    );
     expect(link.querySelector('.syntax-function')!.textContent).toBe('required');
 });
 
 it('explains a validator rule rather than repeating its source', () => {
-    const code = "const definition = field.label('Name').validator({ name: 'must not be empty', validate: value => value.length > 0 });";
+    const code =
+        "const definition = field.label('Name').validator({ name: 'must not be empty', validate: value => value.length > 0 });";
     const container = document.createElement('div');
     render(highlightJavaScript(code), container);
     const link = container.querySelector<HTMLAnchorElement>('a[href="#validator"]')!;
-    expect(link.getAttribute('title')).toBe('Checks that “Name” must not be empty; a failing value makes the field invalid.');
+    expect(link.getAttribute('title')).toBe(
+        'Checks that “Name” must not be empty; a failing value makes the field invalid.'
+    );
 });
 
-
 it('emphasizes the complete formatter call without including unrelated setup', () => {
-    const code = "const amount = field\n  .label('Amount')\n  .formatter((value) =>\n    String(value)\n  );";
+    const code =
+        "const amount = field\n  .label('Amount')\n  .formatter((value) =>\n    String(value)\n  );";
     expect(modifierLineRange(code, 'formatter')).toEqual([2, 4]);
     const container = document.createElement('div');
     render(highlightModifier(code, 'formatter'), container);
     expect(container.textContent).toBe(code);
     expect([...container.querySelectorAll('.focused-line')].map(line => line.textContent)).toEqual([
-        '  .formatter((value) =>', '    String(value)', '  );',
+        '  .formatter((value) =>',
+        '    String(value)',
+        '  );',
     ]);
 });
 
@@ -67,12 +82,13 @@ third.label('Unrelated');`;
     const container = document.createElement('div');
     render(highlightModifier(code, 'compareFunction'), container);
     expect(container.textContent).toBe(code);
-    expect([...container.querySelectorAll('.focused-line')].map(line=>line.textContent)).toEqual([
+    expect([...container.querySelectorAll('.focused-line')].map(line => line.textContent)).toEqual([
         'first.compareFunction((a, b) => a.localeCompare(b));',
-        'second.compareFunction(', '  compareShirtSizes', ');',
+        'second.compareFunction(',
+        '  compareShirtSizes',
+        ');',
     ]);
 });
-
 
 it('explains the named shipping predicate in terms of delivery behavior', () => {
     const code = `const address = field.label('Shipping address')
@@ -82,9 +98,11 @@ it('explains the named shipping predicate in terms of delivery behavior', () => 
     render(highlightJavaScript(code), container);
     expect(container.textContent).toBe(code);
     expect(container.querySelector('a[href="#visible"]')!.getAttribute('title')).toBe(
-        'Shows “Shipping address” when the selected delivery method requires an address, otherwise hides it.');
+        'Shows “Shipping address” when the selected delivery method requires an address, otherwise hides it.'
+    );
     expect(container.querySelector('a[href="#required"]')!.getAttribute('title')).toBe(
-        'Requires a value for “Shipping address” when the selected delivery method requires an address; otherwise it is optional.');
+        'Requires a value for “Shipping address” when the selected delivery method requires an address; otherwise it is optional.'
+    );
 });
 
 it('keeps multi-line calls and repeated modifiers tied to their own fields', () => {
@@ -110,7 +128,8 @@ it('uses current values in descriptions as an example changes', () => {
     for (const minimum of [3, 7]) {
         render(highlightJavaScript(`field.label('Access code').minLength(${minimum})`), container);
         expect(container.querySelector('a[href="#minLength"]')!.getAttribute('title')).toBe(
-            `Requires “Access code” to contain at least ${minimum} characters when a value is provided.`);
+            `Requires “Access code” to contain at least ${minimum} characters when a value is provided.`
+        );
     }
 });
 
@@ -122,15 +141,19 @@ const tax = field.label('Tax ID').visible(isInternational);`;
     render(highlightJavaScript(code), container);
     expect(container.querySelectorAll('a')).toHaveLength(2);
     expect(container.querySelector('a[href="#visible"]')!.getAttribute('title')).toBe(
-        'Shows “Tax ID” when the country is outside the US, otherwise hides it.');
+        'Shows “Tax ID” when the country is outside the US, otherwise hides it.'
+    );
 });
-
 
 it('keeps field context when labels and comments contain the word field', () => {
     const container = document.createElement('div');
-    render(highlightJavaScript(`field.label('Custom field')
+    render(
+        highlightJavaScript(`field.label('Custom field')
       // This field needs a value.
-      .required()`), container);
+      .required()`),
+        container
+    );
     expect(container.querySelector('a[href="#required"]')!.getAttribute('title')).toBe(
-        'Requires a value for “Custom field”; leaving it empty fails validation.');
+        'Requires a value for “Custom field”; leaving it empty fails validation.'
+    );
 });

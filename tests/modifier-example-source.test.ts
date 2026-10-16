@@ -10,14 +10,15 @@ import { exampleSource, type ExampleSettings } from '../examples/fdl-input/modif
 
 function runExample(name: string, settings: ExampleSettings = {}) {
     const source = exampleSource(name, settings);
-    const modules: {[path: string]: any} = {
-        'digital-fdl': {field, Record, Recordset},
-        lit: {html, render},
-        './fdl-field': {}, './fdl-table': {},
+    const modules: { [path: string]: any } = {
+        'digital-fdl': { field, Record, Recordset },
+        lit: { html, render },
+        './fdl-field': {},
+        './fdl-table': {},
     };
     function execute(code: string) {
         const compiled = ts.transpileModule(code, {
-            compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020},
+            compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
         }).outputText;
         const exports = {};
         new Function('require', 'exports', compiled)((path: string) => {
@@ -31,28 +32,40 @@ function runExample(name: string, settings: ExampleSettings = {}) {
     modules[`./${source.modelFile}`] = modelModule;
     // Separate module scopes ensure the UI can only see explicitly imported names.
     const uiModule = execute(`${source.ui}\nexport {container, update};`);
-    return {model: modelModule[source.modelName], ...uiModule} as {model: any; container: HTMLElement; update: () => void};
+    return { model: modelModule[source.modelName], ...uiModule } as {
+        model: any;
+        container: HTMLElement;
+        update: () => void;
+    };
 }
 
-afterEach(() => { document.body.innerHTML = ''; });
-
-it.each(explorerRecipes.map(recipe => recipe.name))('runs the %s model and Lit UI as separate modules', async name => {
-    const source = exampleSource(name);
-    expect(source.definition).not.toMatch(/FieldTypeBuilder|valueOf\(/);
-    const {model, container} = runExample(name);
-    expect(model).toBeInstanceOf(exampleSource(name).kind === 'Recordset' ? Recordset : Record);
-    expect(container.textContent!.trim().length + container.querySelectorAll('fdl-field, fdl-table').length).toBeGreaterThan(0);
-    for (const field of container.querySelectorAll('fdl-field')) {
-        expect((field as any).record).toBe(model);
-        expect(model.fieldTypeForField(field.getAttribute('field'))).toBeInstanceOf(FieldType);
-    }
-    const table = container.querySelector('fdl-table');
-    if (table) expect((table as any).recordset).toBe(model);
-    await Promise.resolve();
+afterEach(() => {
+    document.body.innerHTML = '';
 });
 
+it.each(explorerRecipes.map(recipe => recipe.name))(
+    'runs the %s model and Lit UI as separate modules',
+    async name => {
+        const source = exampleSource(name);
+        expect(source.definition).not.toMatch(/FieldTypeBuilder|valueOf\(/);
+        const { model, container } = runExample(name);
+        expect(model).toBeInstanceOf(exampleSource(name).kind === 'Recordset' ? Recordset : Record);
+        expect(
+            container.textContent!.trim().length +
+                container.querySelectorAll('fdl-field, fdl-table').length
+        ).toBeGreaterThan(0);
+        for (const field of container.querySelectorAll('fdl-field')) {
+            expect((field as any).record).toBe(model);
+            expect(model.fieldTypeForField(field.getAttribute('field'))).toBeInstanceOf(FieldType);
+        }
+        const table = container.querySelector('fdl-table');
+        if (table) expect((table as any).recordset).toBe(model);
+        await Promise.resolve();
+    }
+);
+
 it('validates the same required record rendered by Lit and rerenders after edits', () => {
-    const {model, container} = runExample('required');
+    const { model, container } = runExample('required');
     container.querySelector('button')!.click();
     expect(container.querySelector('[role=status]')!.textContent).toContain('required');
     model.setField('name', 'Ada');
@@ -61,55 +74,87 @@ it('validates the same required record rendered by Lit and rerenders after edits
 });
 
 it('includes changed rules in complete working definitions', () => {
-    expect(runExample('required', {required:false}).model.isValid()).toBe(true);
-    const {model} = runExample('minLength', {minimum:2});
+    expect(runExample('required', { required: false }).model.isValid()).toBe(true);
+    const { model } = runExample('minLength', { minimum: 2 });
     model.setField('longCode', 'ab');
     expect(model.isValid()).toBe(true);
-    expect(runExample('rowCount', {rows:10}).model.fieldTypeForField('comments').rowCount()).toBe(10);
-    expect(exampleSource('filter', {filterMode:'contains'}).definition).toContain('.includes(');
+    expect(
+        runExample('rowCount', { rows: 10 }).model.fieldTypeForField('comments').rowCount()
+    ).toBe(10);
+    expect(exampleSource('filter', { filterMode: 'contains' }).definition).toContain('.includes(');
 });
 
 it('shows the declared default when the Lit clear button is used', () => {
-    const {model, container} = runExample('defaultValue');
+    const { model, container } = runExample('defaultValue');
     container.querySelector('button')!.click();
     expect(model.getField('documentTitle')).toBe('Untitled document');
 });
 
 it('exports the same weekday expenses, dollar formatting, and strict threshold', async () => {
-    const {model, container} = runExample('cellClass', {threshold:125.25});
+    const { model, container } = runExample('cellClass', { threshold: 125.25 });
     await model.requestUpdate();
     expect(model.getData()).toEqual([
-        {day:'Monday',amount:85.5}, {day:'Tuesday',amount:142.75},
-        {day:'Wednesday',amount:60}, {day:'Thursday',amount:100}, {day:'Friday',amount:125.25},
+        { day: 'Monday', amount: 85.5 },
+        { day: 'Tuesday', amount: 142.75 },
+        { day: 'Wednesday', amount: 60 },
+        { day: 'Thursday', amount: 100 },
+        { day: 'Friday', amount: 125.25 },
     ]);
-    expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['day','amount']);
-    expect(model.createRecord({day:'Monday',amount:85.5}).getFormattedField('amount','print')).toBe('$85.50');
+    expect(
+        [...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))
+    ).toEqual(['day', 'amount']);
+    expect(
+        model.createRecord({ day: 'Monday', amount: 85.5 }).getFormattedField('amount', 'print')
+    ).toBe('$85.50');
     expect(model.getFieldType('amount').cellClasses(125.25)).toEqual(['amount-cell']);
-    expect(model.getFieldType('amount').cellClasses(142.75)).toEqual(['amount-cell', 'high-value', 'over-limit']);
+    expect(model.getFieldType('amount').cellClasses(142.75)).toEqual([
+        'amount-cell',
+        'high-value',
+        'over-limit',
+    ]);
 });
 
 it('exports a named size comparator and sorts sizes in domain order rather than alphabetically', async () => {
-    const {model,container}=runExample('compareFunction');
-    const size=model.getFieldType('shirtSize');
-    expect(['XL','S','XXL','L','XS','M'].sort((a,b)=>size.compare(a,b))).toEqual(['XS','S','M','L','XL','XXL']);
-    expect(size.compare('M','M')).toBe(0);
-    expect([...container.querySelectorAll('fdl-column')].map(column=>column.getAttribute('field'))).toEqual(['firstName','lastName','shirtSize']);
-    const source=exampleSource('compareFunction');
+    const { model, container } = runExample('compareFunction');
+    const size = model.getFieldType('shirtSize');
+    expect(['XL', 'S', 'XXL', 'L', 'XS', 'M'].sort((a, b) => size.compare(a, b))).toEqual([
+        'XS',
+        'S',
+        'M',
+        'L',
+        'XL',
+        'XXL',
+    ]);
+    expect(size.compare('M', 'M')).toBe(0);
+    expect(
+        [...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))
+    ).toEqual(['firstName', 'lastName', 'shirtSize']);
+    const source = exampleSource('compareFunction');
     expect(source.definition).toContain('function compareShirtSizes(left, right)');
     expect(source.definition).toContain('.compareFunction(compareShirtSizes)');
 });
 
-
 it('shows how the same empty value affects required and optional field validation', () => {
-    const {model, container} = runExample('emptyWhen');
+    const { model, container } = runExample('emptyWhen');
     expect(container.querySelector('button')).toBeNull();
     expect(container.querySelectorAll('fdl-field')).toHaveLength(2);
     for (const field of ['emptyCode', 'optionalEmptyCode']) {
-        for (const [value, empty] of [['N/A', true], ['REF-42', false], ['   ', true], ['', true]] as const) {
+        for (const [value, empty] of [
+            ['N/A', true],
+            ['REF-42', false],
+            ['   ', true],
+            ['', true],
+        ] as const) {
             model.setField(field, value);
-            const status = container.querySelector(`[role=status][data-field="${field}"]`)!.textContent!;
-            expect(status).toContain(empty ? 'This field is considered empty' : 'This field is not considered empty');
-            expect(status).toContain(field === 'emptyCode' && empty ? 'Invalid: Reference is required.' : 'Valid:');
+            const status = container.querySelector(
+                `[role=status][data-field="${field}"]`
+            )!.textContent!;
+            expect(status).toContain(
+                empty ? 'This field is considered empty' : 'This field is not considered empty'
+            );
+            expect(status).toContain(
+                field === 'emptyCode' && empty ? 'Invalid: Reference is required.' : 'Valid:'
+            );
             expect(model.isValid(field)).toBe(field === 'optionalEmptyCode' || !empty);
             expect(model.getField(field)).toBe(value);
         }
@@ -118,34 +163,35 @@ it('shows how the same empty value affects required and optional field validatio
     expect(model.fieldTypeForField('optionalEmptyCode').required(model)).toBe(false);
 });
 
-
 it('exports working function and async options with a shared value that stays selected', async () => {
-    const {model, container} = runExample('options');
+    const { model, container } = runExample('options');
     for (const department of ['engineering', 'finance']) {
         model.setField('department', department);
         for (const field of ['assignee', 'asyncAssignee']) {
             const choices = await model.fieldTypeForField(field).options(model);
-            expect(choices).toContainEqual({text:'Margaret Hamilton', value:'margaret'});
-            expect(choices.map((choice: any) => choice.value)).toContain(department === 'engineering' ? 'grace' : 'katherine');
+            expect(choices).toContainEqual({ text: 'Margaret Hamilton', value: 'margaret' });
+            expect(choices.map((choice: any) => choice.value)).toContain(
+                department === 'engineering' ? 'grace' : 'katherine'
+            );
             expect(model.getField(field)).toBe('margaret');
         }
     }
     expect(container.querySelectorAll('fdl-field')).toHaveLength(3);
 });
 
-
 it('exports a T-shirt order table with sorting disabled for sizes', async () => {
-    const {model, container} = runExample('sortable');
+    const { model, container } = runExample('sortable');
     await model.requestUpdate();
     expect(model.getData()).toHaveLength(6);
     expect(model.getFieldType('shirtSize').sortable()).toBe(false);
     expect(model.getFieldType('firstName').sortable()).toBe(true);
-    expect([...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))).toEqual(['firstName', 'lastName', 'shirtSize']);
+    expect(
+        [...container.querySelectorAll('fdl-column')].map(column => column.getAttribute('field'))
+    ).toEqual(['firstName', 'lastName', 'shirtSize']);
 });
 
-
 it('renders conditional invoice balances without changing the stored number', async () => {
-    const {model, container, update} = runExample('template');
+    const { model, container, update } = runExample('template');
     await model.requestUpdate();
     update();
     const first = model.allRecords[0];
@@ -164,9 +210,8 @@ it('renders conditional invoice balances without changing the stored number', as
     expect(exampleSource('template').styles).toContain('.paid-balance');
 });
 
-
 it.each(inputTypes)('exports a working definition and Lit binding for input type %s', inputType => {
-    const {model, container} = runExample('type', {inputType:inputType as inputType});
+    const { model, container } = runExample('type', { inputType: inputType as inputType });
     expect(model.fieldTypeForField('inputValue').type()).toBe(inputType);
     expect((container.querySelector('fdl-field') as any).record).toBe(model);
     if (['number', 'range'].includes(inputType)) {
@@ -175,13 +220,30 @@ it.each(inputTypes)('exports a working definition and Lit binding for input type
     }
 });
 
-
 it('demonstrates simple email validation and accumulated quantity and username rules', () => {
-    const {model, container} = runExample('validator');
-    const cases: {[field: string]: [unknown, boolean][]} = {
-        email: [['ada@',false], ['ada@example',false], ['a@@example.com',false], ['ada lovelace@example.com',false], ['ada@example.com',true], ['ada+notes@example.co.uk',true]],
-        orderQuantity: [[2.5,false], [0,false], [13,false], [1,true], [12,true]],
-        username: [['7bad-name',false], ['ada-name',false], ['7ada',false], ['ada_7',true]],
+    const { model, container } = runExample('validator');
+    const cases: { [field: string]: [unknown, boolean][] } = {
+        email: [
+            ['ada@', false],
+            ['ada@example', false],
+            ['a@@example.com', false],
+            ['ada lovelace@example.com', false],
+            ['ada@example.com', true],
+            ['ada+notes@example.co.uk', true],
+        ],
+        orderQuantity: [
+            [2.5, false],
+            [0, false],
+            [13, false],
+            [1, true],
+            [12, true],
+        ],
+        username: [
+            ['7bad-name', false],
+            ['ada-name', false],
+            ['7ada', false],
+            ['ada_7', true],
+        ],
     };
     for (const [field, values] of Object.entries(cases)) {
         for (const [value, valid] of values) {
@@ -189,55 +251,64 @@ it('demonstrates simple email validation and accumulated quantity and username r
             expect(model.isValid(field)).toBe(valid);
         }
     }
-    model.setField('username','7bad-name');
+    model.setField('username', '7bad-name');
     expect(model.readableFieldErrors('username')).toHaveLength(2);
     for (const button of container.querySelectorAll('button')) button.click();
     expect(container.querySelectorAll('fdl-field')).toHaveLength(3);
-    expect([...container.querySelectorAll('[role=status]')].map(status => status.textContent)).toEqual([
-        expect.stringContaining('Valid.'), expect.stringContaining('Valid.'), expect.stringContaining('must start with a letter'),
+    expect(
+        [...container.querySelectorAll('[role=status]')].map(status => status.textContent)
+    ).toEqual([
+        expect.stringContaining('Valid.'),
+        expect.stringContaining('Valid.'),
+        expect.stringContaining('must start with a letter'),
     ]);
-    for (const field of container.querySelectorAll('fdl-field')) expect((field as any).showValidationErrors).toBe(true);
+    for (const field of container.querySelectorAll('fdl-field'))
+        expect((field as any).showValidationErrors).toBe(true);
 });
 
 it('exports rowClass declarations with fixed and returned array classes', async () => {
-    const {model} = runExample('rowClass');
+    const { model } = runExample('rowClass');
     await model.requestUpdate();
     const status = model.getFieldType('status');
-    expect(status.rowClasses(model.allRecords[0])).toEqual(['invoice-row', 'disputed-row', 'needs-review']);
+    expect(status.rowClasses(model.allRecords[0])).toEqual([
+        'invoice-row',
+        'disputed-row',
+        'needs-review',
+    ]);
     expect(status.rowClasses(model.allRecords[1])).toEqual(['invoice-row']);
 });
 
 it('shows both required forms and validates conditional notes in the runnable UI', () => {
-    const {model,container} = runExample('required');
-    model.setField('name','Ada Lovelace');
-    model.setField('followUp','yes');
+    const { model, container } = runExample('required');
+    model.setField('name', 'Ada Lovelace');
+    model.setField('followUp', 'yes');
     container.querySelector('button')!.click();
     expect(model.isValid()).toBe(false);
     expect(container.querySelector('[role="status"]')!.textContent).toContain('Follow-up notes');
-    model.setField('followUp','no');
+    model.setField('followUp', 'no');
     expect(model.isValid()).toBe(true);
     expect(container.querySelector('[role="status"]')!.textContent).toContain('Valid.');
 });
 
 it('exports unconditional and conditional disabled rules together', () => {
-    const {model} = runExample('disabled');
+    const { model } = runExample('disabled');
     expect(model.fieldTypeForField('lockedId').isDisabled(undefined, model)).toBe(true);
     expect(model.fieldTypeForField('budget').isDisabled(undefined, model)).toBe(false);
-    model.setField('approvalStatus','approved');
+    model.setField('approvalStatus', 'approved');
     expect(model.fieldTypeForField('budget').isDisabled(undefined, model)).toBe(true);
     expect(model.getField('budget')).toBe(5000);
 });
 
 it('exports column classes that reach the col, heading, and cells alongside cell-specific classes', async () => {
-    const {model, container} = runExample('columnClass');
+    const { model, container } = runExample('columnClass');
     await model.requestUpdate();
     const table = container.querySelector('fdl-table') as any;
     await table.updateComplete;
     const root = table.shadowRoot;
     expect(root.querySelector('col:nth-child(2)').className).toBe('expense-column numeric-column');
     expect(root.querySelector('th:nth-child(2)').className).toBe('expense-column numeric-column');
-    expect([...root.querySelectorAll('tbody td:nth-child(2)')].map((cell: any) => cell.className)).toEqual([
-        'expense-column numeric-column', 'expense-column numeric-column high-value',
-    ]);
+    expect(
+        [...root.querySelectorAll('tbody td:nth-child(2)')].map((cell: any) => cell.className)
+    ).toEqual(['expense-column numeric-column', 'expense-column numeric-column high-value']);
     expect(exampleSource('columnClass').styles).toContain('td.expense-column.high-value');
 });

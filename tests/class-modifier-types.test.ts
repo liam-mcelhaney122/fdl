@@ -3,10 +3,15 @@ import { Record } from '../index';
 
 function checkClassModifierTypes() {
     const field = new FieldTypeBuilder<number>();
-    field.cellClass((value, record) => value > record.getField('limit') ? 'warning' : []);
-    field.rowClass((record: Record<{ limit: number }>) => record.values.limit > 100 ? 'warning' : []);
+    field.cellClass((value, record) => (value > record.getField('limit') ? 'warning' : []));
+    field.rowClass((record: Record<{ limit: number }>) =>
+        record.values.limit > 100 ? 'warning' : []
+    );
     field.rowClass('amount').rowClass(['numeric']);
-    field.columnClass('amount').columnClass(['numeric']).columnClass(() => ['currency']);
+    field
+        .columnClass('amount')
+        .columnClass(['numeric'])
+        .columnClass(() => ['currency']);
     // @ts-expect-error Column callbacks take no context.
     field.columnClass((context: string) => context);
     // @ts-expect-error Column callbacks have no owning record.
@@ -32,7 +37,8 @@ function checkClassModifierTypes() {
 it('resolves row classes from a typed record without a field value', () => {
     const record = new Record({ limit: new FieldTypeBuilder<number>() }, { limit: 150 });
     const field = new FieldTypeBuilder<number>().rowClass((owner: Record<{ limit: number }>) =>
-        owner.values.limit > 100 ? 'warning' : []);
+        owner.values.limit > 100 ? 'warning' : []
+    );
     expect(field.valueOf().rowClasses(record)).toEqual(['warning']);
     record.setField('limit', 50);
     expect(field.valueOf().rowClasses(record)).toEqual([]);

@@ -1,6 +1,12 @@
 import {
-    fieldDefinitions, firstName, email, postalCode, string,
-    FieldType, Record, Recordset,
+    fieldDefinitions,
+    firstName,
+    email,
+    postalCode,
+    string,
+    FieldType,
+    Record,
+    Recordset,
 } from '../index';
 import type { FieldDefinition } from '../index';
 import * as api from '../index';
@@ -37,20 +43,27 @@ it('specializes presets without mutating the source, primitives, or siblings', (
 });
 
 it.each(['ada@example.com', 'ada+tag@sub.example.org', '', '   ', null])(
-    'accepts optional email value %p in sync and async model validation', async value => {
+    'accepts optional email value %p in sync and async model validation',
+    async value => {
         const record = new Record({ email }, { email: value });
         expect(record.isValid()).toBe(true);
         expect(await record.isValidAsync()).toBe(true);
     }
 );
 
-it.each(['ada', 'ada@', '@example.com', 'ada@example', 'ada @example.com', 'ada@example.com\n', 123])(
-    'rejects malformed email value %p without a browser', async value => {
-        const record = new Record({ email }, { email: value });
-        expect(record.isValid()).toBe(false);
-        expect(await record.isValidAsync()).toBe(false);
-    }
-);
+it.each([
+    'ada',
+    'ada@',
+    '@example.com',
+    'ada@example',
+    'ada @example.com',
+    'ada@example.com\n',
+    123,
+])('rejects malformed email value %p without a browser', async value => {
+    const record = new Record({ email }, { email: value });
+    expect(record.isValid()).toBe(false);
+    expect(await record.isValidAsync()).toBe(false);
+});
 
 it('combines email syntax and requiredness', () => {
     const record = new Record({ email: email.required() }, { email: '' });

@@ -8,7 +8,13 @@ export { Field, FieldType, Record, Recordset, boolean, number, string, date };
 
 export * from './recordset.events';
 
-export type { FieldSetting, RecordSetting, ValueSetting, ColumnSetting, DefaultSetting } from './field-setting';
+export type {
+    FieldSetting,
+    RecordSetting,
+    ValueSetting,
+    ColumnSetting,
+    DefaultSetting,
+} from './field-setting';
 
 export { field } from './primitives.js';
 export type { FieldDefinition } from './types/field-definition.types';

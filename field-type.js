@@ -1,6 +1,12 @@
 /* eslint-disable import/extensions */
 import { defaultProperties } from './field-type-builder';
-import { resolveSetting, resolveColumnSetting, resolveDefaultSetting, resolveRecordSetting, resolveValueSetting } from './field-setting';
+import {
+    resolveSetting,
+    resolveColumnSetting,
+    resolveDefaultSetting,
+    resolveRecordSetting,
+    resolveValueSetting,
+} from './field-setting';
 import { inputTypes } from './types/input-types.types';
 
 function functionHasNoArguments(f) {
@@ -47,8 +53,7 @@ export default class FieldType {
     }
 
     cellClasses(value, record) {
-        return this.properties.cellClassFunctions
-            .flatMap(getClasses => getClasses(value, record));
+        return this.properties.cellClassFunctions.flatMap(getClasses => getClasses(value, record));
     }
 
     /**
@@ -158,8 +163,10 @@ export default class FieldType {
     }
 
     defaultValue(value, record, context = 'model') {
-        const configured = value !== null && value !== undefined
-            ? value : resolveDefaultSetting(this.properties.defaultValue, record);
+        const configured =
+            value !== null && value !== undefined
+                ? value
+                : resolveDefaultSetting(this.properties.defaultValue, record);
         if (this.hasMultipleValues()) {
             return configured ?? 'all';
         }
@@ -253,13 +260,16 @@ export default class FieldType {
                 results,
             };
 
-            results.then(fetchData => {
-                fetchData.forEach(result => {
-                    if (typeof result.value !== 'object') {
-                        this.resultsText[JSON.stringify(result.value)] = result.text;
-                    }
-                });
-            }, () => {});
+            results.then(
+                fetchData => {
+                    fetchData.forEach(result => {
+                        if (typeof result.value !== 'object') {
+                            this.resultsText[JSON.stringify(result.value)] = result.text;
+                        }
+                    });
+                },
+                () => {}
+            );
             this.loaded = results;
         }
         return results;
@@ -321,7 +331,9 @@ export default class FieldType {
     }
 
     isDisabled(value, record, context = 'model') {
-        return this.properties.disableFunctions.some(setting => resolveRecordSetting(setting, record));
+        return this.properties.disableFunctions.some(setting =>
+            resolveRecordSetting(setting, record)
+        );
     }
 
     hasRange() {
@@ -353,7 +365,9 @@ export default class FieldType {
     }
 
     required(value, record, context = 'model') {
-        return this.properties.requiredFunctions.some(setting => resolveRecordSetting(setting, record));
+        return this.properties.requiredFunctions.some(setting =>
+            resolveRecordSetting(setting, record)
+        );
     }
 
     onValueChange(record) {
@@ -361,7 +375,9 @@ export default class FieldType {
     }
 
     visible(value, record, context = 'model') {
-        return this.properties.visibleFunctions.every(setting => resolveRecordSetting(setting, record));
+        return this.properties.visibleFunctions.every(setting =>
+            resolveRecordSetting(setting, record)
+        );
     }
 
     empty(record, field) {
@@ -369,11 +385,15 @@ export default class FieldType {
     }
 
     isEmpty(value, record, context = 'model') {
-        return this.properties.emptyFunctions.some(setting => resolveValueSetting(setting, value, record));
+        return this.properties.emptyFunctions.some(setting =>
+            resolveValueSetting(setting, value, record)
+        );
     }
 
     readonly(value, record, context = 'model') {
-        return this.properties.readonlyFunctions.some(setting => resolveRecordSetting(setting, record));
+        return this.properties.readonlyFunctions.some(setting =>
+            resolveRecordSetting(setting, record)
+        );
     }
 
     readonlyexception(record) {

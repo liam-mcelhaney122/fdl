@@ -1,10 +1,15 @@
 /** Closely related modifiers share a reference page while keeping individual deep links. */
 export const modifierPageGroups = [
-    {title: 'Text length', names: ['minLength', 'maxLength']},
-    {title: 'Column widths', names: ['minColumnWidth', 'targetColumnWidth', 'maxColumnWidth']},
-    {title: 'Read-only fields', names: ['readOnly', 'readOnlyWhen']},
+    { title: 'Text length', names: ['minLength', 'maxLength'] },
+    { title: 'Column widths', names: ['minColumnWidth', 'targetColumnWidth', 'maxColumnWidth'] },
+    { title: 'Read-only fields', names: ['readOnly', 'readOnlyWhen'] },
 ];
 
 export function modifierPage(name: string) {
-    return modifierPageGroups.find(group => group.names.includes(name)) ?? {title: '', names: [name]};
+    return (
+        modifierPageGroups.find(group => group.names.includes(name)) ?? {
+            title: '',
+            names: [name],
+        }
+    );
 }

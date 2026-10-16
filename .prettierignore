@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+.worktrees/
+examples/fdl-input/dist/
+.agents/
+.codex/
+skills-lock.json

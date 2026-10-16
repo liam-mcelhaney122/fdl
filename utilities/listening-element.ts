@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Constructor, Callback } from '../types';
 import { LitElement } from 'lit';
-import Recordset from '../recordset.js'
+import Recordset from '../recordset.js';
 import { RecordsetEvent, RecordsetEventHandlerMap } from '../recordset.events';
-
 
 type ListenerCallback<T> = Callback<CustomEvent<T>>;
 

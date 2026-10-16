@@ -1,14 +1,13 @@
-
 import { createUniqueId } from '../utilities/functions.js';
 
 interface Observer<T> {
-    onNext: (value:T) => void;
-    onError:(e:Error) => void;
-    onComplete:() => void;
+    onNext: (value: T) => void;
+    onError: (e: Error) => void;
+    onComplete: () => void;
 }
 
 interface SubscriptionHandle {
-    unsubscribe:() => void;
+    unsubscribe: () => void;
 }
 
 /**
@@ -19,43 +18,43 @@ export class Observable<T> {
     private readonly errorObservers = new Map<string, Observer<T>['onError']>();
     private readonly completionObservers = new Map<string, Observer<T>['onComplete']>();
 
-    private lastValue?:T;
+    private lastValue?: T;
     private hasLastValue = false;
     private completed = false;
 
-    public observe(observer:Observer<T>):SubscriptionHandle{
+    public observe(observer: Observer<T>): SubscriptionHandle {
         this.guardCompletion();
 
-        const {onNext, onError, onComplete} = observer;
+        const { onNext, onError, onComplete } = observer;
         const subs = [
             this.subscribe(onNext),
             this.listenForError(onError),
-            this.listenForCompletion(onComplete)
+            this.listenForCompletion(onComplete),
         ];
 
         return {
-            unsubscribe: () => subs.forEach(s => s.unsubscribe())
+            unsubscribe: () => subs.forEach(s => s.unsubscribe()),
         };
     }
 
-    public subscribe(callback:Observer<T>['onNext'], emitLastValue = false):SubscriptionHandle{
+    public subscribe(callback: Observer<T>['onNext'], emitLastValue = false): SubscriptionHandle {
         this.guardCompletion();
 
         const id = createUniqueId();
         this.observers.set(id, callback);
-        
-        if(emitLastValue && this.hasLastValue){
+
+        if (emitLastValue && this.hasLastValue) {
             callback(this.lastValue as T);
         }
 
         return {
             unsubscribe: () => {
                 this.observers.delete(id);
-            }
+            },
         };
     }
 
-    public listenForError(callback:Observer<T>['onError']):SubscriptionHandle{
+    public listenForError(callback: Observer<T>['onError']): SubscriptionHandle {
         this.guardCompletion();
 
         const id = createUniqueId();
@@ -64,11 +63,11 @@ export class Observable<T> {
         return {
             unsubscribe: () => {
                 this.errorObservers.delete(id);
-            }
+            },
         };
     }
 
-    public listenForCompletion(callback:Observer<T>['onComplete']):SubscriptionHandle{
+    public listenForCompletion(callback: Observer<T>['onComplete']): SubscriptionHandle {
         this.guardCompletion();
 
         const id = createUniqueId();
@@ -77,11 +76,11 @@ export class Observable<T> {
         return {
             unsubscribe: () => {
                 this.completionObservers.delete(id);
-            }
+            },
         };
     }
 
-    public emit(value:T){
+    public emit(value: T) {
         this.guardCompletion();
 
         this.lastValue = value;
@@ -89,7 +88,7 @@ export class Observable<T> {
         this.observers.forEach(callback => callback(value));
     }
 
-    public complete(){
+    public complete() {
         this.guardCompletion();
         this.completionObservers.forEach(callback => callback());
         this.observers.clear();
@@ -100,19 +99,19 @@ export class Observable<T> {
 
     /**
      * Creates a a `Promise` representation of the `Observable`.
-     * 
+     *
      * Since `Promise` semantics are such that they can only
      * complete once, this will only be fulfilled with
      * last emission from the source `Observable`.
-     * 
+     *
      * @returns A `Promise` fulfilled with the most recent value of the source observable.
      */
     public toPromise(emitLast = true) {
         const self = this;
-        const subs:SubscriptionHandle[] = [];
+        const subs: SubscriptionHandle[] = [];
 
         return new Promise<T>((resolve, reject) => {
-            const subscribeCallback = (value:T) => {
+            const subscribeCallback = (value: T) => {
                 subs.forEach(s => s.unsubscribe());
                 resolve(value);
             };
@@ -124,8 +123,8 @@ export class Observable<T> {
         });
     }
 
-    private guardCompletion(){
-        if(this.completed){
+    private guardCompletion() {
+        if (this.completed) {
             throw new Error('Cannot operate on a completed Observable.');
         }
     }

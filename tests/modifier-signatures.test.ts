@@ -9,11 +9,16 @@ it('keeps tooltip signatures aligned with the actual TypeScript builder API', ()
     const program = ts.createProgram([filename], options);
     const checker = program.getTypeChecker();
     const source = program.getSourceFile(filename)!;
-    const builder = source.statements.find(node => ts.isClassDeclaration(node) && node.name?.text === 'FieldTypeBuilder') as ts.ClassDeclaration;
+    const builder = source.statements.find(
+        node => ts.isClassDeclaration(node) && node.name?.text === 'FieldTypeBuilder'
+    ) as ts.ClassDeclaration;
     for (const [name, documented] of Object.entries(modifierSignatures)) {
-        const method = builder.members.find(node => ts.isMethodDeclaration(node) && node.name.getText(source) === name) as ts.MethodDeclaration;
+        const method = builder.members.find(
+            node => ts.isMethodDeclaration(node) && node.name.getText(source) === name
+        ) as ts.MethodDeclaration;
         const signature = checker.getSignatureFromDeclaration(method)!;
-        const actual = checker.signatureToString(signature, method, ts.TypeFormatFlags.NoTruncation)
+        const actual = checker
+            .signatureToString(signature, method, ts.TypeFormatFlags.NoTruncation)
             .replace(/_FieldType/g, 'FieldType')
             .replace(/BooleanPredicate/g, '(value: any) => boolean')
             .replace(/predicate: \(record: Record<any>\)/g, 'predicate: (record: Record)')
