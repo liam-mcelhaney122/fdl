@@ -101,13 +101,13 @@ export class FdlModifierExplorer extends LitElement {
         const menu = this.shadowRoot?.querySelector<HTMLDetailsElement>('.category-filters');
         if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
     };
-    private readLocation = () => {
+    private readLocation = (event?: Event) => {
         const route = window.location.hash.slice(1).split('?')[0];
         const aliases: {[key: string]: string} = {conditionalCellClass:'cellClass', rowClasses:'rowClass', requiredWhen:'required', disabledWhen:'disabled'};
         const hash = aliases[route] ?? route;
         const page = sitePages.find(page => page.id === hash);
         if (page || !hash) {
-            this.showPage(page?.id ?? 'home', false);
+            this.showPage(page?.id ?? 'home', false, Boolean(event));
             if (page?.id === 'categories') {
                 const category = new URLSearchParams(window.location.hash.split('?')[1]).get('category');
                 if (category) this.updateComplete.then(() => {
@@ -122,18 +122,18 @@ export class FdlModifierExplorer extends LitElement {
             if (index >= 0) {
                 this.select(index, false);
             }
-            else this.showPage('home', false);
+            else this.showPage('home', false, Boolean(event));
         }
     };
-    private showPage(page: SitePage, updateUrl = true) {
+    private showPage(page: SitePage, updateUrl = true, moveFocus = true) {
         this.page = page;
         this.navigationOpen = false;
         this.requestUpdate();
         document.title = `${sitePages.find(entry => entry.id === page)!.title} — FDL`;
         if (updateUrl) {
             window.location.hash = page;
-            this.focusHeading();
         }
+        if (moveFocus) this.focusHeading();
     }
     private focusHeading() {
         this.updateComplete.then(() => {
@@ -267,6 +267,12 @@ export class FdlModifierExplorer extends LitElement {
         const previous = position > 0 ? pages[position - 1] : undefined;
         const next = pages[position + 1];
         return html`
+        <a class="skip-link" href="#main-content" @click=${(event: Event) => {
+            event.preventDefault();
+            const main = this.shadowRoot?.getElementById('main-content');
+            main?.focus({preventScroll: true});
+            main?.scrollIntoView?.({block: 'start'});
+        }}>Skip to content</a>
         <header class="masthead"><a class="brand" href="#home" aria-label="FDL home" @click=${(event: Event) => { event.preventDefault(); this.showPage('home'); }}>f<span>d</span>l<span class="brand-dot">.</span></a><span class="mast-label">FIELD DEFINITION LIBRARY</span></header>
         <div class=${`shell ${this.navigationOpen ? 'navigation-open' : ''}`}>
             <button class="mobile-browse" aria-expanded=${this.navigationOpen} aria-controls="site-navigation" @click=${() => { this.navigationOpen = !this.navigationOpen; this.requestUpdate(); }}><span>Browse modifiers</span><small>${this.page === 'modifier' ? `.${recipe.name}()` : sitePages.find(entry => entry.id === this.page)?.title}</small><span aria-hidden="true">${this.navigationOpen ? '−' : '+'}</span></button>
@@ -304,7 +310,7 @@ export class FdlModifierExplorer extends LitElement {
             <nav class="modifier-list" aria-label="Modifiers">${filtered.map(({entry, index}) => html`<a href=${`#${entry.name}`} aria-describedby=${this.tooltip?.recipe.name === entry.name ? 'modifier-tooltip' : ''} @mouseenter=${(event: Event) => this.showTooltip(event, entry)} @mouseleave=${this.deferHideTooltip} @focus=${(event: Event) => this.showTooltip(event, entry)} @blur=${this.hideTooltip} @keydown=${(event: KeyboardEvent) => { if (event.key === 'Escape') this.hideTooltip(); }} aria-label=${`${entry.name} — ${entry.category}`} aria-current=${this.page === 'modifier' && this.selected === index ? 'page' : 'false'} @click=${(event: Event) => { event.preventDefault(); this.hideTooltip(); this.select(index); }}>${categoryIcon(entry.category)}<strong>${entry.name}</strong></a>`)}</nav>
             ${filtered.length === 0 ? html`<p class="empty-search">No modifiers match. Change the search or category filters.</p>` : ''}
             </section></aside>
-            <main>
+            <main id="main-content" tabindex="-1">
                 ${this.page !== 'modifier' ? keyed(`${this.page}-${window.location.hash}`, renderSitePage(this.page, this.learningState, this.compositionForPage(), recipes)) : html`
                 <div class="modifier-title-row"><h1 tabindex="-1">${group.title || html`.${recipe.name}<span>${recipe.signature}</span>`}</h1>
                     <div class="page-category" @mouseenter=${() => { this.categoryTooltip = true; this.requestUpdate(); }} @mouseleave=${() => { this.categoryTooltip = false; this.requestUpdate(); }}>
@@ -321,6 +327,10 @@ export class FdlModifierExplorer extends LitElement {
         ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
     }
     static styles = css`
+        .skip-link { position:fixed; top:8px; left:8px; z-index:200; padding:12px 20px; background:white; color:#1d4ed8; border:2px solid currentColor; border-radius:4px; transform:translateY(-200%); }
+        .skip-link:focus { transform:translateY(0); }
+        #main-content:focus { outline:none; }
+
         .page-sections { display:flex; min-height:0; overflow:visible; flex-wrap:wrap; gap:10px 20px; margin:0 0 32px; }
         .page-sections a { color:var(--accent); text-underline-offset:3px; }
         .deprecation-note { padding:16px 20px; border-left:4px solid #b7791f; background:#fffbeb; color:#713f12; line-height:1.65; }
