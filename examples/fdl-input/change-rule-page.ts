@@ -19,7 +19,7 @@ export class FdlConditionalValidation extends LitElement {
 customElements.define('fdl-conditional-validation', FdlConditionalValidation);
 
 export const conditionalRuleSource = `import { field, Record } from 'digital-fdl';
-const isInternational = record => record.getField('country') !== 'US';
+const isInternational = (record: Record<any>) => record.getField('country') !== 'US';
 export const accountFields = {
   country: field.label('Country code').required(),
   taxId: field.label('Tax ID')
@@ -31,13 +31,16 @@ export const accountFields = {
         !isInternational(record) || value === '' || /^[A-Z]{2}\\d{6}$/.test(String(value)),
     }),
 };
-export const account = new Record(accountFields, {country: 'US', taxId: ''});`;
+export const createAccount = (country = 'US', taxId = '') =>
+  new Record(accountFields, {country, taxId});
+export const account = createAccount();`;
 export function renderValidatorContract() {
     return html`<section><h3>Validator callback contract</h3>
       <pre class="code"><code>validate(modelValue, viewValue, record, options, field)
   =&gt; boolean | Promise&lt;boolean&gt;</code></pre>
       <p>The first argument is the stored model value; the second is the consumer-supplied view value (Record validation passes null); the third is the owning Record. The fourth is the consumer-supplied options API, which may be absent during Record validation, and the fifth identifies the field. Use the third argument for cross-field rules. Synchronous <code>isValid()</code> throws if a validator returns a Promise. Use the explicit async validation API for async rules; this example adapter supports synchronous rules.</p>
       <p>Validators accumulate. Conditional requiredness does not condition a validator, and hiding a field does not disable validation. Accept empty values in a format rule when requiredness should decide emptiness separately.</p>
+      <p>Model file: <code>examples/fdl-input/conditional-validation-model.ts</code>. This consumer-facing version imports FDL by its package name.</p>
       <pre class="code"><code>${highlightJavaScript(conditionalRuleSource)}</code></pre>
       <fdl-conditional-validation></fdl-conditional-validation>
       <p><a href="#change-a-rule">Trace this change through the model, consumers, and behavior tests.</a></p>
