@@ -7,8 +7,7 @@ import { highlightJavaScript } from './highlight-javascript';
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
-    private readonly code = `// delivery-model.ts
-import { field, Record } from 'digital-fdl';
+    private readonly code = `import { field, Record } from 'digital-fdl';
 
 const deliveryMethod = field.label('Delivery method')
     .tag('select')
