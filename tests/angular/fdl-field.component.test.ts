@@ -407,3 +407,164 @@ describe('FdlFieldComponent', () => {
         expect(query(fixture, '.validation-error')?.textContent).toContain('Name is required');
     });
 });
+
+describe('FdlFieldComponent checklist coverage', () => {
+    it('uses the declared input type and renders no label for hideLabel()', async () => {
+        const record = new Record(
+            { email: field.label('Email').type('email').hideLabel() },
+            { email: '' }
+        );
+        const fixture = await renderField({ record, field: 'email' });
+        expect(query<HTMLInputElement>(fixture, 'input').type).toBe('email');
+        expect(query(fixture, 'label')).toBeNull();
+    });
+
+    it('keeps a usesCustomPrint() read-only field read-only in its native control', async () => {
+        const record = new Record(
+            {
+                code: field.label('Code').readOnly().usesCustomPrint(),
+                notes: field.label('Notes').rowCount(2).readOnly().usesCustomPrint(),
+            },
+            { code: 'A1', notes: 'Fixed' }
+        );
+        const code = await renderField({ record, field: 'code' });
+        const notes = await renderField({ record, field: 'notes' });
+        expect(query(code, 'output')).toBeNull();
+        expect(query<HTMLInputElement>(code, 'input').readOnly).toBe(true);
+        expect(query<HTMLTextAreaElement>(notes, 'textarea').readOnly).toBe(true);
+    });
+
+    it('waits for composition to end before filtering and committing', async () => {
+        const record = new Record({ digits: field.inputMask(/[0-9]/) }, { digits: '' });
+        const fixture = await renderField({ record, field: 'digits' });
+        const input = query<HTMLInputElement>(fixture, 'input');
+        input.focus();
+        input.dispatchEvent(new Event('compositionstart'));
+        const composed = new InputEvent('beforeinput', {
+            data: 'x',
+            inputType: 'insertCompositionText',
+            cancelable: true,
+        });
+        input.dispatchEvent(composed);
+        expect(composed.defaultPrevented).toBe(false);
+        input.value = '1x';
+        input.dispatchEvent(new Event('input'));
+        expect(input.value).toBe('1x');
+        expect(record.getField('digits')).toBe('');
+
+        input.dispatchEvent(new Event('compositionend'));
+        expect(input.value).toBe('1');
+        expect(record.getField('digits')).toBe('1');
+    });
+
+    it('runs onValueChange callbacks after an edit', async () => {
+        const onValueChange = jest.fn();
+        const record = new Record({ name: field.onValueChange(onValueChange) }, { name: '' });
+        const fixture = await renderField({ record, field: 'name' });
+        type(query<HTMLInputElement>(fixture, 'input'), 'Ada');
+        expect(onValueChange).toHaveBeenCalledWith(record);
+    });
+
+    it('marks a select natively required and compares non-string option values as strings', async () => {
+        const record = new Record(
+            {
+                size: field
+                    .label('Size')
+                    .required()
+                    .options([
+                        { text: 'Small', value: 1 },
+                        { text: 'Large', value: 2 },
+                    ])
+                    .parser(value => Number(value)),
+            },
+            { size: 2 }
+        );
+        const fixture = await renderField({ record, field: 'size', selectPrompt: 'Choose' });
+        const select = query<HTMLSelectElement>(fixture, 'select');
+        expect(select.required).toBe(true);
+        expect([...select.options].map(option => option.value)).toEqual(['', '1', '2']);
+        expect(select.value).toBe('2');
+        select.value = '1';
+        select.dispatchEvent(new Event('change'));
+        expect(record.getField('size')).toBe(1);
+    });
+
+    it('omits the prompt when the data has an empty choice or the select is multiple', async () => {
+        const record = new Record(
+            {
+                one: field.options([
+                    { text: 'None', value: '' },
+                    { text: 'A', value: 'a' },
+                ]),
+                many: field.options([{ text: 'A', value: 'a' }]).multipleValues(),
+            },
+            { one: '', many: [] }
+        );
+        const one = await renderField({ record, field: 'one', selectPrompt: 'Choose' });
+        const many = await renderField({ record, field: 'many', selectPrompt: 'Choose' });
+        expect(query(one, '[data-select-prompt]')).toBeNull();
+        expect(query<HTMLSelectElement>(one, 'select').options[0].textContent).toBe('None');
+        expect(query(many, '[data-select-prompt]')).toBeNull();
+    });
+
+    it('selects every initial value of a multiple-value field', async () => {
+        const record = new Record(
+            {
+                tags: field
+                    .options([
+                        { text: 'Red', value: 'red' },
+                        { text: 'Green', value: 'green' },
+                        { text: 'Blue', value: 'blue' },
+                    ])
+                    .multipleValues(),
+            },
+            { tags: ['red', 'blue'] }
+        );
+        const fixture = await renderField({ record, field: 'tags' });
+        const select = query<HTMLSelectElement>(fixture, 'select');
+        expect([...select.selectedOptions].map(option => option.value)).toEqual(['red', 'blue']);
+    });
+
+    it('does not show another field’s choices after the field input changes', async () => {
+        const record = new Record(
+            {
+                color: field.label('Color').options([{ text: 'Red', value: 'red' }]),
+                locked: field
+                    .label('Locked')
+                    .disabled(true)
+                    .options([{ text: 'Never', value: 'never' }]),
+            },
+            { color: 'red', locked: '' }
+        );
+        const fixture = await renderField({ record, field: 'color' });
+        expect([...query<HTMLSelectElement>(fixture, 'select').options].map(o => o.value)).toEqual([
+            'red',
+        ]);
+        fixture.componentRef.setInput('field', 'locked');
+        await settle(fixture);
+        const select = query<HTMLSelectElement>(fixture, 'select');
+        expect(select.name).toBe('locked');
+        expect(select.disabled).toBe(true);
+        expect(select.options).toHaveLength(0);
+    });
+
+    it('ignores an options lookup that settles after the component is destroyed', async () => {
+        const pending = deferred<{ text: string; value: string }[]>();
+        const record = new Record(
+            {
+                store: field
+                    .label('Store')
+                    .options({ fetch: (_r: Record<any>) => pending.promise }),
+            },
+            { store: '' }
+        );
+        const fixture = await renderField({ record, field: 'store' });
+        const select = query<HTMLSelectElement>(fixture, 'select');
+        expect(select.getAttribute('aria-busy')).toBe('true');
+        fixture.destroy();
+        pending.resolve([{ text: 'Late', value: 'late' }]);
+        await flushMicrotasks();
+        expect(select.options).toHaveLength(0);
+        expect(() => record.setField('store', 'late')).not.toThrow();
+    });
+});

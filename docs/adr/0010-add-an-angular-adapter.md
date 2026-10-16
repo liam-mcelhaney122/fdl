@@ -1,4 +1,4 @@
-# ADR-0008: Add an Angular adapter
+# ADR-0010: Add an Angular adapter
 
 - Status: Accepted
 - Date: 2026-10-16
@@ -54,7 +54,9 @@ value store and invite duplicating FDL rules as Angular validators.
 
 Angular applications use the same `<fdl-field>` call site as Lit consumers, and
 the adapter contract now has two implementations. The adapter ships as
-TypeScript source, so applications must include it in their compilation.
+TypeScript source, so applications must include it in their compilation and,
+because FDL's core modules are JavaScript without declarations, enable
+`allowJs` with `maxNodeModuleJsDepth`.
 Template type checking is not run because `@angular/compiler-cli` requires
 TypeScript 5.9 as the root `typescript` package. JIT tests declare signal-input
 metadata that the Angular CLI would generate, with a test that detects drift.

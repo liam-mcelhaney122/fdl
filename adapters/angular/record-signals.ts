@@ -139,8 +139,9 @@ export function fieldState(
 
 /**
  * A signal of a `Recordset` that notifies after it loads, pages, counts, or
- * adds records. Edits to an individual row's fields notify that row's
- * `Record`, not the `Recordset`; use `recordSignal()` or `<fdl-field>` per row.
+ * adds records. The `Recordset` re-announces edits to records it created as
+ * `updated`, so derived values such as totals also refresh; render editable
+ * cells with `<fdl-field>`.
  */
 export function recordsetSignal<S extends Recordset<any>>(
     recordset: FdlSource<S>,

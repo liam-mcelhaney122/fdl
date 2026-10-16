@@ -14,10 +14,17 @@ not use the adapter are unaffected.
 
 The adapter currently ships as TypeScript source, like the rest of this package.
 Angular's compiler only builds TypeScript included in your project, so add the
-adapter to your application's `tsconfig.app.json`:
+adapter to your application's `tsconfig.app.json`. FDL's core modules are
+JavaScript without separate declaration files, so the adapter's imports of them
+also need `allowJs` and a `maxNodeModuleJsDepth` of at least `2`; otherwise a
+`strict` build reports TS7016 errors:
 
 ```json
 {
+    "compilerOptions": {
+        "allowJs": true,
+        "maxNodeModuleJsDepth": 2
+    },
     "include": ["src/**/*.ts", "node_modules/@pmcelhaney/fdl/adapters/angular/**/*.ts"]
 }
 ```
@@ -158,9 +165,10 @@ export class SummaryComponent {
 ```
 
 The value of `recordSignal()` is the same mutable `Record`; read model state
-inside `computed()` or a template. Editing a row's fields notifies that row's
-`Record`, not its `Recordset`, so table cells should use `<fdl-field>` or
-`recordSignal()` for each row.
+inside `computed()` or a template. A `Recordset` re-announces edits to the
+records it created as `updated`, so a `computed()` over `recordsetSignal()`,
+such as a column total, refreshes when a row changes. Render editable cells with
+`<fdl-field>`.
 
 ## Framework-independent state
 

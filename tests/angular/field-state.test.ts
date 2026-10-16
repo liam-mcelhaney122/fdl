@@ -5,6 +5,7 @@ import {
     FdlOptionsState,
     acceptedInput,
     controlKindFor,
+    displayText,
     filterTextControl,
     isOptionSelected,
     isTextControl,
@@ -297,5 +298,86 @@ describe('FieldOptionsLoader', () => {
         late.resolve([{ text: 'Late', value: 'late' }]);
         await settle();
         expect(loader.state.options).toEqual([]);
+    });
+});
+
+describe('review regressions', () => {
+    it('does not treat an empty multiple-value field as selecting "null" or "undefined"', () => {
+        const record = new Record(
+            { many: field.options([{ text: 'Null', value: 'null' }]).multipleValues() },
+            { many: null }
+        );
+        const state = readFieldState(record, 'many');
+        expect(isOptionSelected(state, 'null')).toBe(false);
+        expect(isOptionSelected({ ...state, value: undefined }, 'undefined')).toBe(false);
+    });
+
+    it('formats nullish display values as empty text', () => {
+        expect(displayText(undefined)).toBe('');
+        expect(displayText(null)).toBe('');
+        expect(displayText(0)).toBe('0');
+    });
+
+    it('clears options and pending work when it moves to another record or field', async () => {
+        const pending = deferred<{ text: string; value: string }[]>();
+        const record = new Record(
+            {
+                color: field.options([{ text: 'Red', value: 'red' }]),
+                store: field.options({ fetch: (_record: Record<any>) => pending.promise }),
+                locked: field.disabled(true).options([{ text: 'Never', value: 'never' }]),
+                name: field,
+            },
+            { color: 'red', store: '', locked: '', name: '' }
+        );
+        const loader = new FieldOptionsLoader(() => undefined);
+        loader.sync(record, 'color');
+        await settle();
+        expect(loader.state.options).toEqual([{ text: 'Red', value: 'red' }]);
+
+        // A disabled field keeps its own options but never inherits another field's.
+        loader.sync(record, 'locked');
+        expect(loader.state).toEqual({ options: [], loading: false });
+
+        loader.sync(record, 'store');
+        expect(loader.state.loading).toBe(true);
+        loader.sync(record, 'name');
+        expect(loader.state).toEqual({ options: [], loading: false });
+        pending.resolve([{ text: 'Late', value: 'late' }]);
+        await settle();
+        expect(loader.state.options).toEqual([]);
+
+        const other = new Record(
+            { color: field.options([{ text: 'Blue', value: 'blue' }]) },
+            { color: '' }
+        );
+        loader.sync(record, 'color');
+        await settle();
+        loader.sync(other, 'color');
+        expect(loader.state.options).toEqual([]);
+        await settle();
+        expect(loader.state.options).toEqual([{ text: 'Blue', value: 'blue' }]);
+    });
+
+    it('keeps the previous choices when a dependent lookup fails', async () => {
+        const fetch = jest.fn((r: Record<any>) =>
+            r.getField('zip') === 'bad'
+                ? Promise.reject(new Error('offline'))
+                : Promise.resolve([{ text: 'Uptown', value: 'uptown' }])
+        );
+        const record = new Record(
+            { zip: field, store: field.options({ fields: ['zip'], fetch }) },
+            { zip: '28202', store: '' }
+        );
+        const loader = new FieldOptionsLoader(() => undefined);
+        loader.sync(record, 'store');
+        await settle();
+        record.setField('zip', 'bad');
+        loader.sync(record, 'store');
+        expect(loader.state.loading).toBe(true);
+        await settle();
+        expect(loader.state).toEqual({
+            options: [{ text: 'Uptown', value: 'uptown' }],
+            loading: false,
+        });
     });
 });

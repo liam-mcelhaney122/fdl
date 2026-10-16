@@ -133,8 +133,11 @@ export function readFieldState(
 export function isOptionSelected(state: FdlFieldState, optionValue: unknown): boolean {
     const identity = String(optionValue);
     if (state.multiple) {
-        const values = Array.isArray(state.value) ? state.value : [state.value];
-        return values.map(String).includes(identity);
+        const values: unknown[] = Array.isArray(state.value) ? state.value : [state.value];
+        return values
+            .filter(value => value !== undefined && value !== null)
+            .map(String)
+            .includes(identity);
     }
     return String(state.value ?? '') === identity;
 }
@@ -211,7 +214,7 @@ export function isTextControl(
 export function readControlValue(control: Element): unknown {
     if (control instanceof HTMLSelectElement) {
         return control.multiple
-            ? [...control.selectedOptions].map(option => option.value)
+            ? Array.from(control.selectedOptions, option => option.value)
             : control.value;
     }
     if (control instanceof HTMLInputElement && ['checkbox', 'radio'].includes(control.type)) {
@@ -236,6 +239,8 @@ export class FieldOptionsLoader {
     private request?: Promise<unknown>;
     private version = 0;
     private current: FdlOptionsState = { options: [], loading: false };
+    private record?: AnyRecord;
+    private field?: string;
 
     constructor(private readonly onChange: (state: FdlOptionsState) => void) {}
 
@@ -244,6 +249,15 @@ export class FieldOptionsLoader {
     }
 
     sync(record: AnyRecord, field: string): void {
+        if (record !== this.record || field !== this.field) {
+            // Choices belong to one record's field; never show another field's options.
+            this.record = record;
+            this.field = field;
+            this.dispose();
+            if (this.current.options.length > 0 || this.current.loading) {
+                this.update({ options: [], loading: false });
+            }
+        }
         const fieldType = record.fieldTypeForField(field);
         if (!fieldType.hasOptions()) return;
         if (fieldType.isDisabled(record.getField(field), record, 'model')) {
