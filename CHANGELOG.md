@@ -13,6 +13,11 @@ All notable changes to FDL will be documented in this file. The format follows
 - Continuous integration for tests, static type checking, and the documentation-site
   production build.
 - A documented release and compatibility checklist.
+- A React adapter at `@pmcelhaney/fdl/adapters/react` with one `FdlField`
+  component and `useRecord`, `useFieldState`, `useFieldOptions`, and
+  `useRecordset` hooks. React is an optional peer dependency. See the
+  [React adapter guide](./docs/react-adapter.md) and
+  [ADR-0008](./docs/adr/0008-add-a-react-adapter.md).
 
 ### Changed
 
