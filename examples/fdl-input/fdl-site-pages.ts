@@ -67,8 +67,33 @@ export function renderSitePage(
         return html` <article class="site-page">
             <h1 tabindex="-1">Field Definition Library</h1>
             <p class="description"
-                >Define business rules once. Use them consistently in forms,
-                tables, and validation.</p
+                >FDL (pronounced “fiddle”) is a JavaScript and TypeScript
+                library for defining how your application’s fields behave and
+                applying those definitions to individual records and collections
+                of records.</p
+            >
+            <p
+                >A field definition describes how to turn input into a stored
+                value, format it for display, check whether it is valid, and
+                determine whether it is required, visible, or editable. These
+                rules can depend on other values in the record: a delivery
+                address, for example, can be required only when the customer
+                chooses shipping.</p
+            >
+            <p
+                >Without a shared model, that same rule can end up in a form’s
+                input handlers, a separate validation function, and a table’s
+                editing logic. FDL keeps the rule in the field definition. A
+                form, a table, and a validation check can all use it, so
+                changing the rule does not mean finding and updating several
+                copies. You can also test it without rendering a screen.</p
+            >
+            <p
+                >Your UI components read FDL’s field behavior and record state
+                to render controls and display validation messages. The
+                application chooses the layout and workflow, and CSS controls
+                the appearance. You can reuse the same model across different
+                interfaces.</p
             >
             <fdl-delivery-experiment></fdl-delivery-experiment
             ><p
@@ -106,23 +131,6 @@ export function renderSitePage(
                         ></li
                     >
                 </ul></section
-            >
-            <h2>What belongs in FDL?</h2>
-            <p
-                >FDL (pronounced “fiddle”) is a JavaScript and TypeScript
-                library for modeling fields, records, and collections of records
-                independently of the interface that displays them.</p
-            >
-            <p
-                >A complex form often repeats the same rules in input handlers,
-                validation, review screens, and tables. FDL puts reusable
-                behavior in field definitions: how to parse an input, format a
-                value, validate it, or determine its state from other fields.</p
-            >
-            <p
-                >A component reads those definitions to render an accessible
-                control. The application chooses the layout and workflow, and
-                CSS controls the appearance.</p
             >
             <h2>Three parts of the model</h2>
             <dl class="concepts">
