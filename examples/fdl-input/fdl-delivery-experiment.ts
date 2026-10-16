@@ -18,6 +18,14 @@ function hasValidZip(record: Record<any>) {
     return /^[0-9]{5}$/.test(record.getField('zip') || '');
 }
 
+function whenZipIsInvalid(record: Record<any>) {
+    return !hasValidZip(record);
+}
+
+function isValidPostalZip(value: unknown, _view: unknown, record: Record<any>) {
+    return !value || hasValidZip(record);
+}
+
 function whenReadyToChooseStore(record: Record<any>) {
     return whenPickingUp(record) && hasValidZip(record);
 }
@@ -32,6 +40,10 @@ async function loadStoresForZip(record: Record<any>) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
+function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<any>) {
+    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
+}
+
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -41,18 +53,6 @@ const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
     validate: isAvailablePickupStore,
 };
-
-function whenZipIsInvalid(record: Record<any>) {
-    return !hasValidZip(record);
-}
-
-function isValidPostalZip(value: unknown, _view: unknown, record: Record<any>) {
-    return !value || hasValidZip(record);
-}
-
-function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<any>) {
-    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
-}
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
@@ -71,6 +71,14 @@ function hasValidZip(record) {
     return /^[0-9]{5}$/.test(record.getField('zip') || '');
 }
 
+function whenZipIsInvalid(record) {
+    return !hasValidZip(record);
+}
+
+function isValidPostalZip(value, _view, record) {
+    return !value || hasValidZip(record);
+}
+
 function whenReadyToChooseStore(record) {
     return whenPickingUp(record) && hasValidZip(record);
 }
@@ -85,6 +93,10 @@ async function loadStoresForZip(record) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
+function isAvailablePickupStore(value, _view, record) {
+    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
+}
+
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
@@ -94,18 +106,6 @@ const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
     validate: isAvailablePickupStore,
 };
-
-function whenZipIsInvalid(record) {
-    return !hasValidZip(record);
-}
-
-function isValidPostalZip(value, _view, record) {
-    return !value || hasValidZip(record);
-}
-
-function isAvailablePickupStore(value, _view, record) {
-    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
-}
 
 const deliveryMethod = field.label('Delivery method')
     .options(deliveryMethodOptions);
