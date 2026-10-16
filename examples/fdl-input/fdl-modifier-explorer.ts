@@ -1107,7 +1107,7 @@ ${JSON.stringify(model.values, null, 2)}</pre></details
             display: none;
         }
         .masthead {
-            max-width: 1480px;
+            max-width: 1760px;
             margin: auto;
             padding: 16px 32px;
             display: flex;
@@ -1141,7 +1141,7 @@ ${JSON.stringify(model.values, null, 2)}</pre></details
         .shell {
             display: grid;
             grid-template-columns: 280px minmax(0, 1fr);
-            max-width: 1480px;
+            max-width: 1760px;
             margin: auto;
             padding: 0 32px;
         }
@@ -1425,7 +1425,7 @@ ${JSON.stringify(model.values, null, 2)}</pre></details
             overscroll-behavior: contain;
         }
         .site-page {
-            max-width: 75ch;
+            min-width: 0;
         }
         .site-page h1 {
             font-family: Arial, Helvetica, sans-serif;
@@ -1439,6 +1439,7 @@ ${JSON.stringify(model.values, null, 2)}</pre></details
         .site-page p,
         .site-page li,
         .site-page dd {
+            max-width: 75ch;
             font-size: 1.125rem;
             line-height: 1.75;
         }
