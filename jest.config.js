@@ -27,7 +27,7 @@ module.exports = {
         './filters/*.js',
         './helpers/*.js',
         './utilities/*.{js,ts}',
-        './adapters/**/*.{js,ts}',
+        './adapters/**/*.{js,ts,tsx}',
     ],
     transform: {
         '^.+\\.svelte\\.js$': './tests/jest-helpers/svelte-transform.js',

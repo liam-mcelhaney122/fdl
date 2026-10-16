@@ -23,9 +23,12 @@ must not move that policy into `FieldType`. `FormElement.showValidationErrors`
 is one such setting: FDL supplies errors, the application decides when they are
 shown, and the adapter creates the accessible relationship.
 
-Two adapters implement this contract: the Lit `FormElement` described below
-and the [Svelte adapter](./svelte-adapter.md), which provides the same behavior
-through one `FdlField` component, field stores, and a native-control action.
+FDL ships three adapters that implement this contract: the Lit
+[`FormElement`](./form-element.md) described below, the
+[React adapter](./react-adapter.md) (`FdlField` with `useFieldState`,
+`useFieldOptions`, `useRecord`, and `useRecordset`), and the
+[Svelte adapter](./svelte-adapter.md) (one `FdlField` component, field stores,
+and a native-control action). A change to this contract applies to all of them.
 
 ## Native `FormElement` behavior
 
