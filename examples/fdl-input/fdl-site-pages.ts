@@ -221,6 +221,59 @@ export function renderSitePage(
                     >
                 </section>
             </div>
+            <h2>From model to interface</h2>
+            <p>
+                The Lit elements on this site bring the model to life. They
+                connect fields, records, and recordsets to controls and tables
+                you can interact with. These are example implementations: you
+                can build your own components in React, Vue, Lit, or any other
+                framework, as long as they follow the
+                <a href="#integration">model and adapter contract</a>.
+            </p>
+            <dl class="concepts">
+                <dt><code>&lt;fdl-field&gt;</code></dt>
+                <dd>
+                    Connects one field in a record to a labelled control. It
+                    uses the field definition to format values, show available
+                    choices, and reflect required, visible, disabled, and
+                    read-only state. Edits go back through the record’s parser;
+                    validation messages come from the model. This example
+                    extends FDL’s Lit <code>FormElement</code> adapter with the
+                    site’s styling.
+                </dd>
+                <dt><code>&lt;fdl-table&gt;</code></dt>
+                <dd>
+                    Presents a recordset as rows and columns, using the shared
+                    field definitions for labels, formatted values, alignment,
+                    and other table behavior. It provides sorting, filtering,
+                    and column resizing. Its companion
+                    <code>&lt;fdl-column&gt;</code> element identifies which
+                    fields to show and in what order.
+                </dd>
+                <dt>
+                    <code>&lt;fdl-record-inspector&gt;</code> and
+                    <code>&lt;fdl-recordset-inspector&gt;</code>
+                </dt>
+                <dd>
+                    Make model state visible alongside the interface. The record
+                    inspector shows stored values and field state; the recordset
+                    inspector shows the collection and its current view. These
+                    are learning tools for seeing what changes as you interact
+                    with an example.
+                </dd>
+            </dl>
+            <p>
+                Your components can look and behave differently while using the
+                same model. The contract is to read values and field state from
+                FDL, send user input through <code>parseAndSetField()</code>,
+                and subscribe to model changes so the view stays current,
+                removing those subscriptions when the component is removed.
+                Components supply accessible labels, keyboard interaction, and
+                validation feedback; the application chooses when to show
+                errors, how to submit data, and how to style the result. The
+                <a href="#integration">adapter contract</a> explains these
+                responsibilities in detail.
+            </p>
             <h2>A rule you can check without a UI</h2>
             <pre
                 class="code markup"
@@ -249,10 +302,9 @@ export function renderSitePage(
                 values, and read the definition and rendering markup.</p
             >
             <p
-                >These examples use Lit components. FDL’s model behavior can
-                also be used without a browser. Some modifiers require adapter
-                support; their pages identify what the current example can
-                demonstrate.</p
+                >FDL’s model behavior can also be used without a browser. Some
+                modifiers require adapter support; their pages identify what the
+                current example can demonstrate.</p
             >
             <p
                 >The package is <code>digital-fdl</code>. Source code and

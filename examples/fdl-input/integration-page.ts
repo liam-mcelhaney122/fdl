@@ -9,6 +9,14 @@ export function renderIntegration() {
             >Keep business behavior in the model and translate it into your
             component system’s accessible interface.</p
         >
+        <p>
+            The Lit elements used on this site are example implementations of
+            this contract. You can build components in any framework using FDL’s
+            model APIs. Your components do not need to extend
+            <code>FormElement</code> or use the example custom-element names;
+            they need to honor the same model behavior and accessible
+            interaction responsibilities described below.
+        </p>
         <h2>Public references</h2>
         <ul>
             <li
