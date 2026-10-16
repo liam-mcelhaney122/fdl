@@ -300,8 +300,20 @@ export const shippingStateOptions = [
                     : availableStore
                       ? 'Pickup is ready. Change the ZIP code to see the available stores change.'
                       : 'Choose a store to complete your pickup details.';
-        return html`<section aria-label="Try a delivery rule">
-            <h2>Try a delivery rule</h2>
+        return html`<details>
+            <summary><h2>See FDL in Action</h2></summary>
+            <p>
+                The interactive example pairs a working delivery form with an
+                inspector showing its stored values and field states. The file
+                tabs show the field rules in delivery-model.ts, the controls in
+                delivery-form.ts, and the sample data in delivery-data.ts. Clear
+                the shipping address to see required-field validation, then switch
+                to pickup to see which fields become visible and required. Try an
+                incomplete ZIP code to see validation and the disabled store
+                selector, then enter 28202 or 10001 to load different pickup
+                stores after a two-second delay. Switch back to shipping to see
+                that the form keeps the address even while its fields are hidden.
+            </p>
             <div
                 class="tabs"
                 role="tablist"
@@ -388,7 +400,7 @@ export const shippingStateOptions = [
                         ><code>${highlightJavaScript(file.code)}</code></pre>
                     </div>`
             )}
-        </section>`;
+        </details>`;
     }
     static styles = css`
         :host {
@@ -398,14 +410,22 @@ export const shippingStateOptions = [
         * {
             box-sizing: border-box;
         }
-        section {
+        details {
             border: 1px solid var(--example-border);
             border-radius: var(--example-radius);
             padding: 24px;
         }
         h2 {
+            display: inline;
             margin: 0;
             font-size: 1.5rem;
+        }
+        summary {
+            cursor: pointer;
+        }
+        summary:focus-visible {
+            outline: 3px solid #2563eb;
+            outline-offset: 4px;
         }
         p {
             line-height: 1.6;
@@ -503,11 +523,11 @@ export const shippingStateOptions = [
         p {
             margin: 16px 0;
         }
-        section > p:last-child {
+        details > p:last-child {
             margin-bottom: 0;
         }
         @media (max-width: 480px) {
-            section {
+            details {
                 padding: 16px;
             }
             .editor {
