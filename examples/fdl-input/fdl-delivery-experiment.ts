@@ -42,8 +42,10 @@ const postalZipValidator = {
 };
 
 export class FdlDeliveryExperiment extends LitElement {
-    private activeTab: 'example' | 'code' = 'example';
-    private readonly code = `import { field, Record } from 'digital-fdl';
+    private activeTab: 'example' | 'model' | 'form' | 'data' = 'example';
+    private readonly code = `// Defines the delivery fields, conditional shipping and pickup rules,
+// ZIP code validation, and store lookup by ZIP code.
+import { field, Record } from 'digital-fdl';
 import {
     deliveryMethodOptions,
     shippingStateOptions,
@@ -119,7 +121,9 @@ export const delivery = new Record(
         store: '',
     }
 );`;
-    private readonly litCode = `import { LitElement, html } from 'lit';
+    private readonly litCode = `// Connects the delivery model to FDL field components in a Lit view,
+// so each control reflects the model's rules.
+import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
 
@@ -141,7 +145,9 @@ export class DeliveryForm extends LitElement {
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
-    private readonly dataCode = `export const deliveryMethodOptions = [
+    private readonly dataCode = `// Supplies delivery methods, US state options, and sample pickup stores
+// for ZIP codes 28202 and 10001.
+export const deliveryMethodOptions = [
     { text: 'Ship to address', value: 'ship' },
     { text: 'Pick up from store', value: 'pickup' },
 ];
@@ -266,11 +272,16 @@ export const shippingStateOptions = [
         this.delivery.removeEventListener('change', this.refresh);
         super.disconnectedCallback();
     }
-    private selectTab(tab: 'example' | 'code') {
+    private selectTab(tab: 'example' | 'model' | 'form' | 'data') {
         this.activeTab = tab;
         this.requestUpdate();
     }
     render() {
+        const files = [
+            { id: 'model', name: 'delivery-model.ts', code: this.code },
+            { id: 'form', name: 'delivery-form.ts', code: this.litCode },
+            { id: 'data', name: 'delivery-data.ts', code: this.dataCode },
+        ] as const;
         const pickup = whenPickingUp(this.delivery);
         const zip = this.delivery.getField('zip');
         const ready = isValidZip(zip);
@@ -304,14 +315,17 @@ export const shippingStateOptions = [
                     @click=${() => this.selectTab('example')}
                     >Interactive example</button
                 >
-                <button
-                    id="delivery-code-tab"
-                    role="tab"
-                    aria-selected=${this.activeTab === 'code'}
-                    aria-controls="delivery-code-panel"
-                    @click=${() => this.selectTab('code')}
-                    >FDL code</button
-                >
+                ${files.map(
+                    file =>
+                        html`<button
+                            id=${`delivery-${file.id}-tab`}
+                            role="tab"
+                            aria-selected=${this.activeTab === file.id}
+                            aria-controls=${`delivery-${file.id}-panel`}
+                            @click=${() => this.selectTab(file.id)}
+                            >${file.name}</button
+                        >`
+                )}
             </div>
             <div
                 id="delivery-example-panel"
@@ -360,42 +374,20 @@ export const shippingStateOptions = [
                     ></fdl-record-inspector>
                 </div>
             </div>
-            <div
-                id="delivery-code-panel"
-                class="tab-panel"
-                role="tabpanel"
-                aria-labelledby="delivery-code-tab"
-                ?hidden=${this.activeTab !== 'code'}
-            >
-                <p class="code-intro"
-                    >The interactive example is driven by this FDL model and Lit
-                    view:</p
-                >
-                <h3><code>delivery-model.ts</code></h3>
-                <p>
-                    Defines the delivery fields, conditional shipping and pickup
-                    rules, ZIP code validation, and store lookup by ZIP code.
-                </p>
-                <pre
-                    class="code"
-                ><code>${highlightJavaScript(this.code)}</code></pre>
-                <h3><code>delivery-form.ts</code></h3>
-                <p>
-                    Connects the delivery model to FDL field components in a Lit
-                    view, so each control reflects the model’s rules.
-                </p>
-                <pre
-                    class="code"
-                ><code>${highlightJavaScript(this.litCode)}</code></pre>
-                <h3><code>delivery-data.ts</code></h3>
-                <p>
-                    Supplies delivery methods, US state options, and sample
-                    pickup stores for ZIP codes 28202 and 10001.
-                </p>
-                <pre
-                    class="code"
-                ><code>${highlightJavaScript(this.dataCode)}</code></pre>
-            </div>
+            ${files.map(
+                file =>
+                    html`<div
+                        id=${`delivery-${file.id}-panel`}
+                        class="tab-panel"
+                        role="tabpanel"
+                        aria-labelledby=${`delivery-${file.id}-tab`}
+                        ?hidden=${this.activeTab !== file.id}
+                    >
+                        <pre
+                            class="code"
+                        ><code>${highlightJavaScript(file.code)}</code></pre>
+                    </div>`
+            )}
         </section>`;
     }
     static styles = css`
@@ -420,6 +412,7 @@ export const shippingStateOptions = [
         }
         .tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 4px;
             margin: 20px 0 0;
             border-bottom: 1px solid var(--example-border);
@@ -446,13 +439,6 @@ export const shippingStateOptions = [
         }
         .tab-panel {
             padding-top: 20px;
-        }
-        .code-intro {
-            margin-top: 0;
-        }
-        h3 {
-            margin: 24px 0 10px;
-            font-size: 1rem;
         }
         .code {
             margin: 0;

@@ -233,33 +233,42 @@ it('reveals the FDL delivery model behind the interactive example', async () => 
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
-    const codeTab = demo.shadowRoot!.querySelector<HTMLButtonElement>('#delivery-code-tab')!;
-    codeTab.click();
-    await demo.updateComplete;
-    expect(codeTab.getAttribute('aria-selected')).toBe('true');
-    const codePanel = demo.shadowRoot!.querySelector('#delivery-code-panel')!;
-    expect([...codePanel.querySelectorAll('h3')].map(heading => heading.textContent)).toEqual([
-        'delivery-model.ts',
-        'delivery-form.ts',
-        'delivery-data.ts',
+    const root = demo.shadowRoot!;
+    expect([...root.querySelectorAll('[role="tab"]')].map(tab => tab.textContent!.trim())).toEqual([
+        'Interactive example', 'delivery-model.ts', 'delivery-form.ts', 'delivery-data.ts',
     ]);
-    const snippets = codePanel.querySelectorAll('pre');
-    expect(snippets[0].textContent).toContain("from './delivery-data'");
-    expect(snippets[0].textContent).not.toContain('const stateOptions =');
-    expect(snippets[2].textContent).toContain('export const deliveryMethodOptions =');
-    expect(snippets[2].textContent).toContain('export const shippingStateOptions =');
-    expect(snippets[2].textContent).toContain('export const storesByZip');
-    expect(codePanel.textContent).not.toContain('// delivery-model.ts');
+    for (const id of ['model', 'form', 'data']) {
+        const tab = root.querySelector<HTMLButtonElement>(`#delivery-${id}-tab`)!;
+        tab.click();
+        await demo.updateComplete;
+        expect(tab.getAttribute('aria-selected')).toBe('true');
+        const panel = root.getElementById(tab.getAttribute('aria-controls')!)!;
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        expect(panel.querySelectorAll('pre')).toHaveLength(1);
+        expect(panel.querySelector('code')!.textContent).toMatch(/^\/\//);
+        expect(panel.querySelectorAll('h3, p')).toHaveLength(0);
+        expect(root.querySelectorAll('[role="tabpanel"]:not([hidden])')).toHaveLength(1);
+    }
+    const codePanel = root.querySelector('#delivery-model-panel')!;
+    const formPanel = root.querySelector('#delivery-form-panel')!;
+    const dataPanel = root.querySelector('#delivery-data-panel')!;
+    expect(codePanel.textContent).toContain("from './delivery-data'");
+    expect(codePanel.textContent).toContain('// Defines the delivery fields');
     expect(codePanel.textContent).toContain('export const delivery = new Record');
-    expect(codePanel.textContent).not.toContain('// delivery-form.ts');
-    expect(codePanel.textContent).toContain("import { delivery } from './delivery-model';");
+    expect(codePanel.textContent).not.toContain('const stateOptions =');
+    expect(formPanel.textContent).toContain('// Connects the delivery model');
+    expect(formPanel.textContent).toContain("import { delivery } from './delivery-model';");
+    expect(dataPanel.textContent).toContain('// Supplies delivery methods');
+    expect(dataPanel.textContent).toContain('export const deliveryMethodOptions =');
+    expect(dataPanel.textContent).toContain('export const shippingStateOptions =');
+    expect(dataPanel.textContent).toContain('export const storesByZip');
     expect(codePanel.textContent).toMatch(/fulfillment: field\s*\.label\('Delivery method'\)/);
     expect(codePanel.textContent).toMatch(/address: field\s*\.label/);
     expect(codePanel.textContent).not.toContain('const shippingAddress =');
     expect(codePanel.textContent).toContain('function whenDeliveryMethodRequiresAddress(record)');
     expect(codePanel.textContent).toContain('.visible(whenDeliveryMethodRequiresAddress)');
     expect(codePanel.textContent).toContain('.required(whenDeliveryMethodRequiresAddress)');
-    expect(codePanel.textContent).toContain(
+    expect(formPanel.textContent).toContain(
         '<fdl-field .record=${delivery} field="fulfillment"></fdl-field>'
     );
     expect(
