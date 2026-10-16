@@ -1,4 +1,5 @@
 import { html, type TemplateResult } from 'lit';
+import { modifierSignatures } from './modifier-signatures';
 
 const keywords = new Set(['async', 'await', 'const', 'let', 'var', 'new', 'return', 'if', 'else', 'throw', 'function', 'class', 'import', 'from', 'export', 'default', 'typeof', 'instanceof']);
 const builtins = new Set(['Intl', 'Number', 'String', 'Boolean', 'Promise', 'FieldType', 'field', 'Record', 'Recordset']);
@@ -24,7 +25,13 @@ export function highlightJavaScript(source: string): Array<string | TemplateResu
         else if (builtins.has(value)) kind = 'builtin';
         else if (/^[A-Za-z_$]/.test(value) && /^\s*\(/.test(source.slice(index + value.length))) kind = 'function';
         else if (/^[^\w$]+$/.test(value)) kind = 'punctuation';
-        output.push(html`<span class=${`syntax-${kind}`}>${value}</span>`);
+        const token = html`<span class=${`syntax-${kind}`}>${value}</span>`;
+        const modifierCall = source[index - 1] === '.'
+            && modifierSignatures[value] !== undefined
+            && /^\s*\(/.test(source.slice(index + value.length));
+        output.push(modifierCall
+            ? html`<a href=${`#${value}`} style="color:inherit;text-decoration:underline;text-underline-offset:0.15em">${token}</a>`
+            : token);
         cursor = index + value.length;
     }
     output.push(source.slice(cursor));

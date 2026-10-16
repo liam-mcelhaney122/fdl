@@ -14,6 +14,17 @@ it('highlights JavaScript without changing source text or interpreting it as HTM
     expect(container.querySelector('.syntax-regex')!.textContent).toBe('/^PRJ-\\d{4}$/');
 });
 
+it('links modifier calls to their documentation without changing syntax color', () => {
+    const code = "const definition = field.label('Name').required();";
+    const container = document.createElement('div');
+    render(highlightJavaScript(code), container);
+    const link = container.querySelector<HTMLAnchorElement>('a[href="#required"]')!;
+    expect(link.textContent).toBe('required');
+    expect(link.getAttribute('style')).toContain('color:inherit');
+    expect(link.getAttribute('style')).toContain('text-decoration:underline');
+    expect(link.querySelector('.syntax-function')!.textContent).toBe('required');
+});
+
 
 it('emphasizes the complete formatter call without including unrelated setup', () => {
     const code = "const amount = field\n  .label('Amount')\n  .formatter((value) =>\n    String(value)\n  );";
