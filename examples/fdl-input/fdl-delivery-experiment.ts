@@ -113,7 +113,8 @@ const postalZip = field.label('ZIP code')
         validate: (value, _view, record) => !value || hasValidZip(record),
     });
 const pickupStore = field.label('Pickup store')
-    .visible(whenReadyToChooseStore)
+    .visible(whenPickingUp)
+    .disabled(record => !hasValidZip(record))
     .required(whenPickingUp)
     .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
     .validator({
@@ -162,7 +163,8 @@ customElements.define('delivery-form', DeliveryForm);`;
             validate: (value, _view, record) => !value || hasValidZip(record),
         });
     private pickupStore = field.label('Pickup store')
-        .visible(whenReadyToChooseStore)
+        .visible(whenPickingUp)
+        .disabled(record => !hasValidZip(record))
         .required(whenPickingUp)
         .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
         .validator({
@@ -213,7 +215,7 @@ customElements.define('delivery-form', DeliveryForm);`;
                         ${pickup ? html`<p class="sample-note">Sample store lookup: try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
                         <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
                     </div>
-                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${ready ? 'Visible' : 'Hidden'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${hasValidZip(this.delivery) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>

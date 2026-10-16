@@ -34,7 +34,7 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Invalid');
 });
 
-it('requires a ZIP before revealing stores and validates pickup against the current choices', async () => {
+it('keeps pickup stores visible but disabled until the ZIP is valid and validates the current choices', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
@@ -44,22 +44,33 @@ it('requires a ZIP before revealing stores and validates pickup against the curr
     function storeVisible() {
         return record.fieldTypeForField('store').visible(record.getField('store'), record);
     }
+    async function expectStoreDisabled(disabled: boolean) {
+        await storeField.updateComplete;
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(record.fieldTypeForField('store').isDisabled(record.getField('store'), record)).toBe(disabled);
+        expect(storeField.shadowRoot.querySelector('select').disabled).toBe(disabled);
+    }
+    expect(storeVisible()).toBe(false);
     await editField(root, 'fulfillment', 'pickup');
     await demo.updateComplete;
     expect(record.isValid()).toBe(false);
-    expect(storeVisible()).toBe(false);
+    expect(storeVisible()).toBe(true);
+    await expectStoreDisabled(true);
     await editField(root, 'zip', '2820');
     await demo.updateComplete;
-    expect(storeVisible()).toBe(false);
+    expect(storeVisible()).toBe(true);
+    await expectStoreDisabled(true);
     expect(record.isValid()).toBe(false);
     await editField(root, 'zip', 'abcde');
     await demo.updateComplete;
-    expect(storeVisible()).toBe(false);
+    expect(storeVisible()).toBe(true);
+    await expectStoreDisabled(true);
     await editField(root, 'zip', '28202');
     await demo.updateComplete;
     await editField(root, 'store', 'uptown');
     await demo.updateComplete;
     expect(storeVisible()).toBe(true);
+    await expectStoreDisabled(false);
     expect(record.isValid()).toBe(true);
     expect(root.querySelector('.state')!.textContent).toContain('Uptown store');
     await editField(root, 'zip', '10001');
@@ -77,7 +88,8 @@ it('requires a ZIP before revealing stores and validates pickup against the curr
     expect(root.querySelector('.instruction')!.textContent).toContain('No sample stores');
     await editField(root, 'zip', '');
     await demo.updateComplete;
-    expect(storeVisible()).toBe(false);
+    expect(storeVisible()).toBe(true);
+    await expectStoreDisabled(true);
     expect(record.isValid()).toBe(false);
     await editField(root, 'fulfillment', 'ship');
     await demo.updateComplete;
