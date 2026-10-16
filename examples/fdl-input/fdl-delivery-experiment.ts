@@ -67,7 +67,6 @@ const delivery = new Record({
                 <h3>Lit template</h3>
                 <pre class="code"><code>${highlightMarkup(this.litCode)}</code></pre>
             </div>
-            <p><a href="#visibleWhen">Explore visibility</a> · <a href="#required">Explore requiredness</a></p>
         </section>`;
     }
     static styles = css`
