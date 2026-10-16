@@ -295,7 +295,7 @@ in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md))
 | `multipleValues(min, max)` | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators. |
 | `options(config)` | Provide options for a select-like control. |
 
-For a native dropdown, use `tag('select')` and option objects with `text` and
+For the legacy adapter’s native dropdown, the compatibility configuration is `tag('select')` and option objects with `text` and
 `value` properties:
 
 ```js

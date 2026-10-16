@@ -125,7 +125,9 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const exports = [model.name, ...(helpers[name] ?? [])];
     const modelFile = `${name}-model.js`;
     const uiFile = `${name}-view.js`;
-    const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
+    const legacyAdapter = Object.values(model.fields).some(chain => /\.(tag|rowCount)\(/.test(chain));
+    const compatibility = legacyAdapter ? '// Adapter compatibility: tag() and rowCount() configure this legacy example renderer.\n// Choose controls and textarea sizing in your adapter for new integrations.\n' : '';
+    const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}${compatibility}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
     let markup = exampleMarkup(name);
     let setup = '';
     const validation = validationFields[name];

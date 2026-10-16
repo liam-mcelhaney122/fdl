@@ -15,6 +15,7 @@ export function renderIntegration() {
         <li><a href=${reference('docs/design-principles.md')}>Design principles and prohibited shortcuts</a></li>
       </ul>
       <p>These links open repository references on main. For this local checkout’s exact contracts, read the same paths locally.</p>
+      <h2>Legacy example configuration</h2><p>The current Lit adapter reads <code>tag()</code> for control selection and <code>rowCount()</code> for textarea sizing. Both are deprecated compatibility APIs, not the recommended reusable model contract. New adapters should keep element choice and sizing in renderer configuration and styles. Their continued use in these demonstrations preserves the existing adapter’s behavior.</p>
       <h2>Composition rules</h2>
       <table><thead><tr><th>Modifier kind</th><th>Composition</th></tr></thead><tbody>
         <tr><td>All modifiers</td><td>Return a new definition; the source definition is unchanged. Records prepare builders at their input boundary.</td></tr>

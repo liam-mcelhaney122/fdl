@@ -231,6 +231,7 @@ export class FdlModifierExplorer extends LitElement {
                 </section>
                 <div class="details">
                 <p class="source-intro">Starting values are shown below. These two files require the repository’s example adapters and their dependencies. Read <a href="#quickstart">setup and adapter prerequisites</a> before copying them. Save the model and view in the same folder within that environment. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
+                ${/\.(tag|rowCount)\(/.test(source.definition) ? html`<p class="compatibility-note"><strong>Example adapter compatibility:</strong> <code>tag()</code> chooses this legacy adapter’s control, and <code>rowCount()</code> sizes its textarea. Both are deprecated compatibility APIs. Keep control selection and sizing in your adapter for new integrations; the reusable rules remain in the field model. <a href="#integration">Read the adapter boundary.</a></p>` : ''}
                 <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
@@ -322,6 +323,7 @@ export class FdlModifierExplorer extends LitElement {
                 ${group.names.map(name => keyed(name, this.renderModifierSection(recipes.find(entry => entry.name === name)!)))}
                 <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>${modifierPage(previous.entry.name).title || html`.${previous.entry.name}${previous.entry.signature}`}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${pages.length}`}${filtering ? html`<small>Filtered pages</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>${modifierPage(next.entry.name).title || html`.${next.entry.name}${next.entry.signature}`}</small>` : ''}</button></footer>
                 `}
+                ${['home', 'learn', 'composition'].includes(this.page) ? html`<p class="compatibility-note">These live examples use <code>tag()</code> to configure the legacy adapter’s controls. It is a deprecated compatibility API; new integrations should choose controls in their adapter. <a href="#integration">Model and adapter responsibilities</a>.</p>` : ''}
             </main>
         </div>
         ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;
@@ -333,6 +335,7 @@ export class FdlModifierExplorer extends LitElement {
 
         .page-sections { display:flex; min-height:0; overflow:visible; flex-wrap:wrap; gap:10px 20px; margin:0 0 32px; }
         .page-sections a { color:var(--accent); text-underline-offset:3px; }
+        .compatibility-note { padding:12px 16px; border-left:3px solid #64748b; background:#f8fafc; line-height:1.6; }
         .deprecation-note { padding:16px 20px; border-left:4px solid #b7791f; background:#fffbeb; color:#713f12; line-height:1.65; }
         .modifier-section + .modifier-section { margin-top:56px; padding-top:40px; border-top:2px solid #cbd5e1; }
         .modifier-signature { scroll-margin-top:24px; }

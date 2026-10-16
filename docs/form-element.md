@@ -1,5 +1,10 @@
 # Form elements
 
+> Compatibility note: examples using `tag()` select controls through the legacy
+> adapter. `tag()` and `rowCount()` are deprecated compatibility APIs. Keep control
+> selection and textarea sizing in renderer configuration and styles for new
+> integrations; keep validation and dependencies in the field model.
+
 `FormElement` is the Lit base class for FDL field controls. Extend it when you
 need a custom element that presents one field from a `Record`.
 
