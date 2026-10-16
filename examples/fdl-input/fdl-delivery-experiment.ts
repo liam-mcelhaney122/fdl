@@ -83,37 +83,29 @@ const postalZipValidator = {
     validate: zip => isValidZip(zip),
 };
 
-const deliveryMethod = field.label('Delivery method').options(deliveryMethodOptions);
-const shippingAddress = field
-    .label('Shipping address')
-    .visible(whenDeliveryMethodRequiresAddress)
-    .required(whenDeliveryMethodRequiresAddress);
-
-const shippingCity = field
-    .label('City')
-    .visible(whenDeliveryMethodRequiresAddress)
-    .required(whenDeliveryMethodRequiresAddress);
-const shippingState = field
-    .label('State')
-    .visible(whenDeliveryMethodRequiresAddress)
-    .required(whenDeliveryMethodRequiresAddress)
-    .options(shippingStateOptions);
-const postalZip = field.label('ZIP code').required().validator(postalZipValidator);
-const pickupStore = field
-    .label('Pickup store')
-    .visible(whenPickingUp)
-    .disabled(whenZipIsInvalid)
-    .required(whenPickingUp)
-    .options(pickupStoreOptions);
-
 export const delivery = new Record(
     {
-        fulfillment: deliveryMethod,
-        address: shippingAddress,
-        city: shippingCity,
-        state: shippingState,
-        zip: postalZip,
-        store: pickupStore,
+        fulfillment: field.label('Delivery method').options(deliveryMethodOptions),
+        address: field
+            .label('Shipping address')
+            .visible(whenDeliveryMethodRequiresAddress)
+            .required(whenDeliveryMethodRequiresAddress),
+        city: field
+            .label('City')
+            .visible(whenDeliveryMethodRequiresAddress)
+            .required(whenDeliveryMethodRequiresAddress),
+        state: field
+            .label('State')
+            .visible(whenDeliveryMethodRequiresAddress)
+            .required(whenDeliveryMethodRequiresAddress)
+            .options(shippingStateOptions),
+        zip: field.label('ZIP code').required().validator(postalZipValidator),
+        store: field
+            .label('Pickup store')
+            .visible(whenPickingUp)
+            .disabled(whenZipIsInvalid)
+            .required(whenPickingUp)
+            .options(pickupStoreOptions),
     },
     {
         fulfillment: 'ship',
@@ -214,35 +206,30 @@ export const storesByZip: { [zip: string]: { text: string; value: string }[] } =
 };
 
 export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];`;
-    private deliveryMethod = field.label('Delivery method').options(deliveryMethodOptions);
-    private shippingAddress = field
-        .label('Shipping address')
-        .visible(whenDeliveryMethodRequiresAddress)
-        .required(whenDeliveryMethodRequiresAddress);
-    private shippingCity = field
-        .label('City')
-        .visible(whenDeliveryMethodRequiresAddress)
-        .required(whenDeliveryMethodRequiresAddress);
-    private shippingState = field
-        .label('State')
-        .visible(whenDeliveryMethodRequiresAddress)
-        .required(whenDeliveryMethodRequiresAddress)
-        .options(shippingStateOptions);
-    private postalZip = field.label('ZIP code').required().validator(postalZipValidator);
-    private pickupStore = field
-        .label('Pickup store')
-        .visible(whenPickingUp)
-        .disabled(whenZipIsInvalid)
-        .required(whenPickingUp)
-        .options(pickupStoreOptions);
+
     private delivery = new Record(
         {
-            fulfillment: this.deliveryMethod,
-            address: this.shippingAddress,
-            city: this.shippingCity,
-            state: this.shippingState,
-            zip: this.postalZip,
-            store: this.pickupStore,
+            fulfillment: field.label('Delivery method').options(deliveryMethodOptions),
+            address: field
+                .label('Shipping address')
+                .visible(whenDeliveryMethodRequiresAddress)
+                .required(whenDeliveryMethodRequiresAddress),
+            city: field
+                .label('City')
+                .visible(whenDeliveryMethodRequiresAddress)
+                .required(whenDeliveryMethodRequiresAddress),
+            state: field
+                .label('State')
+                .visible(whenDeliveryMethodRequiresAddress)
+                .required(whenDeliveryMethodRequiresAddress)
+                .options(shippingStateOptions),
+            zip: field.label('ZIP code').required().validator(postalZipValidator),
+            store: field
+                .label('Pickup store')
+                .visible(whenPickingUp)
+                .disabled(whenZipIsInvalid)
+                .required(whenPickingUp)
+                .options(pickupStoreOptions),
         },
         {
             fulfillment: 'ship',

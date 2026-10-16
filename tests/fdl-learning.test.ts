@@ -225,8 +225,9 @@ it('reveals the FDL delivery model behind the interactive example', async () => 
     expect(codePanel.textContent).toContain('export const delivery = new Record');
     expect(codePanel.textContent).not.toContain('// delivery-form.ts');
     expect(codePanel.textContent).toContain("import { delivery } from './delivery-model';");
-    expect(codePanel.textContent).toContain('const deliveryMethod = field.label');
-    expect(codePanel.textContent).toMatch(/const shippingAddress = field\s*\.label/);
+    expect(codePanel.textContent).toContain("fulfillment: field.label('Delivery method')");
+    expect(codePanel.textContent).toMatch(/address: field\s*\.label/);
+    expect(codePanel.textContent).not.toContain('const shippingAddress =');
     expect(codePanel.textContent).toContain('function whenDeliveryMethodRequiresAddress(record)');
     expect(codePanel.textContent).toContain('.visible(whenDeliveryMethodRequiresAddress)');
     expect(codePanel.textContent).toContain('.required(whenDeliveryMethodRequiresAddress)');
