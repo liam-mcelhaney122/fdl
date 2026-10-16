@@ -20,6 +20,20 @@ state, and highlighted code. Each modifier retains its own hash link.
 Run it locally with `npm run docs:dev` and open the root URL printed by Vite.
 Building or previewing the site does not publish it.
 
+## First working form
+
+For local evaluation, run the documentation site and choose **Your first form**
+(`/#quickstart`). It includes consumer installation, a complete `main.ts`, Lit
+adapter registration, conditional requiredness, and connected validation errors.
+The modifier snippets require this repository's example adapters; copying just
+the displayed model and view does not supply those components.
+
+To use the current checkout in an application, install it with
+`npm install /absolute/path/to/FDL`. The published package name is `digital-fdl`;
+check the selected version's API before using current-checkout examples.
+The model is independent of Lit. React integrations must connect Record changes
+and edits to their existing components and accessible semantics.
+
 ## Common field definitions
 
 Use named exports or the `fieldDefinitions` collection as reusable starting points:

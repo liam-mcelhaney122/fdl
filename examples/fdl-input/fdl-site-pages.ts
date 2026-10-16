@@ -1,3 +1,4 @@
+import { renderQuickstart } from './quickstart-page';
 import { renderCategoryOverview } from './category-overview';
 import type { ExplorerRecipe } from './modifier-explorer-recipes';
 import { html } from 'lit';
@@ -11,6 +12,7 @@ import { highlightJavaScript, highlightMarkup } from './highlight-javascript';
 export const sitePages = [
     { id: 'home', title: 'Home' },
     { id: 'how-it-works', title: 'How it Works' },
+    { id: 'quickstart', title: 'Your first form' },
     { id: 'learn', title: 'Learn by exploring' },
     { id: 'composition', title: 'Combine the rules' },
     { id: 'categories', title: 'Modifier categories' },
@@ -33,6 +35,7 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement, recipes: readonly ExplorerRecipe[] = []) {
+    if (page === 'quickstart') return renderQuickstart();
     if (page === 'categories') return renderCategoryOverview(recipes);
     if (page === 'composition') return html`<article class="site-page"><h1 tabindex="-1">Combine the rules</h1>${compositionView ?? html`<fdl-composition-experiment></fdl-composition-experiment>`}</article>`;
     if (page === 'learn') return html`<article class="site-page"><h1 tabindex="-1">Learn by exploring</h1><p class="description">Build one delivery example from a field into a collection. Follow the questions in order or jump to the one you want to investigate.</p><fdl-learning-path .session=${learningState}></fdl-learning-path></article>`;
@@ -62,6 +65,7 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
             <pre class="code markup"><code>${highlightJavaScript(definition)}</code></pre>
             <p>The required rule is enforced by the record. A form component can expose that same rule on an input and display its validation message.</p>
             <h2>Explore the examples</h2>
+            <p><a href="#quickstart">Install FDL and build your first form</a>, including adapter registration and displayed errors.</p>
             <p><a href="#composition">Combine visibility, requiredness, and validation</a> to investigate all six delivery cases at once, then inspect any one in a live form.</p>
             <p>Read <a href="#how-it-works">How it Works</a> for the model-to-component flow. Use the modifier list to open an individual example, change its inputs, inspect its stored values, and read the definition and rendering markup.</p>
             <p>These examples use Lit components. FDL’s model behavior can also be used without a browser. Some modifiers require adapter support; their pages identify what the current example can demonstrate.</p>
@@ -88,7 +92,7 @@ const requiredName = name
 
 person.setField('name', 'Ada');
 person.isValid(); // true`)}</code></pre>
-            <h2>3. Bind a component</h2>
+            <h2>3. Bind a component</h2><p><a href="#quickstart">Your first form</a> supplies the installation, adapter registration, and complete rendering setup for this binding.</p>
             <p>In these examples, <code>fdl-field</code> connects a record field to a native control. It handles the label, input events, and accessible field state. A view binds the record object using Lit’s property syntax:</p>
             <pre class="code markup"><code>${highlightMarkup('<fdl-field .record=${person} field="name"></fdl-field>')}</code></pre>
             <p>The component is the integration layer. FDL does not choose your page layout or visual theme. Other adapters can interpret the model for different interfaces.</p>
