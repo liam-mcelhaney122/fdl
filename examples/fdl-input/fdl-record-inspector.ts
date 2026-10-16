@@ -51,7 +51,9 @@ export function fieldStatus(record: Record<any>, name: string) {
 export function statusLegend() {
     return html`<div class="legend" aria-label="Status icon legend">
         <p>Icon legend</p>
-        <ul>${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}</ul>
+        <ul
+            >${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}</ul
+        >
     </div>`;
 }
 
@@ -106,9 +108,18 @@ export class FdlRecordInspector extends LitElement {
         const action = this.collapsed
             ? 'Inspect record'
             : 'Collapse record inspector';
-        return html`<section aria-label="Record inspector">
+        return html`<section aria-label="Record Inspector">
             <header>
-                <h3 ?hidden=${this.collapsed}>Field state</h3>
+                <span class="inspector-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <circle cx="10" cy="10" r="6"></circle>
+                        <path d="m15 15 6 6"></path>
+                    </svg>
+                </span>
+                <div class="inspector-heading">
+                    <h3>Record Inspector</h3>
+                    <p>Stored values · Field state</p>
+                </div>
                 <button
                     type="button"
                     aria-label=${action}
@@ -122,9 +133,7 @@ export class FdlRecordInspector extends LitElement {
                         aria-hidden="true"
                         focusable="false"
                     >
-                        <circle cx="10" cy="10" r="6"></circle>
-                        <path d="m15 15 6 6"></path>
-                        ${this.collapsed ? '' : html`<path d="M7 10h6"></path>`}
+                        <path d="m6 9 6 6 6-6"></path>
                     </svg>
                 </button>
             </header>
@@ -181,55 +190,88 @@ export class FdlRecordInspector extends LitElement {
             display: none !important;
         }
         section {
-            padding: 20px;
-            border: 1px solid var(--example-border);
-            border-radius: var(--example-radius);
-            background: #f8fafc;
+            border: 1px solid #b9d6d5;
+            border-radius: 12px;
+            background: #fff;
             color: #0f172a;
-        }
-        :host([collapsed]) section {
-            padding: 0;
-            border: 0;
-            background: transparent;
+            box-shadow: 0 2px 6px #0f172a08;
         }
         header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 8px;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #b9d6d5;
+            border-radius: 11px 11px 0 0;
+            background: linear-gradient(110deg, #e6f5f3, #f1f8f8);
+            color: #134e4a;
         }
         :host([collapsed]) header {
-            margin: 0;
+            border-bottom: 0;
+            border-radius: 11px;
+        }
+        .inspector-icon {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border: 1px solid #b9d6d5;
+            border-radius: 10px;
+            background: #fff;
+            color: #0f766e;
+        }
+        .inspector-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+        .inspector-heading {
+            flex: 1;
+            min-width: 0;
         }
         h3 {
             margin: 0;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            line-height: 1.4;
         }
-        button {
+        .inspector-heading p {
+            margin: 4px 0 0;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: #426561;
+        }
+        #record-details,
+        #recordset-details {
+            padding: 8px 20px 20px;
+        }
+        header button {
             display: grid;
             place-items: center;
             flex-shrink: 0;
             width: 44px;
             height: 44px;
-            border: 1px solid #94a3b8;
-            border-radius: 6px;
+            border: 1px solid #b9d6d5;
+            border-radius: 50%;
             background: white;
-            color: #475569;
+            color: #0f766e;
             cursor: pointer;
         }
         button:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
+            background: #ccfbf1;
+            border-color: #0f766e;
         }
         button:focus-visible {
-            outline: 3px solid #2563eb;
+            outline: 3px solid #0f766e;
             outline-offset: 3px;
         }
         button svg {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
+            transition: transform 160ms;
+        }
+        button[aria-expanded='true'] svg {
+            transform: rotate(180deg);
         }
         svg {
             fill: none;
@@ -254,8 +296,9 @@ export class FdlRecordInspector extends LitElement {
             overflow-wrap: anywhere;
         }
         thead th {
-            color: #64748b;
-            font-size: 0.8125rem;
+            color: #426561;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
         th:first-child {
             width: 30%;
@@ -263,6 +306,13 @@ export class FdlRecordInspector extends LitElement {
         }
         th:last-child {
             width: 110px;
+        }
+        tbody tr:nth-child(even) {
+            background: #f4f9f8;
+        }
+        tbody td:first-of-type {
+            font-family: ui-monospace, monospace;
+            font-size: 0.8125rem;
         }
         .field-status {
             display: flex;
@@ -284,7 +334,17 @@ export class FdlRecordInspector extends LitElement {
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        .status-icon[aria-label='Invalid'] {
+            color: #b91c1c;
+        }
+        .status-icon[aria-label='Required'] {
+            color: #0f766e;
+        }
         .legend {
+            padding: 16px;
+            border: 1px solid var(--example-border);
+            border-radius: 8px;
+            background: #f8fafc;
             margin-top: 20px;
             font-size: 0.8125rem;
             color: #475569;
@@ -316,8 +376,30 @@ export class FdlRecordInspector extends LitElement {
             flex-wrap: wrap;
         }
         @media (max-width: 480px) {
-            section {
+            header {
                 padding: 16px;
+                gap: 10px;
+            }
+            #record-details,
+            #recordset-details {
+                padding: 8px 16px 16px;
+            }
+            .inspector-icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            button svg {
+                transition: none;
+            }
+        }
+        @media (forced-colors: active) {
+            section,
+            header,
+            .inspector-icon,
+            button {
+                border-color: CanvasText;
             }
         }
         ${exampleTheme}

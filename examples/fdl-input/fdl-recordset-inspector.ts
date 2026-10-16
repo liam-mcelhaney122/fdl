@@ -93,9 +93,18 @@ export class FdlRecordsetInspector extends LitElement {
         const action = this.collapsed
             ? 'Inspect recordset'
             : 'Collapse recordset inspector';
-        return html`<section aria-label="Recordset inspector">
+        return html`<section aria-label="Recordset Inspector">
             <header>
-                <h3 ?hidden=${this.collapsed}>Recordset state</h3>
+                <span class="inspector-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <circle cx="10" cy="10" r="6"></circle>
+                        <path d="m15 15 6 6"></path>
+                    </svg>
+                </span>
+                <div class="inspector-heading">
+                    <h3>Recordset Inspector</h3>
+                    <p>Current view · Stored values</p>
+                </div>
                 <button
                     type="button"
                     aria-label=${action}
@@ -109,9 +118,7 @@ export class FdlRecordsetInspector extends LitElement {
                         aria-hidden="true"
                         focusable="false"
                     >
-                        <circle cx="10" cy="10" r="6"></circle>
-                        <path d="m15 15 6 6"></path>
-                        ${this.collapsed ? '' : html`<path d="M7 10h6"></path>`}
+                        <path d="m6 9 6 6 6-6"></path>
                     </svg>
                 </button>
             </header>
@@ -150,9 +157,10 @@ export class FdlRecordsetInspector extends LitElement {
                                   <table aria-label="Current page records">
                                       <thead
                                           ><tr>
-                                              <th scope="col" class="row-status"
-                                                  ></th
-                                              >
+                                              <th
+                                                  scope="col"
+                                                  class="row-status"
+                                              ></th>
                                               <th scope="col">Row</th>
                                               ${fields.map(name => html`<th scope="col">${name}</th>`)}
                                           </tr></thead
@@ -230,6 +238,14 @@ ${JSON.stringify(
                 font-size: 0.875rem;
                 line-height: 1.6;
             }
+            .counts {
+                padding: 0 0 8px;
+                border-bottom: 1px solid var(--example-border);
+                color: #334155;
+            }
+            .counts p {
+                margin: 12px 0;
+            }
             .table-scroll {
                 overflow-x: auto;
             }
@@ -240,6 +256,7 @@ ${JSON.stringify(
             }
             table {
                 table-layout: auto;
+                min-width: 640px;
             }
             th:first-child,
             th:last-child {
@@ -266,8 +283,14 @@ ${JSON.stringify(
             }
             summary {
                 cursor: pointer;
-                padding: 12px 0;
+                padding: 12px 14px;
                 min-height: 44px;
+                border: 1px solid #b9d6d5;
+                border-radius: 8px;
+                background: #f1f8f8;
+                color: #134e4a;
+                font-size: 0.875rem;
+                font-weight: 600;
             }
             pre {
                 white-space: pre-wrap;

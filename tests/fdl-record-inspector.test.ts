@@ -45,7 +45,7 @@ it('reflects dependent field state and record validity without a parent rerender
     expect(root.querySelector('.validation')!.textContent).toContain('Valid');
 });
 
-it('collapses to an accessible icon and reopens with the latest record values', async () => {
+it('keeps its name visible when collapsed and reopens with the latest record values', async () => {
     const record = new Record({ name: field }, { name: 'Ada' });
     const inspector = await inspect(record);
     const root = inspector.shadowRoot!;
@@ -53,6 +53,9 @@ it('collapses to an accessible icon and reopens with the latest record values', 
     button.click();
     await inspector.updateComplete;
     expect(inspector.hasAttribute('collapsed')).toBe(true);
+    expect(root.querySelector('h3')!.textContent).toBe('Record Inspector');
+    expect(root.querySelector('h3')!.hidden).toBe(false);
+    expect(root.querySelector('section')!.getAttribute('aria-label')).toBe('Record Inspector');
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-label')).toBe('Inspect record');
     expect(root.getElementById(button.getAttribute('aria-controls')!)!.hidden).toBe(true);
