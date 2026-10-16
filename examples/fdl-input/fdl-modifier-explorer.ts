@@ -903,7 +903,7 @@ export class FdlModifierExplorer extends LitElement {
                                   >
                               `
                     }
-                    ${['home', 'learn', 'composition'].includes(this.page) ? html`<p class="compatibility-note">These live examples choose a select automatically when a field provides options. <a href="#integration">Read the model and adapter responsibilities</a>.</p>` : ''}
+                    ${['learn', 'composition'].includes(this.page) ? html`<p class="compatibility-note">These live examples choose a select automatically when a field provides options. <a href="#integration">Read the model and adapter responsibilities</a>.</p>` : ''}
                 </main>
             </div>
             ${

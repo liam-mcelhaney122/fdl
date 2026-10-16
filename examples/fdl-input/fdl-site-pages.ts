@@ -133,43 +133,7 @@ export function renderSitePage(
                 the appearance. You can reuse the same model across different
                 interfaces.</p
             >
-            <fdl-delivery-experiment></fdl-delivery-experiment
-            ><p
-                ><a href="#learn"
-                    >Build this understanding one question at a time →</a
-                ></p
-            >
-            <section class="task-links" aria-labelledby="task-links-title"
-                ><h2 id="task-links-title">What are you trying to do?</h2
-                ><ul>
-                    <li
-                        ><a href="#required"
-                            >Require an answer only when another answer needs
-                            it</a
-                        ></li
-                    >
-                    <li
-                        ><a href="#parser"
-                            >Turn currency input into a stored number</a
-                        ></li
-                    >
-                    <li
-                        ><a href="#options"
-                            >Refresh choices when a related field changes</a
-                        ></li
-                    >
-                    <li
-                        ><a href="#validator"
-                            >Check a value against a business rule</a
-                        ></li
-                    >
-                    <li
-                        ><a href="#editable-recordset"
-                            >Edit rows, filter, sort, and total a recordset</a
-                        ></li
-                    >
-                </ul></section
-            >
+            <fdl-delivery-experiment></fdl-delivery-experiment>
             <h2>Three parts of the model</h2>
             <div class="model-concepts">
                 <section class="model-concept" aria-labelledby="model-field">
@@ -282,34 +246,6 @@ export function renderSitePage(
                 >The required rule is enforced by the record. A form component
                 can expose that same rule on an input and display its validation
                 message.</p
-            >
-            <h2>Explore the examples</h2>
-            <p
-                ><a href="#quickstart">Install FDL and build your first form</a
-                >, including adapter registration and displayed errors.</p
-            >
-            <p
-                ><a href="#composition"
-                    >Combine visibility, requiredness, and validation</a
-                >
-                to investigate all six delivery cases at once, then inspect any
-                one in a live form.</p
-            >
-            <p
-                >Read <a href="#how-it-works">How it Works</a> for the
-                model-to-component flow. Use the modifier list to open an
-                individual example, change its inputs, inspect its stored
-                values, and read the definition and rendering markup.</p
-            >
-            <p
-                >FDL’s model behavior can also be used without a browser. Some
-                modifiers require adapter support; their pages identify what the
-                current example can demonstrate.</p
-            >
-            <p
-                >The package is <code>@pmcelhaney/fdl</code>. Source code and
-                development instructions are available on
-                <a href="https://github.com/pmcelhaney/FDL">GitHub</a>.</p
             >
         </article>`;
     if (page === 'how-it-works')
