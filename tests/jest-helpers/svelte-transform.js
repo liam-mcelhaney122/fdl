@@ -1,6 +1,6 @@
 // Compile Svelte components and rune modules (`*.svelte.js`) for Jest, then let
 // Babel convert the ESM output to the CommonJS modules that Jest 27 executes.
-const { compile, compileModule } = require('svelte/compiler');
+const { compile, compileModule, VERSION } = require('svelte/compiler');
 const babelJest = require('babel-jest').default ?? require('babel-jest');
 
 const babelTransformer = babelJest.createTransformer();
@@ -14,7 +14,8 @@ function process(source, filename, ...rest) {
 }
 
 function getCacheKey(source, filename, ...rest) {
-    return `svelte:${babelTransformer.getCacheKey(source, filename, ...rest)}`;
+    // Recompile cached output when the Svelte compiler changes.
+    return `svelte@${VERSION}:${babelTransformer.getCacheKey(source, filename, ...rest)}`;
 }
 
 module.exports = { process, getCacheKey };

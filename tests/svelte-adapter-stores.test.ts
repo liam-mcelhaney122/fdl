@@ -1,12 +1,14 @@
 import {
     acceptedInput,
     controlFor,
+    controlValue,
     fieldControl,
     fieldStore,
     FieldStoreValue,
     readFieldState,
     recordsetStore,
     recordStore,
+    visibleFieldErrors,
 } from '../adapters/svelte';
 import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
@@ -306,5 +308,210 @@ describe('fieldControl action', () => {
         checkboxAction.destroy();
         fileAction.destroy();
         document.body.replaceChildren();
+    });
+});
+
+describe('Svelte adapter helpers', () => {
+    it('hides errors for an invisible field even when display is enabled', () => {
+        const record = new Record(
+            {
+                hidden: new FieldTypeBuilder().label('Hidden').required().visible(false),
+                shown: new FieldTypeBuilder().label('Shown').required(),
+            },
+            { hidden: '', shown: '' }
+        );
+        expect(visibleFieldErrors(record, 'hidden', { showValidationErrors: true })).toEqual([]);
+        expect(visibleFieldErrors(record, 'shown', { showValidationErrors: true })).toEqual([
+            'Shown is required',
+        ]);
+        expect(visibleFieldErrors(record, 'shown')).toEqual([]);
+    });
+
+    it('reads view values from native controls as the action sends them', () => {
+        const input = document.createElement('input');
+        input.value = '12.';
+        expect(controlValue(input)).toBe('12.');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        expect(controlValue(checkbox)).toBe(true);
+
+        const select = document.createElement('select');
+        select.multiple = true;
+        select.innerHTML = '<option value="a">A</option><option value="b">B</option>';
+        select.options[1].selected = true;
+        expect(controlValue(select)).toEqual(['b']);
+    });
+});
+
+describe('Svelte store subscriptions', () => {
+    it('gives every subscriber the current value synchronously', () => {
+        const record = new Record({ name: new FieldTypeBuilder() }, { name: 'Ada' });
+        const recordset = new Recordset({ name: new FieldTypeBuilder() }, []);
+        const store = fieldStore(record, 'name');
+        let first: FieldStoreValue | undefined;
+        let second: FieldStoreValue | undefined;
+        let currentRecord: Record<any> | undefined;
+        let currentRecordset: unknown;
+        const stops = [
+            store.subscribe(value => (first = value)),
+            store.subscribe(value => (second = value)),
+            recordStore(record).subscribe(value => (currentRecord = value)),
+            recordsetStore(recordset).subscribe(value => (currentRecordset = value)),
+        ];
+        expect(first?.formattedValue).toBe('Ada');
+        expect(second?.formattedValue).toBe('Ada');
+        expect(currentRecord).toBe(record);
+        expect(currentRecordset).toBe(recordset);
+
+        record.setField('name', 'Grace');
+        expect(second?.formattedValue).toBe('Grace');
+        stops.forEach(stop => stop());
+    });
+
+    it('removes every Recordset listener when the last subscriber leaves', () => {
+        const recordset = new Recordset({ name: new FieldTypeBuilder() }, []);
+        const add = jest.spyOn(recordset, 'addEventListener');
+        const remove = jest.spyOn(recordset, 'removeEventListener');
+        const store = recordsetStore(recordset);
+        const first = store.subscribe(() => undefined);
+        const second = store.subscribe(() => undefined);
+        const added = add.mock.calls.map(([event, listener]) => [event, listener]);
+        expect(added.map(([event]) => event)).toEqual(
+            expect.arrayContaining(['updated', 'page-changed', 'counts-changed', 'loading'])
+        );
+        first();
+        expect(remove).not.toHaveBeenCalled();
+        second();
+        expect(remove.mock.calls.map(([event, listener]) => [event, listener])).toEqual(added);
+    });
+
+    it('notifies Recordset subscribers when a record in the set is edited', async () => {
+        const recordset = new Recordset({ amount: new FieldTypeBuilder() }, [{ amount: 1 }]);
+        await recordset.requestHardUpdate();
+        let notifications = 0;
+        const unsubscribe = recordsetStore(recordset).subscribe(() => notifications++);
+        recordset.currentPage[0].setField('amount', 2);
+        expect(notifications).toBeGreaterThan(1);
+        unsubscribe();
+    });
+
+    it('keeps a validation policy set before anyone subscribes', () => {
+        const record = new Record(
+            { name: new FieldTypeBuilder().label('Name').required() },
+            { name: '' }
+        );
+        const store = fieldStore(record, 'name');
+        store.setShowValidationErrors(true);
+        let state!: FieldStoreValue;
+        const unsubscribe = store.subscribe(value => {
+            state = value;
+        });
+        expect(state.errors).toEqual(['Name is required']);
+        store.setShowValidationErrors(false);
+        expect(state.errors).toEqual([]);
+        unsubscribe();
+    });
+
+    it('ignores an option lookup that settles after the last subscriber leaves', async () => {
+        const lookup = deferred<Option[]>();
+        const record = new Record(
+            { store: new FieldTypeBuilder().options({ fetch: () => lookup.promise }) },
+            { store: '' }
+        );
+        const store = fieldStore(record, 'store');
+        const seen: FieldStoreValue[] = [];
+        const unsubscribe = store.subscribe(value => seen.push(value));
+        expect(seen[0].optionsLoading).toBe(true);
+        unsubscribe();
+
+        lookup.resolve([{ text: 'Uptown store', value: 'uptown' }]);
+        await flushPromises();
+        expect(seen).toHaveLength(1);
+
+        let state!: FieldStoreValue;
+        const resubscribe = store.subscribe(value => {
+            state = value;
+        });
+        await flushPromises();
+        expect(state.optionsLoading).toBe(false);
+        expect(state.options.map(option => option.value)).toEqual(['uptown']);
+        resubscribe();
+    });
+});
+
+describe('fieldControl options and formatting', () => {
+    it('adds, updates, and withholds the select prompt', async () => {
+        const record = new Record(
+            {
+                size: new FieldTypeBuilder().options([
+                    { text: 'Small', value: 's' },
+                    { text: 'Large', value: 'l' },
+                ]),
+                tier: new FieldTypeBuilder().options([
+                    { text: 'None', value: '' },
+                    { text: 'Gold', value: 'gold' },
+                ]),
+            },
+            { size: '', tier: 'gold' }
+        );
+        const size = document.createElement('select');
+        const sizeStore = fieldStore(record, 'size');
+        const sizeAction = fieldControl(size, { store: sizeStore, selectPrompt: 'Pick a size' });
+        await flushPromises();
+        expect([...size.options].map(option => option.textContent)).toEqual([
+            'Pick a size',
+            'Small',
+            'Large',
+        ]);
+        expect(size.value).toBe('');
+
+        sizeAction.update({ store: sizeStore, selectPrompt: 'Choose a size' });
+        expect(size.options[0].textContent).toBe('Choose a size');
+        sizeAction.update({ store: sizeStore });
+        expect([...size.options].map(option => option.value)).toEqual(['s', 'l']);
+
+        const tier = document.createElement('select');
+        const tierAction = fieldControl(tier, {
+            store: fieldStore(record, 'tier'),
+            selectPrompt: 'Pick a tier',
+        });
+        await flushPromises();
+        expect([...tier.options].map(option => option.textContent)).toEqual(['None', 'Gold']);
+        expect(tier.value).toBe('gold');
+        sizeAction.destroy();
+        tierAction.destroy();
+    });
+
+    it('binds a textarea and reapplies the formatted value on blur', () => {
+        const record = new Record(
+            {
+                notes: new FieldTypeBuilder<string>()
+                    .rowCount(3)
+                    .formatter(value => String(value).trim())
+                    .parser(value => String(value)),
+            },
+            { notes: 'Ready' }
+        );
+        const textarea = document.createElement('textarea');
+        const action = fieldControl(textarea, { store: fieldStore(record, 'notes') });
+        expect(textarea.value).toBe('Ready');
+        textarea.value = 'Shipped  ';
+        textarea.dispatchEvent(new Event('input'));
+        expect(textarea.value).toBe('Shipped  ');
+        expect(record.getField('notes')).toBe('Shipped  ');
+        textarea.dispatchEvent(new Event('blur'));
+        expect(textarea.value).toBe('Shipped');
+        action.destroy();
+    });
+
+    it('removes its control listeners on destroy', () => {
+        const record = new Record({ name: new FieldTypeBuilder() }, { name: 'Ada' });
+        const input = document.createElement('input');
+        const add = jest.spyOn(input, 'addEventListener');
+        const remove = jest.spyOn(input, 'removeEventListener');
+        fieldControl(input, { store: fieldStore(record, 'name') }).destroy();
+        expect(remove.mock.calls).toEqual(add.mock.calls);
     });
 });

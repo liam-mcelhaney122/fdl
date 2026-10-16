@@ -4,7 +4,7 @@ module.exports = {
         '/node_modules/(?!(@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html|svelte|esm-env|clsx)/)',
     ],
     resolver: './tests/jest-helpers/svelte-resolver.js',
-    moduleFileExtensions: ['js', 'mjs', 'ts', 'tsx', 'json', 'node', 'svelte'],
+    moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json', 'node', 'svelte'],
     watchman: false,
     testEnvironment: 'jsdom',
     verbose: false,

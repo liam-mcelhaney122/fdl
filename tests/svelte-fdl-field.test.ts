@@ -383,3 +383,148 @@ it('marks custom-print read-only controls as read-only', () => {
     expect(input.readOnly).toBe(true);
     expect(input.value).toBe('A1');
 });
+
+describe('<FdlField> prop changes', () => {
+    it('follows a new record and field, and leaves the old record alone', async () => {
+        const pending = deferred<Option[]>();
+        const first = new Record(
+            {
+                name: new FieldTypeBuilder().label('First name'),
+                store: new FieldTypeBuilder()
+                    .label('First store')
+                    .options({ fetch: () => pending.promise }),
+            },
+            { name: 'Ada', store: '' }
+        );
+        const second = new Record(
+            {
+                name: new FieldTypeBuilder().label('Second name'),
+                notes: new FieldTypeBuilder().label('Notes').rowCount(3),
+                store: new FieldTypeBuilder()
+                    .label('Second store')
+                    .options([{ text: 'Chelsea store', value: 'chelsea' }]),
+            },
+            { name: 'Grace', notes: 'Call ahead', store: 'chelsea' }
+        );
+        const remove = jest.spyOn(first, 'removeEventListener');
+        const target = document.createElement('div');
+        document.body.append(target);
+        const props = reactiveProps({ record: first, field: 'store' });
+        mounted.push(mount(FdlField, { target, props }));
+        flushSync();
+        expect(target.querySelector('select')!.getAttribute('aria-busy')).toBe('true');
+
+        props.record = second;
+        flushSync();
+        await settle();
+        expect(remove).toHaveBeenCalledWith('change', expect.any(Function));
+        const select = target.querySelector('select')!;
+        expect(target.querySelector('label')!.textContent).toBe('Second store');
+        expect(select.hasAttribute('aria-busy')).toBe(false);
+        expect([...select.options].map(option => option.value)).toEqual(['chelsea']);
+
+        pending.resolve([{ text: 'Uptown store', value: 'uptown' }]);
+        await settle();
+        expect([...select.options].map(option => option.value)).toEqual(['chelsea']);
+
+        props.field = 'notes';
+        flushSync();
+        const textarea = target.querySelector('textarea')!;
+        expect(textarea.value).toBe('Call ahead');
+        expect(target.querySelector('label')!.htmlFor).toBe(textarea.id);
+
+        props.field = 'name';
+        flushSync();
+        const input = target.querySelector('input')!;
+        expect(input.value).toBe('Grace');
+        first.setField('name', 'Hedy');
+        flushSync();
+        expect(input.value).toBe('Grace');
+        input.value = 'Mary';
+        input.dispatchEvent(new Event('input'));
+        expect(second.getField('name')).toBe('Mary');
+        expect(first.getField('name')).toBe('Hedy');
+    });
+
+    it('updates the select prompt when the prop changes', async () => {
+        const record = new Record(
+            { size: new FieldTypeBuilder().options([{ text: 'Small', value: 's' }]) },
+            { size: '' }
+        );
+        const target = document.createElement('div');
+        document.body.append(target);
+        const props = reactiveProps({ record, field: 'size', selectPrompt: 'Pick a size' });
+        mounted.push(mount(FdlField, { target, props }));
+        await settle();
+        const select = target.querySelector('select')!;
+        expect([...select.options].map(option => option.textContent)).toEqual([
+            'Pick a size',
+            'Small',
+        ]);
+        props.selectPrompt = 'Choose a size';
+        flushSync();
+        expect(select.options[0].textContent).toBe('Choose a size');
+        expect(select.value).toBe('');
+    });
+});
+
+describe('<FdlField> semantics', () => {
+    it('renders no visible label for hideLabel() but keeps the control', () => {
+        const record = new Record(
+            { search: new FieldTypeBuilder().label('Search').hideLabel() },
+            { search: '' }
+        );
+        const target = render({ record, field: 'search' });
+        expect(target.querySelector('label')).toBeNull();
+        expect(target.querySelector('input')).not.toBeNull();
+    });
+
+    it('binds a checkbox as a Boolean with its label', () => {
+        const record = new Record(
+            { agreed: new FieldTypeBuilder().label('I agree').type('checkbox').required() },
+            { agreed: false }
+        );
+        const target = render({ record, field: 'agreed' });
+        const checkbox = target.querySelector('input')!;
+        expect(checkbox.type).toBe('checkbox');
+        expect(checkbox.checked).toBe(false);
+        expect(checkbox.required).toBe(true);
+        expect(target.querySelector('label')!.htmlFor).toBe(checkbox.id);
+        checkbox.click();
+        expect(record.getField('agreed')).toBe(true);
+        record.setField('agreed', false);
+        flushSync();
+        expect(checkbox.checked).toBe(false);
+    });
+
+    it('describes errors on a read-only output', () => {
+        const record = new Record(
+            { total: new FieldTypeBuilder().label('Total').readOnly().required() },
+            { total: '' }
+        );
+        const target = render({ record, field: 'total', showValidationErrors: true });
+        const output = target.querySelector('output')!;
+        const error = target.querySelector('.validation-error')!;
+        expect(error.textContent).toBe('Total is required');
+        expect(output.getAttribute('aria-invalid')).toBe('true');
+        expect(output.getAttribute('aria-describedby')).toBe(error.id);
+    });
+
+    it('gives each instance its own error id', () => {
+        const fieldType = new FieldTypeBuilder().label('Name').required();
+        const errors = [1, 2].map(() =>
+            render({
+                record: new Record({ name: fieldType }, { name: '' }),
+                field: 'name',
+                showValidationErrors: true,
+            })
+        );
+        const [first, second] = errors.map(target => target.querySelector('.validation-error')!);
+        expect(first.id).not.toBe(second.id);
+        errors.forEach(target => {
+            const input = target.querySelector('input')!;
+            const error = target.querySelector('.validation-error')!;
+            expect(input.getAttribute('aria-describedby')).toBe(error.id);
+        });
+    });
+});
