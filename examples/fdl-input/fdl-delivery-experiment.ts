@@ -14,16 +14,16 @@ function whenPickingUp(record: Record<any>) {
     return record.getField('fulfillment') === 'pickup';
 }
 
-function is_valid_zip(zip: unknown) {
+function isValidZip(zip: unknown) {
     return typeof zip === 'string' && /^[0-9]{5}$/.test(zip);
 }
 
 function whenZipIsInvalid(record: Record<any>) {
-    return !is_valid_zip(record.getField('zip'));
+    return !isValidZip(record.getField('zip'));
 }
 
 function whenReadyToChooseStore(record: Record<any>) {
-    return whenPickingUp(record) && is_valid_zip(record.getField('zip'));
+    return whenPickingUp(record) && isValidZip(record.getField('zip'));
 }
 
 function storesForZip(record: Record<any>) {
@@ -43,7 +43,7 @@ function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<a
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
-    validate: is_valid_zip,
+    validate: isValidZip,
 };
 const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
@@ -63,16 +63,16 @@ function whenPickingUp(record) {
     return record.getField('fulfillment') === 'pickup';
 }
 
-function is_valid_zip(zip) {
+function isValidZip(zip) {
     return typeof zip === 'string' && /^[0-9]{5}$/.test(zip);
 }
 
 function whenZipIsInvalid(record) {
-    return !is_valid_zip(record.getField('zip'));
+    return !isValidZip(record.getField('zip'));
 }
 
 function whenReadyToChooseStore(record) {
-    return whenPickingUp(record) && is_valid_zip(record.getField('zip'));
+    return whenPickingUp(record) && isValidZip(record.getField('zip'));
 }
 
 function storesForZip(record) {
@@ -92,7 +92,7 @@ function isAvailablePickupStore(value, _view, record) {
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
-    validate: is_valid_zip,
+    validate: isValidZip,
 };
 const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
@@ -242,7 +242,7 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                         ${pickup ? html`<p class="sample-note">Sample store lookup (2-second delay): try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
                         <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
                     </div>
-                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored city</dt><dd>${this.delivery.getField('city') || '(empty)'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${is_valid_zip(this.delivery.getField('zip')) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored city</dt><dd>${this.delivery.getField('city') || '(empty)'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${isValidZip(this.delivery.getField('zip')) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
