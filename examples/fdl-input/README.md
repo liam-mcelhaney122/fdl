@@ -108,3 +108,27 @@ classes, disabled state, read-only state, and requiredness; minimum and maximum
 text length; and minimum, target, and maximum column widths. Every modifier
 retains its original hash link and sidebar entry, which opens its section.
 Each section has its own live example, reset, model source, and Lit source. Previous/Next navigates between distinct reference pages.
+
+## Reusing the record inspector
+
+Import `./fdl-record-inspector` to register `<fdl-record-inspector>`, then bind
+an FDL record as a JavaScript property:
+
+```ts
+html`<fdl-record-inspector .record=${record}></fdl-record-inspector>`;
+```
+
+The inspector shows every declared field by default, including fields with no
+stored value. Set `.fields=${['name', 'email']}` to select and order the displayed
+fields. Values are the record's raw stored values, so an option's key appears
+rather than its display label. Status icons expose hidden, disabled, read-only,
+required, and invalid states; record validity covers the complete record even
+when only some fields are displayed.
+
+The magnifying glass button collapses and expands the panel. Set `collapsed`
+as an HTML attribute or `.collapsed=${true}` to start with only the icon. The
+reflected `collapsed` attribute lets the surrounding layout reclaim the panel's
+space, as the delivery example does. The component listens to record changes
+and releases its listener when removed or rebound to another record; its parent
+does not need to request updates for it. This is a documentation-site component,
+imported from the example source alongside `fdl-field`.

@@ -1,7 +1,14 @@
 import '../examples/fdl-input/fdl-delivery-experiment';
+import type { FdlRecordInspector } from '../examples/fdl-input/fdl-record-inspector';
 import type { FdlDeliveryExperiment } from '../examples/fdl-input/fdl-delivery-experiment';
 
 afterEach(() => document.body.replaceChildren());
+
+async function inspectorRoot(demo: FdlDeliveryExperiment) {
+    const inspector = demo.shadowRoot!.querySelector('fdl-record-inspector') as FdlRecordInspector;
+    await inspector.updateComplete;
+    return inspector.shadowRoot!;
+}
 
 it('explores delivery visibility and requiredness without discarding the address', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
@@ -10,14 +17,15 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
         'Shipping needs an address. Clear it to see the record enforce that rule.'
     );
-    const rows = demo.shadowRoot!.querySelectorAll('tbody tr');
+    const inspection = await inspectorRoot(demo);
+    const rows = inspection.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(6);
     expect(Array.from(rows).map(row => row.querySelector('th')!.textContent)).toEqual([
         'Delivery method', 'Shipping address', 'City', 'State', 'ZIP code', 'Pickup store',
     ]);
-    expect(Array.from(demo.shadowRoot!.querySelectorAll('.legend li')).map(item =>
+    expect(Array.from(inspection.querySelectorAll('.legend li')).map(item =>
         item.textContent!.trim()
-    )).toEqual(['Hidden', 'Disabled', 'Required', 'Invalid']);
+    )).toEqual(['Hidden', 'Disabled', 'Read-only', 'Required', 'Invalid']);
     expect(rows[0].querySelectorAll('[role="img"]')).toHaveLength(0);
     const field = demo.shadowRoot!.querySelector('fdl-field[field="fulfillment"]') as any;
     await field.updateComplete;
@@ -30,12 +38,12 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
         'Choose a store to complete your pickup details.'
     );
-    const addressRow = demo.shadowRoot!.querySelector('tr[data-field="address"]')!;
+    const addressRow = (await inspectorRoot(demo)).querySelector('tr[data-field="address"]')!;
     expect(Array.from(addressRow.querySelectorAll('[role="img"]')).map(icon =>
         icon.getAttribute('aria-label')
     )).toEqual(['Hidden']);
     expect(
-        demo.shadowRoot!.querySelector('.state')!.textContent!.replace(/\s+/g, ' ').trim()
+        (await inspectorRoot(demo)).textContent!.replace(/\s+/g, ' ').trim()
     ).toContain('42 Orchard Street');
     select.value = 'ship';
     select.dispatchEvent(new Event('input'));
@@ -58,7 +66,7 @@ it('explores delivery visibility and requiredness without discarding the address
     input.dispatchEvent(new Event('input'));
     await demo.updateComplete;
     expect(
-        demo.shadowRoot!.querySelector('.state')!.textContent!.replace(/\s+/g, ' ').trim()
+        (await inspectorRoot(demo)).textContent!.replace(/\s+/g, ' ').trim()
     ).toContain('Invalid');
 });
 
@@ -79,7 +87,7 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
             disabled
         );
         expect(storeField.shadowRoot.querySelector('select').disabled).toBe(disabled);
-        const status = root.querySelector('tr[data-field="store"] .field-status')!;
+        const status = (await inspectorRoot(demo)).querySelector('tr[data-field="store"] .field-status')!;
         expect(status.querySelector('[aria-label="Disabled"]') !== null).toBe(disabled);
     }
     expect(storeVisible()).toBe(false);
@@ -105,8 +113,8 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
     expect(storeVisible()).toBe(true);
     await expectStoreDisabled(false);
     expect(record.isValid()).toBe(true);
-    expect(root.querySelector('.state')!.textContent!.replace(/\s+/g, ' ').trim()).toContain(
-        'Uptown store'
+    expect((await inspectorRoot(demo)).textContent!.replace(/\s+/g, ' ').trim()).toContain(
+        'uptown'
     );
     await editField(root, 'zip', '10001');
     await demo.updateComplete;

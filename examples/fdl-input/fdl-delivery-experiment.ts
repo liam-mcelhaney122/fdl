@@ -3,32 +3,13 @@ import { exampleTheme } from './example-theme';
 import { LitElement, css, html } from 'lit';
 import Record from '../../record.js';
 import './fdl-field';
+import './fdl-record-inspector';
 import { highlightJavaScript } from './highlight-javascript';
 import {
     deliveryMethodOptions,
     shippingStateOptions,
     storesByZip,
 } from './delivery-data';
-
-const statusPaths = {
-    Hidden: 'M3 3l18 18 M10 5a12 12 0 0 1 12 7s-1 2-3 4 M14 19C6 20 2 12 2 12s1-2 4-4 M10 10a3 3 0 0 0 4 4',
-    Disabled: 'M8 11V7a4 4 0 0 1 8 0v4 M5 11h14v10H5z M12 15v2',
-    Required: 'M12 4v16 M5 8l14 8 M5 16l14-8',
-    Invalid: 'M12 3L2 21h20z M12 9v5 M12 17v1',
-};
-
-function statusIcon(status: keyof typeof statusPaths) {
-    return html`<span
-        class="status-icon"
-        role="img"
-        aria-label=${status}
-        title=${status}
-    >
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d=${statusPaths[status]}></path>
-        </svg>
-    </span>`;
-}
 
 function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
@@ -374,62 +355,9 @@ export const shippingStateOptions = [
                             .showValidationErrors=${true}
                         ></fdl-field>
                     </div>
-                    <div class="state">
-                        <table>
-                            <caption>Field state</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Field</th>
-                                    <th scope="col">Stored value</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${(
-                                    [
-                                        'fulfillment',
-                                        'address',
-                                        'city',
-                                        'state',
-                                        'zip',
-                                        'store',
-                                    ] as const
-                                ).map(name => {
-                                    const type =
-                                        this.delivery.fieldTypeForField(name);
-                                    const value = this.delivery.getField(name);
-                                    return html`<tr data-field=${name}>
-                                        <th scope="row"
-                                            >${type.label(value, this.delivery)}</th
-                                        >
-                                        <td
-                                            >${name === 'store' ? availableStore?.text || value || '(empty)' : value || '(empty)'}</td
-                                        >
-                                        <td
-                                            ><span class="field-status">
-                                                ${!type.visible(value, this.delivery) ? statusIcon('Hidden') : ''}
-                                                ${type.isDisabled(value, this.delivery) ? statusIcon('Disabled') : ''}
-                                                ${type.required(value, this.delivery) ? statusIcon('Required') : ''}
-                                                ${!this.delivery.isValid(name) ? statusIcon('Invalid') : ''}
-                                            </span></td
-                                        >
-                                    </tr>`;
-                                })}
-                            </tbody>
-                        </table>
-                        <div class="legend" aria-label="Status icon legend">
-                            <p>Icon legend</p>
-                            <ul>
-                                ${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}
-                            </ul>
-                        </div>
-                        <p class="validation" role="status"
-                            >Record validation:
-                            <strong
-                                >${this.delivery.isValid() ? 'Valid' : 'Invalid'}</strong
-                            >
-                        </p>
-                    </div>
+                    <fdl-record-inspector
+                        .record=${this.delivery}
+                    ></fdl-record-inspector>
                 </div>
             </div>
             <div
@@ -566,6 +494,9 @@ export const shippingStateOptions = [
             gap: 20px;
             align-items: start;
         }
+        .experiment:has(fdl-record-inspector[collapsed]) {
+            grid-template-columns: minmax(0, 1fr) auto;
+        }
         .editor {
             padding: 20px;
             border: 1px solid var(--example-border);
@@ -583,86 +514,6 @@ export const shippingStateOptions = [
             --field-label-width: 100%;
             --field-control-width: 100%;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-        caption {
-            text-align: left;
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        th,
-        td {
-            padding: 12px 6px;
-            border-bottom: 1px solid var(--example-border);
-            text-align: left;
-            vertical-align: top;
-            overflow-wrap: anywhere;
-        }
-        thead th {
-            color: #64748b;
-            font-size: 0.8125rem;
-        }
-        th:first-child {
-            width: 30%;
-            padding-left: 0;
-        }
-        th:last-child {
-            width: 110px;
-        }
-        .field-status {
-            display: flex;
-            gap: 6px;
-        }
-        .status-icon {
-            display: inline-flex;
-            flex: 0 0 20px;
-            width: 20px;
-            height: 20px;
-            color: #475569;
-        }
-        .status-icon svg {
-            width: 100%;
-            height: 100%;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 1.75;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .legend {
-            margin-top: 20px;
-            font-size: 0.8125rem;
-            color: #475569;
-        }
-        .legend p {
-            margin: 0 0 8px;
-            font-weight: 600;
-        }
-        .legend ul {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px 16px;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .legend li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .validation {
-            padding-top: 16px;
-            border-top: 1px solid var(--example-border);
-            font-size: 0.875rem;
-            margin-bottom: 0;
-        }
         p {
             margin: 16px 0;
         }
@@ -673,8 +524,7 @@ export const shippingStateOptions = [
             section {
                 padding: 16px;
             }
-            .editor,
-            .state {
+            .editor {
                 padding: 16px;
             }
         }
@@ -686,7 +536,8 @@ export const shippingStateOptions = [
             outline-offset: 3px;
         }
         @media (max-width: 1000px) {
-            .experiment {
+            .experiment,
+            .experiment:has(fdl-record-inspector[collapsed]) {
                 grid-template-columns: 1fr;
             }
         }
