@@ -113,7 +113,9 @@ export function ContactForm() {
   lookup is pending, the select is disabled, has `aria-busy="true"`, and shows a
   `role="status"` “Loading choices…” message and `.options-spinner`. Results
   from older lookups are ignored, and loading is deferred while the field is
-  disabled. Option values are converted to strings for the DOM.
+  disabled. Option values are converted to strings for the DOM. When the stored
+  value matches no option, a single select shows no choice rather than the
+  first option.
 - **Multiple values.** With `multipleValues()`, the adapter renders a native
   `<select multiple>` and stores an array of the selected option values.
 - **Validation display.** When `showValidationErrors` is true and
@@ -189,7 +191,8 @@ Record and is released with it.
 - The multiple-value control is a native `<select multiple>`, not the Lit
   adapter's checkbox dropdown.
 - File inputs are uncontrolled; the adapter stores the input's `value` on
-  change, as the Lit adapter does.
+  change and clears the picker when the Record value becomes empty, as the Lit
+  adapter does.
 - Deprecated and renderer-specific metadata such as `autofocus()`,
   `additionalProperties()`, and `formElement()` is not interpreted.
 - Generated IDs are stable for a component instance only. React's `useId`

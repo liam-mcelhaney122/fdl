@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { useRecordset } from '../adapters/react';
 import { FdlField } from '../adapters/react/fdl-field';
 import { field } from '../primitives.js';
@@ -480,5 +481,207 @@ describe('useRecordset', () => {
         });
         expect(screen.getByTestId('summary').textContent).toBe('3 rows, page 2');
         expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['Hedy']);
+    });
+});
+
+describe('FdlField review regressions', () => {
+    it('shows no choice when the stored value matches no option', async () => {
+        const record = new Record(
+            {
+                method: field.label('Method').options([
+                    { text: 'Email', value: 'email' },
+                    { text: 'Phone', value: 'phone' },
+                ]),
+            },
+            { method: '' as string | undefined }
+        );
+        render(<FdlField record={record} field="method" />);
+        await flush();
+        const select = screen.getByLabelText('Method') as HTMLSelectElement;
+        expect(select.selectedIndex).toBe(-1);
+
+        act(() => record.setField('method', 'phone'));
+        expect(select.value).toBe('phone');
+
+        act(() => record.setField('method', undefined));
+        expect(select.selectedIndex).toBe(-1);
+        expect(select.selectedOptions).toHaveLength(0);
+    });
+
+    it('does not carry in-progress text to a different record', () => {
+        const amount = amountField();
+        const first = new Record({ amount }, { amount: null as number | null });
+        const second = new Record({ amount }, { amount: 12 as number | null });
+        const { rerender } = render(<FdlField record={first} field="amount" />);
+        const input = screen.getByLabelText('Amount') as HTMLInputElement;
+
+        fireEvent.change(input, { target: { value: '12.' } });
+        expect(input.value).toBe('12.');
+        rerender(<FdlField record={second} field="amount" />);
+        expect(input.value).toBe('12.00');
+    });
+
+    it('clears a file picker when the record value is cleared', () => {
+        const record = new Record(
+            { attachment: field.label('Attachment').type('file').accept('.pdf') },
+            { attachment: '' }
+        );
+        render(<FdlField record={record} field="attachment" />);
+        const input = screen.getByLabelText('Attachment') as HTMLInputElement;
+        expect(input.type).toBe('file');
+        expect(input.accept).toBe('.pdf');
+
+        // jsdom cannot pick a file, so stand in for the browser's picker value.
+        let picked = 'C:\\fakepath\\report.pdf';
+        Object.defineProperty(input, 'value', {
+            configurable: true,
+            get: () => picked,
+            set: (next: string) => {
+                picked = next;
+            },
+        });
+        fireEvent.change(input);
+        expect(record.getField('attachment')).toBe('C:\\fakepath\\report.pdf');
+
+        act(() => record.setField('attachment', ''));
+        expect(picked).toBe('');
+    });
+});
+
+describe('FdlField checklist coverage', () => {
+    it('uses the input type from field metadata', () => {
+        const record = new Record(
+            { email: field.label('Email').type('email').required() },
+            { email: '' }
+        );
+        render(<FdlField record={record} field="email" />);
+        const input = screen.getByRole('textbox', { name: /Email/ }) as HTMLInputElement;
+        expect(input.type).toBe('email');
+        expect(input.required).toBe(true);
+    });
+
+    it('marks required selects and textareas natively', async () => {
+        const record = new Record(
+            {
+                method: field
+                    .label('Method')
+                    .required()
+                    .options([{ text: 'Email', value: 'email' }]),
+                notes: field.label('Notes').required().rowCount(2),
+            },
+            { method: 'email', notes: '' }
+        );
+        render(
+            <>
+                <FdlField record={record} field="method" />
+                <FdlField record={record} field="notes" />
+            </>
+        );
+        await flush();
+        expect(
+            (screen.getByRole('combobox', { name: /Method/ }) as HTMLSelectElement).required
+        ).toBe(true);
+        expect(
+            (screen.getByRole('textbox', { name: /Notes/ }) as HTMLTextAreaElement).required
+        ).toBe(true);
+    });
+
+    it('omits the label for hideLabel() and hides fields that become invisible', () => {
+        const record = new Record(
+            {
+                show: field,
+                search: field.label('Search').hideLabel(),
+                extra: field.label('Extra').visible(r => r.getField('show')),
+            },
+            { show: true, search: '', extra: '' }
+        );
+        const { container } = render(
+            <>
+                <FdlField record={record} field="search" />
+                <FdlField record={record} field="extra" />
+            </>
+        );
+        expect(screen.queryByText('Search')).toBeNull();
+        expect(container.querySelectorAll('input')).toHaveLength(2);
+        expect(screen.getByLabelText('Extra').tagName).toBe('INPUT');
+
+        act(() => record.setField('show', false));
+        expect(screen.queryByText('Extra')).toBeNull();
+        expect(container.querySelectorAll('input')).toHaveLength(1);
+    });
+
+    it('stops loading and restores declared disabled state when a field is disabled mid-lookup', async () => {
+        let resolve!: (options: Option[]) => void;
+        const fetch = jest.fn(
+            () =>
+                new Promise<Option[]>(done => {
+                    resolve = done;
+                })
+        );
+        const record = new Record(
+            {
+                locked: field,
+                store: field
+                    .label('Store')
+                    .disabled(r => r.getField('locked'))
+                    .options({ fetch }),
+            },
+            { locked: false, store: '' }
+        );
+        render(<FdlField record={record} field="store" />);
+        const select = screen.getByLabelText('Store') as HTMLSelectElement;
+        await flush();
+        expect(select.getAttribute('aria-busy')).toBe('true');
+
+        act(() => record.setField('locked', true));
+        await flush();
+        expect(select.disabled).toBe(true);
+        expect(select.hasAttribute('aria-busy')).toBe(false);
+        expect(screen.queryByRole('status')).toBeNull();
+
+        await act(async () => {
+            resolve([{ text: 'Stale', value: 'stale' }]);
+        });
+        await flush();
+        expect([...select.options].map(option => option.value)).toEqual([]);
+    });
+
+    it('stops loading after a failed lookup', async () => {
+        const record = new Record(
+            {
+                store: field.label('Store').options({
+                    fetch: () => Promise.reject(new Error('offline')),
+                }),
+            },
+            { store: '' }
+        );
+        render(<FdlField record={record} field="store" />);
+        await flush();
+        await flush();
+        const select = screen.getByLabelText('Store') as HTMLSelectElement;
+        expect(select.disabled).toBe(false);
+        expect(select.hasAttribute('aria-busy')).toBe(false);
+    });
+
+    it('loads options once and cleans up under StrictMode', async () => {
+        const fetch = jest.fn(() => Promise.resolve([{ text: 'Uptown', value: 'uptown' }]));
+        const record = new Record(
+            { store: field.label('Store').options({ fetch }) },
+            { store: 'uptown' }
+        );
+        const remove = jest.spyOn(record, 'removeEventListener');
+        const { unmount } = render(
+            <StrictMode>
+                <FdlField record={record} field="store" />
+            </StrictMode>
+        );
+        await flush();
+        const select = screen.getByLabelText('Store') as HTMLSelectElement;
+        expect(select.disabled).toBe(false);
+        expect(select.value).toBe('uptown');
+        expect(fetch).toHaveBeenCalledTimes(1);
+
+        unmount();
+        expect(remove).toHaveBeenCalled();
     });
 });

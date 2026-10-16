@@ -84,7 +84,7 @@ export function useFieldState(record: Record<any>, field: string): FieldState {
 export function useFieldOptions(record: Record<any>, field: string): OptionsState {
     const version = useRecordVersion(record);
     const [state, setState] = useState<OptionsState>(() => initialOptionsState(record, field));
-    const tracker = useRef<FieldOptionsTracker>();
+    const tracker = useRef<FieldOptionsTracker | undefined>(undefined);
 
     useEffect(() => {
         const current = new FieldOptionsTracker(record, field, setState);

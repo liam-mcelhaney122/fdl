@@ -29,6 +29,9 @@ export interface FdlFieldProps {
 }
 
 interface Draft {
+    /** The Record and field the text was typed for. */
+    record: Record<any>;
+    field: string;
     /** The user's text exactly as typed. */
     text: string;
     /** The model value stored for that text; the draft is shown while it is current. */
@@ -63,11 +66,24 @@ export function FdlField({
     const composing = useRef(false);
     const pendingSelection = useRef<[number, number] | null>(null);
     const textControl = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
+    const selectControl = useRef<HTMLSelectElement>(null);
+    const fileControl = useRef<HTMLInputElement>(null);
 
     useIsomorphicLayoutEffect(() => {
         const selection = pendingSelection.current;
         pendingSelection.current = null;
         if (selection && textControl.current) textControl.current.setSelectionRange(...selection);
+        const select = selectControl.current;
+        // React selects the first option when none matches; show no choice instead,
+        // so the control never displays a value the Record does not hold.
+        if (select && !select.multiple) {
+            const value = selectValueFor(state.value, false);
+            if (![...select.options].some(option => option.value === value)) {
+                select.selectedIndex = -1;
+            }
+        }
+        // Browsers only allow clearing a file picker programmatically.
+        if (fileControl.current && !state.value) fileControl.current.value = '';
     });
 
     if (!state.visible) return null;
@@ -85,7 +101,7 @@ export function FdlField({
     function handleText(control: HTMLInputElement | HTMLTextAreaElement) {
         if (composing.current) {
             // Let the IME own the text until composition ends.
-            setDraft({ text: control.value, value: record.getField(field) });
+            setDraft({ record, field, text: control.value, value: record.getField(field) });
             return;
         }
         const filtered = filterInput(
@@ -102,7 +118,7 @@ export function FdlField({
         }
         commit(filtered.text);
         // Keep the user's text and caret; the record holds the parsed value.
-        setDraft({ text: filtered.text, value: record.getField(field) });
+        setDraft({ record, field, text: filtered.text, value: record.getField(field) });
     }
 
     function handleTextChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -181,6 +197,7 @@ export function FdlField({
             <div className="control-input" data-loading={loading ? '' : undefined}>
                 <select
                     {...shared}
+                    ref={selectControl}
                     disabled={state.disabled || loading}
                     multiple={state.multiple}
                     aria-busy={loading ? 'true' : undefined}
@@ -210,7 +227,11 @@ export function FdlField({
             </div>
         );
     } else {
-        const draftIsCurrent = draft !== null && Object.is(record.getField(field), draft.value);
+        const draftIsCurrent =
+            draft !== null &&
+            draft.record === record &&
+            draft.field === field &&
+            Object.is(record.getField(field), draft.value);
         const text = draftIsCurrent ? draft.text : state.displayValue;
         const textProps = {
             ...shared,
@@ -243,6 +264,7 @@ export function FdlField({
             control = (
                 <input
                     {...shared}
+                    ref={fileControl}
                     type="file"
                     disabled={state.disabled}
                     accept={state.accept}
