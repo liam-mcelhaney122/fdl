@@ -36,18 +36,15 @@ async function loadStoresForZip(record: Record<any>) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<any>) {
-    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
-}
-
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
-    validate: isValidZip,
+    validate: (zip: unknown) => isValidZip(zip),
 };
 const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
-    validate: isAvailablePickupStore,
+    validate: (value: unknown, _view: unknown, record: Record<any>) =>
+        !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
 };
 
 export class FdlDeliveryExperiment extends LitElement {
@@ -85,18 +82,15 @@ async function loadStoresForZip(record) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-function isAvailablePickupStore(value, _view, record) {
-    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
-}
-
 const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
 const postalZipValidator = {
     name: 'must contain five digits',
-    validate: isValidZip,
+    validate: zip => isValidZip(zip),
 };
 const pickupStoreValidator = {
     name: 'must be available for this ZIP code',
-    validate: isAvailablePickupStore,
+    validate: (value, _view, record) =>
+        !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
 };
 
 const deliveryMethod = field.label('Delivery method')
