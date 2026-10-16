@@ -423,14 +423,26 @@ export const shippingStateOptions = [
                     view:</p
                 >
                 <h3><code>delivery-model.ts</code></h3>
+                <p>
+                    Defines the delivery fields, conditional shipping and pickup
+                    rules, ZIP code validation, and store lookup by ZIP code.
+                </p>
                 <pre
                     class="code"
                 ><code>${highlightJavaScript(this.code)}</code></pre>
                 <h3><code>delivery-form.ts</code></h3>
+                <p>
+                    Connects the delivery model to FDL field components in a Lit
+                    view, so each control reflects the model’s rules.
+                </p>
                 <pre
                     class="code"
                 ><code>${highlightJavaScript(this.litCode)}</code></pre>
                 <h3><code>delivery-data.ts</code></h3>
+                <p>
+                    Supplies delivery methods, US state options, and sample
+                    pickup stores for ZIP codes 28202 and 10001.
+                </p>
                 <pre
                     class="code"
                 ><code>${highlightJavaScript(this.dataCode)}</code></pre>
