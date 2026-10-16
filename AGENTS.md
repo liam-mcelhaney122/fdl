@@ -27,6 +27,8 @@ rendering. The published package is `digital-fdl`.
 - Keep public behavior, documentation, and type declarations aligned when
   changing exported APIs.
 - Add or update focused Jest coverage for behavior changes.
+- Prefer function declarations over function expressions and arrow functions
+  for named functions.
 
 ## Documentation site
 

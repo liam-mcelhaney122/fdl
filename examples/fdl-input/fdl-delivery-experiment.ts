@@ -5,14 +5,17 @@ import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
 
-const whenDeliveryMethodRequiresAddress = (record: Record<any>) => record.getField('fulfillment') === 'ship';
+function whenDeliveryMethodRequiresAddress(record: Record<any>) {
+    return record.getField('fulfillment') === 'ship';
+}
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
 
-const whenDeliveryMethodRequiresAddress = record =>
-  record.getField('fulfillment') === 'ship';
+function whenDeliveryMethodRequiresAddress(record) {
+  return record.getField('fulfillment') === 'ship';
+}
 
 const deliveryMethod = field.label('Delivery method')
     .options([
