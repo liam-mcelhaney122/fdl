@@ -1470,6 +1470,8 @@ export class FdlModifierExplorer extends LitElement {
             margin: 24px 0 36px;
         }
         .model-concept {
+            display: flex;
+            flex-direction: column;
             min-width: 0;
             padding: 20px;
             border: 1px solid #dfe3ee;
@@ -1484,7 +1486,7 @@ export class FdlModifierExplorer extends LitElement {
             margin: 12px 0;
         }
         .model-concept pre {
-            margin: 16px 0 0;
+            margin: auto 0 0;
             padding: 12px;
             border-radius: 6px;
             background: #000;
