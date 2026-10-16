@@ -1537,6 +1537,19 @@ export class FdlModifierExplorer extends LitElement {
         .model-concept .model-example {
             font-size: 0.9375rem;
         }
+        @media (min-width: 1101px) {
+            .model-concepts {
+                row-gap: 0;
+            }
+            .model-concept {
+                display: grid;
+                grid-row: span 6;
+                grid-template-rows: subgrid;
+            }
+            .model-concept pre {
+                margin-top: 0;
+            }
+        }
         @media (max-width: 1100px) {
             .model-concepts {
                 grid-template-columns: minmax(0, 1fr);
