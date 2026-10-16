@@ -126,6 +126,7 @@ export const delivery = new Record(
 import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
+import './fdl-record-inspector';
 
 export class DeliveryForm extends LitElement {
     render() {
@@ -140,6 +141,7 @@ export class DeliveryForm extends LitElement {
                 field="store"
                 select-prompt="Select a store"
             ></fdl-field>
+            <fdl-record-inspector .record=\${delivery}></fdl-record-inspector>
         \`;
     }
 }
