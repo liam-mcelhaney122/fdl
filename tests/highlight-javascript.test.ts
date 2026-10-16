@@ -22,17 +22,17 @@ it('links modifier calls to their documentation without changing syntax color', 
     expect(link.textContent).toBe('required');
     expect(link.getAttribute('style')).toContain('color:inherit');
     expect(link.getAttribute('style')).toContain('text-decoration:underline');
-    expect(link.getAttribute('title')).toBe("Used here as .required()");
-    expect(link.getAttribute('aria-label')).toBe('required modifier. Used here as .required()');
+    expect(link.getAttribute('title')).toBe('Requires a value for “Name”; leaving it empty fails validation.');
+    expect(link.getAttribute('aria-label')).toBe('required modifier. Requires a value for “Name”; leaving it empty fails validation.');
     expect(link.querySelector('.syntax-function')!.textContent).toBe('required');
 });
 
-it('explains the complete modifier invocation in its tooltip', () => {
-    const code = "const definition = field.label('Name').validator({ name: 'code', validate: value => value.length > 0 });";
+it('explains a validator rule rather than repeating its source', () => {
+    const code = "const definition = field.label('Name').validator({ name: 'must not be empty', validate: value => value.length > 0 });";
     const container = document.createElement('div');
     render(highlightJavaScript(code), container);
     const link = container.querySelector<HTMLAnchorElement>('a[href="#validator"]')!;
-    expect(link.getAttribute('title')).toBe("Used here as .validator({ name: 'code', validate: value => value.length > 0 })");
+    expect(link.getAttribute('title')).toBe('Checks that “Name” must not be empty; a failing value makes the field invalid.');
 });
 
 
@@ -71,4 +71,66 @@ third.label('Unrelated');`;
         'first.compareFunction((a, b) => a.localeCompare(b));',
         'second.compareFunction(', '  compareShirtSizes', ');',
     ]);
+});
+
+
+it('explains the named shipping predicate in terms of delivery behavior', () => {
+    const code = `const address = field.label('Shipping address')
+      .visibleWhen(whenDeliveryMethodRequiresAddress)
+      .required(whenDeliveryMethodRequiresAddress);`;
+    const container = document.createElement('div');
+    render(highlightJavaScript(code), container);
+    expect(container.textContent).toBe(code);
+    expect(container.querySelector('a[href="#visibleWhen"]')!.getAttribute('title')).toBe(
+        'Shows “Shipping address” when the selected delivery method requires an address, otherwise hides it.');
+    expect(container.querySelector('a[href="#required"]')!.getAttribute('title')).toBe(
+        'Requires a value for “Shipping address” when the selected delivery method requires an address; otherwise it is optional.');
+});
+
+it('keeps multi-line calls and repeated modifiers tied to their own fields', () => {
+    const code = `const person = new Record({
+      name: field.label('Legal name').required(),
+      notes: field.label('Follow-up notes').required(
+        record => record.getField('followUp') === 'yes'
+      ),
+    }, {});`;
+    const container = document.createElement('div');
+    render(highlightModifier(code, 'required'), container);
+    expect(container.textContent).toBe(code);
+    const links = [...container.querySelectorAll('a[href="#required"]')];
+    expect(links.map(link => link.getAttribute('title'))).toEqual([
+        'Requires a value for “Legal name”; leaving it empty fails validation.',
+        'Requires a value for “Follow-up notes” when follow-up is needed; otherwise it is optional.',
+    ]);
+    expect(links[1].getAttribute('aria-label')).toContain(links[1].getAttribute('title'));
+});
+
+it('uses current values in descriptions as an example changes', () => {
+    const container = document.createElement('div');
+    for (const minimum of [3, 7]) {
+        render(highlightJavaScript(`field.label('Access code').minLength(${minimum})`), container);
+        expect(container.querySelector('a[href="#minLength"]')!.getAttribute('title')).toBe(
+            `Requires “Access code” to contain at least ${minimum} characters when a value is provided.`);
+    }
+});
+
+it('does not create modifier links from comments or string contents', () => {
+    const container = document.createElement('div');
+    const code = `// field.required()
+const note = "field.visibleWhen(isInternational)";
+const tax = field.label('Tax ID').visibleWhen(isInternational);`;
+    render(highlightJavaScript(code), container);
+    expect(container.querySelectorAll('a')).toHaveLength(2);
+    expect(container.querySelector('a[href="#visibleWhen"]')!.getAttribute('title')).toBe(
+        'Shows “Tax ID” when the country is outside the US, otherwise hides it.');
+});
+
+
+it('keeps field context when labels and comments contain the word field', () => {
+    const container = document.createElement('div');
+    render(highlightJavaScript(`field.label('Custom field')
+      // This field needs a value.
+      .required()`), container);
+    expect(container.querySelector('a[href="#required"]')!.getAttribute('title')).toBe(
+        'Requires a value for “Custom field”; leaving it empty fails validation.');
 });

@@ -72,53 +72,14 @@ rendering. The published package is `digital-fdl`.
 
 ## Working-tree and Git rules
 
-- Treat the repository root checkout as an integration-only checkout. Do not
-  edit files, generate files, run formatters that rewrite files, or develop
-  directly in the root checkout; implementation belongs in a linked worktree.
-- Before starting work, run `git status --short --branch` and
-  `git worktree list`. If the checkout or assigned worktree is dirty, identify
-  which task owns each change before proceeding. Never assume an existing
-  change is yours.
-- Preserve unrelated edits already present in the working tree; do not stage,
-  revert, or reformat them as part of another task.
-- If the root checkout is dirty when a task begins, stop and report the dirty
-  paths unless you are the designated integration task handling those changes.
-  Do not make the root checkout clean by reverting, stashing, or committing
-  another task's work.
-- After every coherent batch of changes, run the relevant verification and
-  commit that batch before beginning the next one.
-- Stage and commit only files that belong to the current batch. Use a concise,
-  imperative commit message that describes the change.
-- Immediately before staging and committing, re-check status and the diff so a
-  concurrent task has not changed the files or added unrelated paths.
-- Before reporting completion, run `git status --short --branch` in the owned
-  worktree and confirm it is clean. Report any remaining files explicitly.
-
-## Parallel task worktrees
-
-- Keep the repository root checkout as the integration worktree. It is reserved
-  for merging or cherry-picking completed task commits and related integration
-  verification; it is not a task worktree.
-- Each parallel task must use a linked worktree under `.worktrees/<task-name>`
-  on its own `codex/<task-name>` branch.
-- A task must not edit, stage, commit, or switch branches in the root checkout
-  or in another task's worktree.
-- Create a task worktree from the current integration branch with:
-  `git worktree add .worktrees/<task-name> -b codex/<task-name> main`
-- Before creating a worktree, ensure the integration checkout is clean and on
-  the intended base branch. If it is dirty, stop and resolve ownership first.
-- A task owns only its assigned worktree and branch. Do not edit another task's
-  worktree or branch.
-- Run the relevant tests and type checks in the task worktree, commit the
-  completed batch there, then merge the task branch from the integration
-  worktree.
-- Only the designated integration task may modify the root checkout, and only
-  for an explicitly identified merge, cherry-pick, conflict resolution, or
-  integration-only verification step. It must check status before and after
-  that operation and leave the root checkout clean.
-- After a successful merge, remove the linked worktree with
-  `git worktree remove .worktrees/<task-name>` and prune stale metadata with
-  `git worktree prune`.
-- Never create a new task worktree from a dirty checkout. Do not use a stash as
-  a substitute for ownership or isolation; commit or explicitly isolate the
-  pending changes first.
+- Work directly in the repository root checkout on `main` and commit changes
+  directly to `main`. Do not create task branches or linked worktrees unless
+  the user explicitly requests one.
+- Before starting work, check `git status --short --branch`. Identify ownership
+  of existing changes and preserve unrelated work; never revert, stash, stage,
+  or commit another task's changes.
+- After each coherent batch, run relevant verification, inspect status and the
+  diff, then stage and commit only files belonging to the current task.
+- Use a concise, imperative commit message. Before reporting completion, check
+  status again and report any remaining changes explicitly.
+- Keep commits local unless the user explicitly requests a push or deployment.

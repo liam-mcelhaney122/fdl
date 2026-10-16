@@ -1,4 +1,5 @@
 import { html, type TemplateResult } from 'lit';
+import { explainModifierCall } from './modifier-call-explanation';
 import { modifierSignatures } from './modifier-signatures';
 
 const keywords = new Set(['async', 'await', 'const', 'let', 'var', 'new', 'return', 'if', 'else', 'throw', 'function', 'class', 'import', 'from', 'export', 'default', 'typeof', 'instanceof']);
@@ -22,9 +23,10 @@ function modifierCallText(source: string, index: number, modifier: string): stri
     return source.slice(index - 1, index + modifier.length);
 }
 
-export function highlightJavaScript(source: string): Array<string | TemplateResult> {
+export function highlightJavaScript(source: string, context = source, offset = 0): Array<string | TemplateResult> {
     const output: Array<string | TemplateResult> = [];
     let cursor = 0;
+    const contextTokens = [...context.matchAll(tokens)];
     for (const match of source.matchAll(tokens)) {
         const value = match[0];
         const index = match.index!;
@@ -43,8 +45,13 @@ export function highlightJavaScript(source: string): Array<string | TemplateResu
         const modifierCall = source[index - 1] === '.'
             && modifierSignatures[value] !== undefined
             && /^\s*\(/.test(source.slice(index + value.length));
+        // Locate field boundaries in tokenized code, ignoring words in strings
+        // and comments. Keep full-snippet context even when rendering one line.
+        const fieldStarts = modifierCall ? contextTokens.filter(token => token[0] === 'field' && token.index! < index + offset) : [];
+        const chainStart = fieldStarts.length ? fieldStarts[fieldStarts.length - 1].index! : 0;
+        const explanation = modifierCall ? explainModifierCall(context.slice(chainStart, index + offset), value, modifierCallText(context, index + offset, value)) : '';
         output.push(modifierCall
-            ? html`<a href=${`#${value}`} title=${`Used here as ${modifierCallText(source, index, value)}`} aria-label=${`${value} modifier. Used here as ${modifierCallText(source, index, value)}`} style="color:inherit;text-decoration:underline;text-underline-offset:0.15em">${token}</a>`
+            ? html`<a href=${`#${value}`} title=${explanation} aria-label=${`${value} modifier. ${explanation}`} style="color:inherit;text-decoration:underline;text-underline-offset:0.15em">${token}</a>`
             : token);
         cursor = index + value.length;
     }
@@ -77,7 +84,12 @@ export function modifierLineRange(source: string, modifier: string): [number, nu
 export function highlightModifier(source: string, modifier: string) {
     const ranges = modifierLineRanges(source, modifier);
     const lines = source.split('\n');
-    return lines.map((line, index) => html`<span class=${`code-line${ranges.some(range => index >= range[0] && index <= range[1]) ? ' focused-line' : ''}`}>${highlightJavaScript(line)}</span>${index < lines.length - 1 ? '\n' : ''}`);
+    let offset = 0;
+    return lines.map((line, index) => {
+        const start = offset;
+        offset += line.length + 1;
+        return html`<span class=${`code-line${ranges.some(range => index >= range[0] && index <= range[1]) ? ' focused-line' : ''}`}>${highlightJavaScript(line, source, start)}</span>${index < lines.length - 1 ? '\n' : ''}`;
+    });
 }
 
 export function highlightMarkup(source: string) {
