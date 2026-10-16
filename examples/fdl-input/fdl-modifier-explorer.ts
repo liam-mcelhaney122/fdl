@@ -36,7 +36,7 @@ export const explorerRecipes: ExplorerRecipe[] = [
         use: 'Currency, dates, percentages, and other human-readable representations.',
     },
     {
-        name: 'visibleWhen', signature: '(predicate)', category: 'Conditional state', title: 'Show a field when its predicate is true.',
+        name: 'visible', signature: '(predicate)', category: 'Conditional state', title: 'Show a field when its predicate is true.',
         description: 'Evaluate a predicate against the record to determine whether a field is visible. The component updates when the record changes.',
         prompt: 'Switch between shipping and pickup. The address disappears for pickup; its stored value is preserved.',
         steps: ['Read the related value from the record.', 'FDL evaluates the predicate as record values change.', 'The component includes the address only when the predicate passes.'],
@@ -94,7 +94,7 @@ export class FdlModifierExplorer extends LitElement {
     private money = new Record({ amount: field.label('Amount').type('number').parser(value => Number(value)).formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
     private delivery = new Record({
         fulfillment: field.label('Delivery method').options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
-        address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
+        address: field.label('Shipping address').visible(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
     private closeCategoryMenu = (event: Event) => {
@@ -191,7 +191,7 @@ export class FdlModifierExplorer extends LitElement {
         if (name === 'required') { this.checked = false; this.requiredRule = true; this.person.addField('name', field.label('Legal name').required(), ''); this.person.setField('followUp','no'); this.person.setField('followUpNotes',''); }
         delete this.exampleSettings[name];
         if (name === 'formatter') { this.amountInput = undefined; this.money.setField('amount', 1250); }
-        if (name === 'visibleWhen') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
+        if (name === 'visible') { this.delivery.setField('fulfillment', 'ship'); this.delivery.setField('address', '42 Orchard Street'); }
         this.requestUpdate();
     }
     private demo(name: string) {
@@ -212,12 +212,12 @@ export class FdlModifierExplorer extends LitElement {
             <div @input=${this.captureAmountInput}>${this.field(this.money, 'amount')}</div>
             <div class="formatted"><span>Formatted output</span><strong>${this.money.getFormattedField('amount', 'print')}</strong></div>
             <p class="result">The formatter leaves the stored number unchanged.</p>${valuePipeline(this.money, 'amount', this.amountInput)}`;
-        if (!['required', 'formatter', 'visibleWhen'].includes(name)) return html`<fdl-modifier-catalog modifier=${name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings[name] = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
+        if (!['required', 'formatter', 'visible'].includes(name)) return html`<fdl-modifier-catalog modifier=${name} @example-settings-change=${(event: CustomEvent<ExampleSettings>) => { this.exampleSettings[name] = event.detail; this.requestUpdate(); }}></fdl-modifier-catalog>`;
         return html`${this.field(this.delivery, 'fulfillment')}${this.field(this.delivery, 'address')}${explainDependency(this.delivery, 'address', 'fulfillment', `fulfillment === 'ship'`, 'visible')}<p class="result" role="status">${this.delivery.getField('fulfillment') === 'ship' ? 'Shipping address is visible.' : 'Pickup selected. Shipping address is hidden.'}</p>`;
     }
     private renderModifierSection(recipe: ExplorerRecipe) {
         const source = exampleSource(recipe.name, {...this.exampleSettings[recipe.name], required: this.requiredRule});
-        const standaloneDemo = ['required', 'formatter', 'visibleWhen'].includes(recipe.name);
+        const standaloneDemo = ['required', 'formatter', 'visible'].includes(recipe.name);
         const model = recipe.name === 'required' ? this.person : recipe.name === 'formatter' ? this.money : this.delivery;
         return html`<section class="modifier-section" id=${recipe.name} data-modifier=${recipe.name}>
                 <h2 class="modifier-signature" tabindex="-1"><code>${modifierSignatures[recipe.name]}</code></h2>

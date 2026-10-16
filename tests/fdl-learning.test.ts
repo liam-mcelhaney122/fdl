@@ -50,7 +50,7 @@ it('reveals the FDL delivery model behind the interactive example', async () => 
     expect(codePanel.textContent).toContain('const deliveryMethod = field.label');
     expect(codePanel.textContent).toContain('const shippingAddress = field.label');
     expect(codePanel.textContent).toContain('function whenDeliveryMethodRequiresAddress(record)');
-    expect(codePanel.textContent).toContain('.visibleWhen(whenDeliveryMethodRequiresAddress)');
+    expect(codePanel.textContent).toContain('.visible(whenDeliveryMethodRequiresAddress)');
     expect(codePanel.textContent).toContain('.required(whenDeliveryMethodRequiresAddress)');
     expect(codePanel.textContent).toContain('<fdl-field .record=${delivery} field="fulfillment"></fdl-field>');
     expect(codePanel.querySelectorAll('.syntax-keyword, .syntax-builtin, .syntax-string').length).toBeGreaterThan(0);
@@ -79,7 +79,7 @@ const editField = async (root: ShadowRoot, name: string, value: string) => {
     input.dispatchEvent(new Event('change'));
 };
 it('explains the actual visibility result and retained value', async () => {
-    const page = await openExplorer('#visibleWhen');
+    const page = await openExplorer('#visible');
     await editField(page.shadowRoot!, 'fulfillment', 'pickup');
     await page.updateComplete;
     const trace = page.shadowRoot!.querySelector('.dependency-trace')!.textContent!;
@@ -127,7 +127,7 @@ it('changes the minimum-length definition while retaining the value', async () =
 });
 
 it('summarizes semantic state and keeps the JSON inspector collapsed', async () => {
-    const page = await openExplorer('#visibleWhen');
+    const page = await openExplorer('#visible');
     await editField(page.shadowRoot!, 'fulfillment', 'pickup');
     await page.updateComplete;
     expect(page.shadowRoot!.querySelector('.model .state-summary')!.textContent).toContain('Hidden · Optional');

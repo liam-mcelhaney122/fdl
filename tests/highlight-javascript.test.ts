@@ -76,12 +76,12 @@ third.label('Unrelated');`;
 
 it('explains the named shipping predicate in terms of delivery behavior', () => {
     const code = `const address = field.label('Shipping address')
-      .visibleWhen(whenDeliveryMethodRequiresAddress)
+      .visible(whenDeliveryMethodRequiresAddress)
       .required(whenDeliveryMethodRequiresAddress);`;
     const container = document.createElement('div');
     render(highlightJavaScript(code), container);
     expect(container.textContent).toBe(code);
-    expect(container.querySelector('a[href="#visibleWhen"]')!.getAttribute('title')).toBe(
+    expect(container.querySelector('a[href="#visible"]')!.getAttribute('title')).toBe(
         'Shows “Shipping address” when the selected delivery method requires an address, otherwise hides it.');
     expect(container.querySelector('a[href="#required"]')!.getAttribute('title')).toBe(
         'Requires a value for “Shipping address” when the selected delivery method requires an address; otherwise it is optional.');
@@ -117,11 +117,11 @@ it('uses current values in descriptions as an example changes', () => {
 it('does not create modifier links from comments or string contents', () => {
     const container = document.createElement('div');
     const code = `// field.required()
-const note = "field.visibleWhen(isInternational)";
-const tax = field.label('Tax ID').visibleWhen(isInternational);`;
+const note = "field.visible(isInternational)";
+const tax = field.label('Tax ID').visible(isInternational);`;
     render(highlightJavaScript(code), container);
     expect(container.querySelectorAll('a')).toHaveLength(2);
-    expect(container.querySelector('a[href="#visibleWhen"]')!.getAttribute('title')).toBe(
+    expect(container.querySelector('a[href="#visible"]')!.getAttribute('title')).toBe(
         'Shows “Tax ID” when the country is outside the US, otherwise hides it.');
 });
 

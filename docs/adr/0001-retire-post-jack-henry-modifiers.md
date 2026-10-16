@@ -125,6 +125,7 @@ future retirement work from losing historical context.
 | `step` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
 | `tag` | Removed — 2026-10-16 | Adapter control selection inferred from options and row-count metadata | Renderer-specific control selection does not belong in the reusable field model. |
 | `toggle` | Removed — 2026-10-15 | Component or form adapter | Boolean-control presentation and interaction belong to the component, not the field model. |
+| `visibleWhen` | Deprecated | `visible(predicate)` | Use the concise name for reusable conditional visibility behavior. |
 | `usesCustomPrint` | Deprecated | Renderer | Custom print behavior. |
 
 ### Inventory maintenance

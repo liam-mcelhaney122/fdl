@@ -750,13 +750,13 @@ describe('FieldType', () => {
         });
     });
 
-    describe('visibleWhen', () => {
+    describe('visible', () => {
         it('is visible by default', () => {
             const type = new FieldTypeBuilder();
             expect(type.valueOf().visible()).toEqual(true);
         });
-        it("isn't visible whenVisible() is false", () => {
-            const type = new FieldTypeBuilder().visibleWhen(() => false);
+        it('is not visible when the predicate is false', () => {
+            const type = new FieldTypeBuilder().visible(() => false);
             expect(type.valueOf().visible()).toEqual(false);
         });
     });

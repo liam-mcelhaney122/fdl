@@ -23,7 +23,7 @@ const deliveryMethod = field.label('Delivery method')
       { text: 'Pick up in person', value: 'pickup' },
     ]);
 const shippingAddress = field.label('Shipping address')
-    .visibleWhen(whenDeliveryMethodRequiresAddress)
+    .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
 export const delivery = new Record({
@@ -48,7 +48,7 @@ customElements.define('delivery-form', DeliveryForm);`;
         { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
     ]);
     private shippingAddress = field.label('Shipping address')
-        .visibleWhen(whenDeliveryMethodRequiresAddress)
+        .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
     private delivery = new Record({
         fulfillment: this.deliveryMethod,

@@ -39,11 +39,11 @@ describe('modifier explorer', () => {
         root.querySelector<HTMLButtonElement>('.pager')!.click();
         await settle(page);
         expect(root.querySelector('h1')!.textContent).toBe('.cellClass(classes)');
-        root.querySelector<HTMLAnchorElement>('a[href="#visibleWhen"]')!.click();
+        root.querySelector<HTMLAnchorElement>('a[href="#visible"]')!.click();
         await settle(page);
-        expect(root.querySelector('h1')!.textContent).toContain('.visibleWhen(predicate)');
+        expect(root.querySelector('h1')!.textContent).toContain('.visible(predicate)');
         expect(root.querySelector<HTMLButtonElement>('.next')!.disabled).toBe(true);
-        expect(window.location.hash).toBe('#visibleWhen');
+        expect(window.location.hash).toBe('#visible');
         window.location.hash = explorerRecipes[explorerRecipes.length - 1].name;
         window.dispatchEvent(new Event('hashchange'));
         await settle(page);
@@ -82,7 +82,7 @@ describe('modifier explorer', () => {
     });
 
     it('updates conditional visibility through the record without losing the address', async () => {
-        const page = await openPage('#visibleWhen');
+        const page = await openPage('#visible');
         const root = page.shadowRoot!;
         const select = root.querySelector('fdl-field[field="fulfillment"]')!.shadowRoot!.querySelector('select')!;
         select.value = 'pickup';
@@ -172,7 +172,7 @@ describe('complete explorer', () => {
         for (const codeSection of section.querySelectorAll('.code-section, .markup-section, .css-section')) {
             expect(demo.compareDocumentPosition(codeSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         }
-        if (!['required', 'formatter', 'visibleWhen'].includes(name)) {
+        if (!['required', 'formatter', 'visible'].includes(name)) {
             const catalog = section.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
             await catalog.updateComplete;
             expect(catalog.shadowRoot!.querySelectorAll('[data-modifier]')).toHaveLength(1);

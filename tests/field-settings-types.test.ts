@@ -6,7 +6,7 @@ function checkSettings() {
     const label: RecordSetting<string, { unit: string }> = record => record.values.unit;
     const field = new FieldTypeBuilder<number>();
     field.label(label).placeholder(record => record.getField('unit'));
-    field.required(true).disabled(false).readOnly(false).visibleWhen(true).emptyWhen(false);
+    field.required(true).disabled(false).readOnly(false).visible(true).emptyWhen(false);
     field.textAlign((value, _record, context) => value < 0 && context === 'table' ? 'right' : 'left');
     field.minLength(record => record.getField('minimum')).maxLength(10);
     const factory: DefaultSetting<number, { default: number }> = record => record.values.default;

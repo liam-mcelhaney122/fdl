@@ -71,7 +71,7 @@ inputs follow the scope of the setting:
 
 | Modifiers | Callback | Exported setting type |
 | --- | --- | --- |
-| `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visibleWhen`, `minLength`, `maxLength` | `(record) => result` | `RecordSetting<Result, R>` |
+| `rowClass`, `label`, `placeholder`, `type`, `required`, `disabled`, `readOnly`, `readOnlyWhen`, `visible`, `minLength`, `maxLength` | `(record) => result` | `RecordSetting<Result, R>` |
 | `defaultValue` | `(record) => value` | `DefaultSetting<T, R>` |
 | `emptyWhen`, `cellClass` | `(value, record) => result` | `ValueSetting<T, Result, R>` |
 | `columnClass` | `() => string or string[]` | Fixed classes or a callback with no arguments |
@@ -291,7 +291,7 @@ in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md))
 | `label(value)` | Set a string label or compute one from the record. |
 | `placeholder(value)`, `autocomplete(value)`, `autofocus()` | Configure common input attributes. |
 | `defaultValue(valueOrFactory)` | Provide defaults for clearing a record, appending a row, and omitted values in a partial clone; constructor values are kept as supplied. |
-| `disabled(predicate)`, `readOnlyWhen(predicate)`, `visibleWhen(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
+| `disabled(predicate)`, `readOnlyWhen(predicate)`, `visible(predicate)` | Set conditional state. Use `disabled()` or `readOnly()` for an unconditional state. |
 | `multipleValues(min, max)` | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators. |
 | `options(config)` | Provide options for a select-like control. |
 

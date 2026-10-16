@@ -24,7 +24,7 @@ export const accountFields = {
   country: field.label('Country code').required(),
   taxId: field.label('Tax ID')
     .required(isInternational)
-    .visibleWhen(isInternational)
+    .visible(isInternational)
     .validator({
       name: 'must contain two uppercase letters followed by six digits',
       validate: (value, _viewValue, record) =>

@@ -26,7 +26,7 @@ type DemoName =
     | 'placeholder' | 'readOnly' | 'readOnlyWhen' | 'reducer' | 'required'
     | 'parser' | 'rowClass' | 'rowCount' | 'sortable'
     | 'targetColumnWidth' | 'template' | 'textAlign' | 'type' | 'validator'
-    | 'visibleWhen';
+    | 'visible';
 
 type CatalogEntry = {
     name: string;
@@ -90,7 +90,7 @@ field
     live('textAlign', 'Stores the preferred left, center, or right alignment for rendered values.', 'textAlign', `.textAlign('right')`),
     live('type', 'Sets the native input type, such as email, number, or date.', 'type', `.type('date')`),
     live('validator', 'Adds a named synchronous business rule to record validation.', 'validator', `.validator({ name: 'must be a valid email address', validate: value => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(value)) })`),
-    live('visibleWhen', 'Includes the field only while every visibility predicate is true.', 'visibleWhen', `.visibleWhen(record => record.getField('fulfillment') === 'ship')`),
+    live('visible', 'Includes the field only while every visibility predicate is true.', 'visible', `.visible(record => record.getField('fulfillment') === 'ship')`),
 ].sort((left, right) => left.name.localeCompare(right.name));
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -163,7 +163,7 @@ export class FdlModifierCatalog extends LitElement {
                 .validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
                 .validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
             fulfillment: field.label('Fulfillment').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
-            address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
+            address: field.label('Shipping address').visible(record => record.getField('fulfillment') === 'ship'),
         },
         {
             extraProperty: '', lockedId: 'SYS-77', approvalStatus: 'draft', budget: 5000,
@@ -499,7 +499,7 @@ export class FdlModifierCatalog extends LitElement {
                 <h3>${example.title}</h3><p>${example.hint}</p>
                 ${this.renderValidation(example.field, example.button)}
             </section>`)}`;
-            case 'visibleWhen': return html`<p class="try">Choose Pickup to remove Shipping address.</p>${this.renderField('fulfillment')}${this.renderField('address')}`;
+            case 'visible': return html`<p class="try">Choose Pickup to remove Shipping address.</p>${this.renderField('fulfillment')}${this.renderField('address')}`;
         }
         return html``;
     }
@@ -511,7 +511,7 @@ export class FdlModifierCatalog extends LitElement {
             multipleValues: ['skills'], options: ['department', 'assignee', 'asyncAssignee'], parser: ['money'],
             placeholder: ['projectName'], readOnly: ['fixedOwner'], readOnlyWhen: ['phase', 'conditionalOwner'],
             required: ['requiredName', 'followUp', 'followUpNotes'], rowCount: ['comments'],
-            validator: ['email', 'orderQuantity', 'username'], visibleWhen: ['fulfillment', 'address'],
+            validator: ['email', 'orderQuantity', 'username'], visible: ['fulfillment', 'address'],
         };
         if (fields[name]) return Object.fromEntries(fields[name].map(field => [field, this.record.getField(field as keyof typeof this.record.values)]));
         if (name === 'type') return this.inputTypeRecord.values;

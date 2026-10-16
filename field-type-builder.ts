@@ -681,7 +681,7 @@ export default class FieldTypeBuilder<T = unknown> {
         return copy;
     }
 
-    visibleWhen(predicate: RecordSetting<boolean>) {
+    visible(predicate: RecordSetting<boolean>) {
         const copy = this.copy();
         copy.properties.visibleFunctions = [...copy.properties.visibleFunctions, predicate];
         copy.properties.descriptions = [
@@ -689,6 +689,11 @@ export default class FieldTypeBuilder<T = unknown> {
             `visible when ${printFunction(predicate)}}`,
         ];
         return copy;
+    }
+
+    /** @deprecated Use visible(predicate) instead. */
+    visibleWhen(predicate: RecordSetting<boolean>) {
+        return this.visible(predicate);
     }
 
     emptyWhen(predicate: ValueSetting<T, boolean>) {

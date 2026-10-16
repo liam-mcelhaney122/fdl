@@ -202,9 +202,9 @@ describe('<fdl-field>', () => {
         element.remove();
     });
 
-    it('does not render a field when visibleWhen() returns false', async () => {
+    it('does not render a field when visible() returns false', async () => {
         const record = new Record(
-            { address: new FieldTypeBuilder().label('Address').visibleWhen(() => false) },
+            { address: new FieldTypeBuilder().label('Address').visible(() => false) },
             { address: '' }
         );
         const element = document.createElement('fdl-field') as HTMLElement & {

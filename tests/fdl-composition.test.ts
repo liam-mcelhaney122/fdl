@@ -28,9 +28,9 @@ it('keeps whitespace in the unnumbered class and rejects it when format checking
 });
 it('renders definitions that reflect the independently enabled rules', () => {
     const simple = compositionDefinition({visibility:'all',requiredness:'never',validation:'off'});
-    expect(simple).not.toMatch(/visibleWhen|required|validator/);
+    expect(simple).not.toMatch(/visible|required|validator/);
     const full = compositionDefinition({visibility:'shipping',requiredness:'always',validation:'on'});
-    expect(full).toContain('.visibleWhen(');
+    expect(full).toContain('.visible(');
     expect(full).toContain('.required()');
     expect(full).toContain('.validator(');
     expect(full).toContain('/^\\d+\\s+\\S/');

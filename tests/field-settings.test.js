@@ -10,7 +10,7 @@ const settings = [
     ['maxLength', 'maxLength', 10],
     ['required', 'required', true],
     ['disabled', 'isDisabled', true],
-    ['visibleWhen', 'visible', false],
+    ['visible', 'visible', false],
     ['readOnly', 'readonly', true],
     ['readOnlyWhen', 'readonly', true],
     ['emptyWhen', 'isEmpty', true],

@@ -1,6 +1,6 @@
 export const exampleFields: { [name: string]: [record: string, fields: string[]] } = {
     required: ['person', ['name','followUp','followUpNotes']], formatter: ['money', ['amount']],
-    visibleWhen: ['delivery', ['fulfillment', 'address']],
+    visible: ['delivery', ['fulfillment', 'address']],
     defaultValue: ['defaultRecord', ['documentTitle']], disabled: ['record', ['lockedId','approvalStatus','budget']],
     emptyWhen: ['record', ['emptyCode', 'optionalEmptyCode']],
     label: ['record', ['expenseType', 'dynamicAmount']], maxLength: ['record', ['shortCode']],

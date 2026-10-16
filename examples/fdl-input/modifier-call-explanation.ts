@@ -7,7 +7,7 @@ export function explainModifierCall(chain: string, modifier: string, call: strin
     const condition = conditionMeaning(argument);
     switch (modifier) {
         case 'label': return literal !== undefined ? `Labels this field “${literal}”.` : argument.includes("getField('expenseType')") ? 'Updates this field’s label to include the selected expense type.' : 'Calculates this field’s label from the current record.';
-        case 'visibleWhen': return `Shows ${target} when ${condition}, otherwise hides it.`;
+        case 'visible': return `Shows ${target} when ${condition}, otherwise hides it.`;
         case 'required': return !argument || argument === 'true'
             ? `Requires a value for ${target}; leaving it empty fails validation.`
             : argument === 'false' ? `Makes ${target} optional.`

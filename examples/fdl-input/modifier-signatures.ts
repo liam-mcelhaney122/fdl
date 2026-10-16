@@ -2,7 +2,7 @@
 export const modifierSignatures: {[name: string]: string} = {
     "required": "required(predicate?: RecordSetting<boolean>)",
     "formatter": "formatter(fn: (value: T, record: Record<any>, context: string) => any)",
-    "visibleWhen": "visibleWhen(predicate: RecordSetting<boolean>)",
+    "visible": "visible(predicate: RecordSetting<boolean>)",
     "cellClass": "cellClass(classes: ValueSetting<T, string | string[]>)",
     "columnClass": "columnClass(classes: string | string[] | (() => string | string[]))",
     "compareFunction": "compareFunction(fn: (a: T, b: T) => number)",
@@ -44,7 +44,7 @@ export const fieldSettingResults: {[name: string]: string} = {
     "label": "string",
     "required": "boolean",
     "disabled": "boolean",
-    "visibleWhen": "boolean",
+    "visible": "boolean",
     "readOnly": "boolean",
     "readOnlyWhen": "boolean",
     "emptyWhen": "boolean",
@@ -55,7 +55,7 @@ export const fieldSettingResults: {[name: string]: string} = {
     "type": "inputType"
 };
 
-export const recordSettingNames = new Set(["rowClass", "label", "placeholder", "type", "required", "disabled", "visibleWhen", "readOnly", "readOnlyWhen", "minLength", "maxLength"]);
+export const recordSettingNames = new Set(["rowClass", "label", "placeholder", "type", "required", "disabled", "visible", "readOnly", "readOnlyWhen", "minLength", "maxLength"]);
 
 export const columnSettingResults: {[name: string]: string} = {
     "minColumnWidth": "number",

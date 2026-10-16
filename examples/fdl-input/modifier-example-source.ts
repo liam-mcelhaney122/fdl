@@ -30,7 +30,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
     .parser(value => Number(value))
     .formatter((value, record, context) =>
       context === 'input-focus' ? String(value) : currency.format(value))`)}, values:{amount:1250}},
-        visibleWhen: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
+        visible: {name:'delivery', fields:{fulfillment:choose('Delivery method', [['Ship to address','ship'],['Pick up in person','pickup']]), address:type("label('Shipping address').visible(record => record.getField('fulfillment') === 'ship')")}, values:{fulfillment:'ship',address:'42 Orchard Street'}},
         defaultValue: {name:'defaultRecord',fields:{documentTitle:type("label('Document title').defaultValue('Untitled document')")},values:{documentTitle:'Quarterly plan'}},
         disabled: {name:'record',fields:{lockedId:type("label('System ID').disabled()"),approvalStatus:choose('Approval status',[['Draft','draft'],['Approved','approved']]),budget:type("label('Budget').type('number').disabled(record => record.getField('approvalStatus') === 'approved')")},values:{lockedId:'SYS-77',approvalStatus:'draft',budget:5000}},
         emptyWhen: {name:'record',fields:{emptyCode:type("label('Reference').emptyWhen(value => value === 'N/A').required()"),optionalEmptyCode:type("label('Optional reference').emptyWhen(value => value === 'N/A')")},values:{emptyCode:'N/A',optionalEmptyCode:'N/A'}},
