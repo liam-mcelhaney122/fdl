@@ -77,6 +77,37 @@ Include an initial value for every declared field: whole-record validation
 iterates keys in the values object, so an omitted field is not checked by
 `isValid()` (it can still be checked with `isValid(fieldName)`).
 
+## Selections and changing options
+
+Records load option-backed fields on construction and after changes through
+`setField()`, `setFields()`, `addField()`, `reset()`, `clear()`, or
+`announceChange()`. Once the latest choices resolve, a single selection absent
+from those choices is cleared to `undefined`. Multiple selections keep only
+items still present in the choices, using an empty array when none remain.
+Choices use their mapped `value` identities, with deep equality for object values.
+Fields without options are unaffected.
+
+Valid selections remain selected. Pending or failed lookups preserve the current
+value, and obsolete responses cannot clear a value belonging to newer choices.
+Clearing a selection dispatches the usual field `change` event and refreshes any
+further dependent options. Visibility and disabled state do not exempt a field
+from its options constraint.
+
+Reconciliation is asynchronous even for static options. Before submitting or
+validating a record after a change, await all current lookups and cascading clears:
+
+```js
+record.setField('zip', '10001');
+await record.whenOptionsReady();
+record.getField('store'); // undefined if the previous store is no longer an option
+record.isValid(); // required fields still require a new selection
+```
+
+Use `refreshOptions()` to request reconciliation explicitly; option-provider
+caching still applies. `whenOptionsReady()` waits for the latest pass and any
+passes caused by dependent selections clearing. It does not reject on failed
+lookups; the value is retained so a lookup failure does not erase a selection.
+
 ## Validation and display
 
 `isValid()` checks the entire record; `isValid(fieldName)` checks one field.

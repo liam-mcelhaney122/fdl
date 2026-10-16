@@ -39,7 +39,8 @@ Repository API references and architecture decision records remain in `docs/`.
 - Home starts with a delivery experiment. Pickup keeps the store selector visible
   but disabled until a five-digit ZIP is entered. Sample store lookups for 28202
   and 10001 simulate a two-second delay with a loading spinner; changing the ZIP
-  starts a new lookup and older results cannot overwrite it. `#learn` builds one
+  starts a new lookup, older results cannot overwrite it, and the record clears
+  a store selection absent from the latest choices. `#learn` builds one
   example through storage, parsing, validation, dependencies, and collection reuse.
 - `#composition` connects adjustable visibility, requiredness, and validation
   rules to six model-computed outcomes and a selected live form. Selecting an

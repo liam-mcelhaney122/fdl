@@ -41,11 +41,6 @@ const postalZipValidator = {
     name: 'must contain five digits',
     validate: (zip: unknown) => isValidZip(zip),
 };
-const pickupStoreValidator = {
-    name: 'must be available for this ZIP code',
-    validate: (value: unknown, _view: unknown, record: Record<any>) =>
-        !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
-};
 
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
@@ -87,11 +82,6 @@ const postalZipValidator = {
     name: 'must contain five digits',
     validate: zip => isValidZip(zip),
 };
-const pickupStoreValidator = {
-    name: 'must be available for this ZIP code',
-    validate: (value, _view, record) =>
-        !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
-};
 
 const deliveryMethod = field.label('Delivery method')
     .options(deliveryMethodOptions);
@@ -113,8 +103,7 @@ const pickupStore = field.label('Pickup store')
     .visible(whenPickingUp)
     .disabled(whenZipIsInvalid)
     .required(whenPickingUp)
-    .options(pickupStoreOptions)
-    .validator(pickupStoreValidator);
+    .options(pickupStoreOptions);
 
 export const delivery = new Record({
   fulfillment: deliveryMethod,
@@ -188,8 +177,7 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
         .visible(whenPickingUp)
         .disabled(whenZipIsInvalid)
         .required(whenPickingUp)
-        .options(pickupStoreOptions)
-        .validator(pickupStoreValidator);
+        .options(pickupStoreOptions);
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
@@ -215,7 +203,6 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
             ? this.delivery.getField('address') ? 'Shipping needs an address. Clear it to see the record enforce that rule.' : 'Switch to pickup.'
             : !ready ? 'Enter a five-digit ZIP code to choose a pickup store.'
             : !storesForZip(this.delivery).length ? 'No sample stores for this ZIP code. Try 28202 or 10001.'
-            : store && !availableStore ? 'Your stored selection is unavailable for this ZIP code. Choose another store.'
             : availableStore ? 'Pickup is ready. Change the ZIP code to see the available stores change.'
             : 'Choose a store to complete your pickup details.';
         return html`<section aria-label="Try a delivery rule">

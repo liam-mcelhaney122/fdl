@@ -389,7 +389,7 @@ export class FdlModifierCatalog extends LitElement {
                 const matches = this.assigneeChoices.some(choice => choice.value === selected);
                 return html`<div data-selection=${field}>
                     <p>${field === 'assignee' ? 'Function' : 'Async function'} stored selection: <code>${selected || '(empty)'}</code>.</p>
-                    ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected.' : matches ? 'The stored assignee is among the available choices and is not reset when the list changes.' : 'The stored assignee is no longer among the available choices. Refreshing choices preserves the stored selection; the application decides whether to clear it.'}</p>`}
+                    ${this.optionsLoading ? nothing : html`<p>${!selected ? 'No assignee is selected. The record automatically clears selections that are no longer available.' : matches ? 'The stored assignee is among the available choices and is not reset when the list changes.' : 'The stored assignee is no longer among the available choices. The record clears an unavailable selection when the latest choices finish loading.'}</p>`}
                     <button class="clear-selection" ?disabled=${!selected || this.optionsLoading} @click=${() => this.record.setField(field, '')}>Clear ${field === 'assignee' ? 'function' : 'async function'} selection</button>
                 </div>`;
             })}

@@ -34,7 +34,7 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Invalid');
 });
 
-it('keeps pickup stores visible but disabled until the ZIP is valid and validates the current choices', async () => {
+it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable selections', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
@@ -77,12 +77,16 @@ it('keeps pickup stores visible but disabled until the ZIP is valid and validate
     await editField(root, 'zip', '10001');
     await demo.updateComplete;
     expect(record.getField('store')).toBe('uptown');
+    await record.whenOptionsReady();
+    await demo.updateComplete;
+    expect(record.getField('store')).toBeUndefined();
     expect(record.isValid()).toBe(false);
-    expect(root.querySelector('.instruction')!.textContent).toContain('unavailable');
+    expect(root.querySelector('.instruction')!.textContent).toContain('Choose a store');
     await editField(root, 'store', 'chelsea');
     await demo.updateComplete;
     expect(record.isValid()).toBe(true);
     await editField(root, 'zip', '01234');
+    await record.whenOptionsReady();
     await demo.updateComplete;
     expect(record.getField('zip')).toBe('01234');
     expect(record.isValid()).toBe(false);
@@ -100,8 +104,8 @@ it('keeps pickup stores visible but disabled until the ZIP is valid and validate
     await demo.updateComplete;
     expect(record.isValid()).toBe(true);
     expect(record.getField('address')).toBe('42 Orchard Street');
-    expect(record.getField('store')).toBe('chelsea');
-});
+    expect(record.getField('store')).toBeUndefined();
+}, 10000);
 
 it('starts with a complete shipping address and retains it when switching to pickup', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
@@ -303,23 +307,21 @@ it('explains actual sort precedence without requiring a JSON read', async () => 
     expect(catalog.shadowRoot!.querySelector('.focused-state details')!.hasAttribute('open')).toBe(false);
 });
 
-it('exposes an out-of-list selection and clears it only on request', async () => {
+it('automatically clears an assignee removed from the available choices', async () => {
     const page = await openExplorer('#options');
     const catalog = page.shadowRoot!.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
     await catalog.updateComplete;
     await editField(catalog.shadowRoot!, 'assignee', 'grace');
     await editField(catalog.shadowRoot!, 'department', 'finance');
+    const assignee = catalog.shadowRoot!.querySelector('fdl-field[field="assignee"]') as any;
+    await assignee.record.whenOptionsReady();
     await new Promise(resolve => setTimeout(resolve, 0));
     await catalog.updateComplete;
     const explanation = catalog.shadowRoot!.querySelector('.selection-explanation')!;
-    expect(explanation.textContent).toContain('no longer among the available choices');
     expect(explanation.textContent).toContain('Katherine Johnson');
-    expect(explanation.textContent).toContain('grace');
-    catalog.shadowRoot!.querySelector<HTMLButtonElement>('.clear-selection')!.click();
-    await catalog.updateComplete;
     expect(explanation.textContent).toContain('No assignee is selected');
     const state = JSON.parse(catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!);
-    expect(state.assignee).toBe('');
+    expect(state.assignee).toBeUndefined();
 });
 
 it('offers email, quantity, and username validator examples', async () => {

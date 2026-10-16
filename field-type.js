@@ -259,7 +259,7 @@ export default class FieldType {
                         this.resultsText[JSON.stringify(result.value)] = result.text;
                     }
                 });
-            });
+            }, () => {});
             this.loaded = results;
         }
         return results;

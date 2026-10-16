@@ -323,8 +323,11 @@ const remoteAssignee = field
 ```
 
 If the selected value exists in both the old and new option lists, it remains
-selected. Refreshing choices does not reset the record value. When a value is
-absent from the new list, the application decides whether to clear it.
+selected. `Record` clears an unavailable single selection to `undefined` after
+the latest choices resolve; multiple selections retain only available items.
+Pending or failed lookups retain the current value. Use
+`await record.whenOptionsReady()` before validating or submitting after changes.
+See [selection reconciliation](./record.md#selections-and-changing-options).
 
 `options()` also accepts `{ data, text, value, compareFunction, filter, fields
 }` or `{ fetch, ... }`. `fetch` receives the current record and may return an

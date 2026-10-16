@@ -32,6 +32,57 @@ export default class Record extends EventTarget {
         this.listeners = {};
         /** @type {boolean} View model property used by <omega-table> to track detail row state. */
         this.isExpanded = false;
+        this.optionsRevision = 0;
+        this.optionsRefresh = Promise.resolve();
+        this.refreshOptions();
+    }
+
+    /**
+     * Reconcile selections against the latest options, independently of any UI.
+     * Calls in the same turn are coalesced; obsolete responses cannot clear values.
+     * @returns {Promise<void>}
+     */
+    refreshOptions() {
+        const revision = ++this.optionsRevision;
+        this.optionsRefresh = Promise.resolve().then(async () => {
+            if (revision !== this.optionsRevision) return;
+            const results = await Promise.all(Object.entries(this.fieldTypes)
+                .filter(([, fieldType]) => fieldType.hasOptions())
+                .map(async ([field, fieldType]) => {
+                    try {
+                        return { field, fieldType, options: await fieldType.options(this) };
+                    } catch {
+                        // A failed lookup is not an empty list of available choices.
+                        return undefined;
+                    }
+                }));
+            if (revision !== this.optionsRevision) return;
+            const changes = {};
+            for (const result of results) {
+                if (!result || !Array.isArray(result.options)) continue;
+                const { field, fieldType, options } = result;
+                const current = this.getField(field);
+                if (current === undefined || current === null || current === '') continue;
+                const available = value => options.some(option => deepEquals(option.value, value));
+                if (fieldType.hasMultipleValues() && Array.isArray(current)) {
+                    const retained = current.filter(available);
+                    if (retained.length !== current.length) changes[field] = retained;
+                } else if (!available(current)) {
+                    changes[field] = undefined;
+                }
+            }
+            this.setFields(changes);
+        });
+        return this.optionsRefresh;
+    }
+
+    /** Wait until option reconciliation and any resulting dependency changes settle. */
+    async whenOptionsReady() {
+        let pending;
+        do {
+            pending = this.optionsRefresh;
+            await pending;
+        } while (pending !== this.optionsRefresh);
     }
 
     get hasChanged() {
@@ -83,6 +134,7 @@ export default class Record extends EventTarget {
      * @param {string} field
      */
     announceChange(field) {
+        this.refreshOptions();
         this.dispatchEvent(new CustomEvent('change', { detail: { field } }));
     }
 
