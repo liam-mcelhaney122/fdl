@@ -14,9 +14,6 @@ it('explores delivery visibility and requiredness without discarding the address
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
-    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
-        'Shipping needs an address. Clear it to see the record enforce that rule.'
-    );
     const inspection = await inspectorRoot(demo);
     const rows = inspection.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(6);
@@ -35,9 +32,6 @@ it('explores delivery visibility and requiredness without discarding the address
     select.dispatchEvent(new Event('input'));
     select.dispatchEvent(new Event('change'));
     await demo.updateComplete;
-    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
-        'Choose a store to complete your pickup details.'
-    );
     const addressRow = (await inspectorRoot(demo)).querySelector('tr[data-field="address"]')!;
     expect(Array.from(addressRow.querySelectorAll('[role="img"]')).map(icon =>
         icon.getAttribute('aria-label')
@@ -56,7 +50,6 @@ it('explores delivery visibility and requiredness without discarding the address
     input.value = '';
     input.dispatchEvent(new Event('input'));
     await demo.updateComplete;
-    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Switch to pickup.');
     expect(addressRow.querySelector('[aria-label="Invalid"]')).not.toBeNull();
     input.value = '42 Orchard Street';
     input.dispatchEvent(new Event('input'));
@@ -123,7 +116,6 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
     await demo.updateComplete;
     expect(record.getField('store')).toBeUndefined();
     expect(record.isValid()).toBe(false);
-    expect(root.querySelector('.instruction')!.textContent).toContain('Choose a store');
     await editField(root, 'store', 'chelsea');
     await demo.updateComplete;
     expect(record.isValid()).toBe(true);
@@ -132,7 +124,6 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
     await demo.updateComplete;
     expect(record.getField('zip')).toBe('01234');
     expect(record.isValid()).toBe(false);
-    expect(root.querySelector('.instruction')!.textContent).toContain('No sample stores');
     await editField(root, 'zip', '');
     await demo.updateComplete;
     expect(storeVisible()).toBe(true);

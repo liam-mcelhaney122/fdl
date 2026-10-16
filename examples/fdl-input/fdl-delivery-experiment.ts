@@ -283,23 +283,6 @@ export const shippingStateOptions = [
             { id: 'data', name: 'delivery-data.ts', code: this.dataCode },
         ] as const;
         const pickup = whenPickingUp(this.delivery);
-        const zip = this.delivery.getField('zip');
-        const ready = isValidZip(zip);
-        const stores = storesByZip[zip] || [];
-        const store = this.delivery.getField('store');
-        const availableStore = stores.find(option => option.value === store);
-        const instruction =
-            this.delivery.getField('fulfillment') === 'ship'
-                ? this.delivery.getField('address')
-                    ? 'Shipping needs an address. Clear it to see the record enforce that rule.'
-                    : 'Switch to pickup.'
-                : !ready
-                  ? 'Enter a five-digit ZIP code to choose a pickup store.'
-                  : !stores.length
-                    ? 'No sample stores for this ZIP code. Try 28202 or 10001.'
-                    : availableStore
-                      ? 'Pickup is ready. Change the ZIP code to see the available stores change.'
-                      : 'Choose a store to complete your pickup details.';
         return html`<details>
             <summary><h2>See FDL in Action</h2></summary>
             <p>
@@ -346,7 +329,6 @@ export const shippingStateOptions = [
                 aria-labelledby="delivery-example-tab"
                 ?hidden=${this.activeTab !== 'example'}
             >
-                <p class="instruction">${instruction}</p>
                 <div class="experiment">
                     <div class="editor">
                         <fdl-field
