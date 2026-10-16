@@ -25,10 +25,11 @@ import {
     prefixFilter,
     substringFilter,
 } from './comparison-examples';
-import { describeValue, recordSummary, tableSummary } from './model-summary';
+import { describeValue, tableSummary } from './model-summary';
 import { keyed } from 'lit/directives/keyed.js';
 import { explainDependency } from './dependency-explanation';
 import './fdl-table';
+import './fdl-record-inspector';
 
 type DemoName =
     | 'cellClass'
@@ -1301,15 +1302,19 @@ export class FdlModifierCatalog extends LitElement {
             : undefined;
     }
 
+    private inspectedRecord(name: string): Record<any> | undefined {
+        if (this.tableRecordsets[name] || ['hashFunction', 'reducer'].includes(name))
+            return undefined;
+        if (name === 'type') return this.inputTypeRecord;
+        if (name === 'defaultValue') return this.defaultRecord;
+        if (name === 'inputMask') return this.probes;
+        return this.focusedState(name) ? this.record : undefined;
+    }
+
     private stateSummary(name: string) {
         const table = this.tableRecordsets[name];
         if (table) return tableSummary(table);
-        if (name === 'type') return recordSummary(this.inputTypeRecord);
-        if (name === 'defaultValue') return recordSummary(this.defaultRecord);
-        if (name === 'inputMask') return recordSummary(this.probes, ['input']);
         const state = this.focusedState(name);
-        if (state && !['hashFunction', 'reducer'].includes(name))
-            return recordSummary(this.record, Object.keys(state as object));
         if (name === 'reducer')
             return html`<p class="state-summary"
                 >Three values aggregate to
@@ -1323,6 +1328,7 @@ export class FdlModifierCatalog extends LitElement {
             entry => entry.name === this.modifier
         );
         if (!entry) return nothing;
+        const record = this.inspectedRecord(entry.name);
         return html`<div
             class=${`focused ${['cellClass', 'columnClass', 'compareFunction', 'filter', 'formatter', 'maxColumnWidth', 'minColumnWidth', 'rowClass', 'sortable', 'targetColumnWidth', 'template', 'textAlign'].includes(entry.name) || !entry.demo ? 'full-width' : ''}`}
             data-modifier=${entry.name}
@@ -1331,15 +1337,20 @@ export class FdlModifierCatalog extends LitElement {
                 entry.demo
                     ? html`<div class="focused-demo"
                               >${this.renderDemo(entry.demo)}</div
-                          ><div class="focused-state"
+                          >${record
+                              ? html`<fdl-record-inspector
+                                    .record=${record}
+                                    .fields=${Object.keys(this.focusedState(entry.name) as object)}
+                                ></fdl-record-inspector>`
+                              : html`<div class="focused-state"
                               ><p class="state-label"
-                                  >${['hashFunction', 'reducer'].includes(entry.name) ? 'MODEL EXERCISE' : this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'IN THE RECORD'}</p
+                                  >${this.tableRecordsets[entry.name] ? 'IN THE RECORDSET' : 'MODEL EXERCISE'}</p
                               >${this.stateSummary(entry.name)}<details
                                   ><summary>Inspect full JSON</summary
                                   ><pre>
 ${JSON.stringify(this.focusedState(entry.name), null, 2)}</pre>
                               </details></div
-                          >`
+                          >`}`
                     : html`<div class="limitation"
                           ><strong>Adapter support needed</strong
                           ><p>${entry.limitation}</p

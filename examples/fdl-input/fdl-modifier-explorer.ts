@@ -15,7 +15,7 @@ import { exampleSource, type ExampleSettings } from './modifier-example-source';
 import { highlightJavaScript, highlightModifier } from './highlight-javascript';
 import { inputText, valuePipeline } from './value-pipeline';
 import { exampleTheme } from './example-theme';
-import { recordSummary } from './model-summary';
+import './fdl-record-inspector';
 import { explainDependency } from './dependency-explanation';
 import { keyed } from 'lit/directives/keyed.js';
 import Record from '../../record.js';
@@ -458,16 +458,9 @@ export class FdlModifierExplorer extends LitElement {
                         >${keyed(`${recipe.name}-${this.resetVersions[recipe.name] ?? 0}`, this.demo(recipe.name))}</div
                     >${
                         standaloneDemo
-                            ? html`<div class="model"
-                                  ><p class="eyebrow">IN THE RECORD</p
-                                  >${recordSummary(model)}<details
-                                      ><summary>Inspect full JSON</summary
-                                      ><pre>
-${JSON.stringify(model.values, null, 2)}</pre></details
-                                  ><div class="model-foot"
-                                      >Actual FDL model state</div
-                                  ></div
-                              >`
+                            ? html`<fdl-record-inspector
+                                  .record=${model}
+                              ></fdl-record-inspector>`
                             : ''
                     }</div
                 >
@@ -1692,25 +1685,6 @@ ${JSON.stringify(model.values, null, 2)}</pre></details
             margin: 16px 0 0;
             font-size: 1rem;
             line-height: 1.65;
-            color: var(--muted);
-        }
-        .model {
-            align-self: start;
-        }
-        .model .eyebrow {
-            margin-bottom: 16px;
-        }
-        .model pre {
-            margin: 0;
-            font: 1rem/1.7 monospace;
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-        }
-        .model-foot {
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #cbd5e1;
-            font-size: 0.875rem;
             color: var(--muted);
         }
         summary {

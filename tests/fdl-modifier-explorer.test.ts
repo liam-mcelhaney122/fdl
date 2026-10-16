@@ -1,3 +1,4 @@
+import type { FdlField } from '../examples/fdl-input/fdl-field';
 import FieldTypeBuilder from '../field-type-builder';
 import { inputTypes } from '../types/input-types.types';
 import { modifierPage, modifierPageGroups } from '../examples/fdl-input/modifier-page-groups';
@@ -13,6 +14,15 @@ import type { FdlModifierExplorer } from '../examples/fdl-input/fdl-modifier-exp
 beforeAll(() => {
     HTMLElement.prototype.scrollIntoView = jest.fn();
 });
+
+async function stateText(host: HTMLElement): Promise<string> {
+    const inspector = host.shadowRoot!.querySelector('fdl-record-inspector');
+    if (inspector) {
+        await inspector.updateComplete;
+        return inspector.shadowRoot!.textContent!;
+    }
+    return host.shadowRoot!.querySelector('.focused-state')!.textContent!;
+}
 
 const settle = async (page: FdlModifierExplorer) => {
     await page.updateComplete;
@@ -71,10 +81,10 @@ describe('modifier explorer', () => {
         input.dispatchEvent(new Event('input'));
         await settle(page);
         expect(root.querySelector('.result')!.textContent).toContain('The record is valid');
-        expect(root.querySelector('.model pre')!.textContent).toContain('Ada Lovelace');
+        expect(await stateText(page)).toContain('Ada Lovelace');
         root.querySelector<HTMLButtonElement>('.reset')!.click();
         await settle(page);
-        expect(root.querySelector('.model pre')!.textContent).toContain('"name": ""');
+        expect(await stateText(page)).toContain('(empty string)');
         expect(root.querySelector('.result')!.textContent).toContain(
             'Check record shows its validation message'
         );
@@ -91,7 +101,7 @@ describe('modifier explorer', () => {
         input.dispatchEvent(new Event('input'));
         await settle(page);
         expect(page.shadowRoot!.querySelector('.formatted strong')!.textContent).toBe('$42.00');
-        expect(page.shadowRoot!.querySelector('.model pre')!.textContent).toContain('42');
+        expect(await stateText(page)).toContain('42');
     });
 
     it('updates conditional visibility through the record without losing the address', async () => {
@@ -106,10 +116,10 @@ describe('modifier explorer', () => {
         await settle(page);
         expect(root.querySelector('.result')!.textContent).toContain('Shipping address is hidden');
         expect(select.value).toBe('pickup');
-        expect(root.querySelector('.model pre')!.textContent).toContain('"fulfillment": "pickup"');
+        expect(await stateText(page)).toContain('pickup');
         const address = root.querySelector('fdl-field[field="address"]')!;
         expect(address.shadowRoot!.querySelector('input')).toBeNull();
-        expect(root.querySelector('.model pre')!.textContent).toContain('42 Orchard Street');
+        expect(await stateText(page)).toContain('42 Orchard Street');
         select.value = 'ship';
         select.dispatchEvent(new Event('input'));
         select.dispatchEvent(new Event('change'));
@@ -264,7 +274,7 @@ describe('complete explorer', () => {
                     );
                 } else {
                     expect(
-                        catalog.shadowRoot!.querySelector('.focused-state pre')!.textContent!.length
+                        (await stateText(catalog)).length
                     ).toBeGreaterThan(1);
                 }
             }
@@ -317,14 +327,14 @@ describe('complete explorer', () => {
         await catalog.updateComplete;
         catalog.shadowRoot!.querySelector<HTMLButtonElement>('button')!.click();
         await catalog.updateComplete;
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain(
+        expect(await stateText(catalog)).toContain(
             'Untitled document'
         );
         root.querySelector<HTMLButtonElement>('.reset')!.click();
         await settle(page);
         catalog = root.querySelector('fdl-modifier-catalog') as FdlModifierCatalog;
         await catalog.updateComplete;
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain(
+        expect(await stateText(catalog)).toContain(
             'Quarterly plan'
         );
     });
@@ -344,7 +354,7 @@ describe('extended model exercises', () => {
         input.dispatchEvent(new Event('input'));
         await catalog.updateComplete;
         expect(catalog.shadowRoot!.querySelector('.computed')!.textContent).toContain('$2,000.00');
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('2000');
+        expect(await stateText(catalog)).toContain('2000');
     });
 
     it('shows actual hydrated and sorted table rows in the state panel', async () => {
@@ -358,7 +368,7 @@ describe('extended model exercises', () => {
         await table.recordset.requestUpdate();
         await catalog.updateComplete;
         await table.updateComplete;
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('Zulu');
+        expect(await stateText(catalog)).toContain('Zulu');
         const sort = table.shadowRoot.querySelector(
             'button[title="Sort by Last name"]'
         ) as HTMLButtonElement;
@@ -389,7 +399,7 @@ describe('extended model exercises', () => {
         const field = catalog.shadowRoot!.querySelector('fdl-field') as any;
         await field.updateComplete;
         expect(field.shadowRoot.querySelector('[aria-invalid="true"]')).toBeTruthy();
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain(
+        expect(await stateText(catalog)).toContain(
             'THIS-CODE-IS-TOO-LONG'
         );
     });
@@ -513,7 +523,7 @@ it('parses formatted money input in the surviving documentation example', async 
     input.value = '$1,500.00';
     input.dispatchEvent(new Event('input'));
     await catalog.updateComplete;
-    expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain('1500');
+    expect(await stateText(catalog)).toContain('1500');
 });
 
 it('defines valid, reciprocal related links for every modifier', () => {
@@ -708,7 +718,7 @@ it('previews every declared input type and keeps the source and record panel in 
         expect(input.type).toBe(inputType);
         expect(preview.record.fieldTypeForField('inputValue').type()).toBe(inputType);
         expect(root.textContent).toContain(`.type('${inputType}')`);
-        expect(catalog.shadowRoot!.querySelector('.focused-state')!.textContent).toContain(
+        expect(await stateText(catalog)).toContain(
             'Example: ' + inputType
         );
         if (inputType === 'checkbox' || inputType === 'radio') {
@@ -837,4 +847,30 @@ it('documents default factories with only their owning record', async () => {
         'factory: (record: Record<any>) => T | null'
     );
     expect(section.querySelector('.setting-contract')!.textContent).toContain('(record)');
+});
+
+
+it.each([
+    'required', 'formatter', 'visible', 'defaultValue', 'disabled', 'emptyWhen',
+    'label', 'maxLength', 'minLength', 'multipleValues', 'options', 'parser',
+    'placeholder', 'readOnly', 'rowCount', 'type', 'validator',
+])('inspects the live record and relevant fields on the %s page', async name => {
+    const page = await openPage(`#${name}`);
+    const catalog = page.shadowRoot!.querySelector<FdlModifierCatalog>('fdl-modifier-catalog');
+    if (catalog) await catalog.updateComplete;
+    const root = (catalog ?? page).shadowRoot!;
+    const inspector = root.querySelector('fdl-record-inspector')!;
+    expect(inspector).toBeTruthy();
+    await inspector.updateComplete;
+    const fields = [...root.querySelectorAll<FdlField>('fdl-field')];
+    await Promise.all(fields.map(field => field.updateComplete));
+    expect(fields.some(field => inspector.record === field.record)).toBe(true);
+    const names = inspector.fields ?? Object.keys(inspector.record!.fieldTypes);
+    expect([...inspector.shadowRoot!.querySelectorAll('tbody tr')].map(row =>
+        row.getAttribute('data-field')
+    )).toEqual(names);
+    expect(names).toEqual(expect.arrayContaining(fields
+        .filter(field => field.record === inspector.record)
+        .map(field => field.field)));
+    expect(root.querySelector('.model, .focused-state')).toBeNull();
 });
