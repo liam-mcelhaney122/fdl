@@ -5,6 +5,18 @@ import Record from '../../record.js';
 import './fdl-field';
 import { highlightJavaScript } from './highlight-javascript';
 
+const deliveryMethodLabel = 'Delivery method';
+const shippingAddressLabel = 'Shipping address';
+const shippingCityLabel = 'City';
+const shippingStateLabel = 'State';
+const postalZipLabel = 'ZIP code';
+const pickupStoreLabel = 'Pickup store';
+
+const deliveryMethodOptions = [
+    { text: 'Ship to address', value: 'ship' },
+    { text: 'Pick up from store', value: 'pickup' },
+];
+
 function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
 }
@@ -53,9 +65,44 @@ async function loadStoresForZip(record: Record<any>) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
+const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];
+const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
+const postalZipValidator = {
+    name: 'must contain five digits',
+    validate: isValidPostalZip,
+};
+const pickupStoreValidator = {
+    name: 'must be available for this ZIP code',
+    validate: isAvailablePickupStore,
+};
+
+function whenZipIsInvalid(record: Record<any>) {
+    return !hasValidZip(record);
+}
+
+function isValidPostalZip(value: unknown, _view: unknown, record: Record<any>) {
+    return !value || hasValidZip(record);
+}
+
+function isAvailablePickupStore(value: unknown, _view: unknown, record: Record<any>) {
+    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
+}
+
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
+
+const deliveryMethodLabel = 'Delivery method';
+const shippingAddressLabel = 'Shipping address';
+const shippingCityLabel = 'City';
+const shippingStateLabel = 'State';
+const postalZipLabel = 'ZIP code';
+const pickupStoreLabel = 'Pickup store';
+
+const deliveryMethodOptions = [
+    { text: 'Ship to address', value: 'ship' },
+    { text: 'Pick up from store', value: 'pickup' },
+];
 
 function whenDeliveryMethodRequiresAddress(record) {
   return record.getField('fulfillment') === 'ship';
@@ -105,37 +152,51 @@ async function loadStoresForZip(record) {
     return [{ text: 'Select a store', value: '' }, ...stores];
 }
 
-const deliveryMethod = field.label('Delivery method')
-    .options([
-      { text: 'Ship to address', value: 'ship' },
-      { text: 'Pick up from store', value: 'pickup' },
-    ]);
-const shippingAddress = field.label('Shipping address')
+const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];
+const pickupStoreOptions = { fields: ['zip', 'fulfillment'], fetch: loadStoresForZip };
+const postalZipValidator = {
+    name: 'must contain five digits',
+    validate: isValidPostalZip,
+};
+const pickupStoreValidator = {
+    name: 'must be available for this ZIP code',
+    validate: isAvailablePickupStore,
+};
+
+function whenZipIsInvalid(record) {
+    return !hasValidZip(record);
+}
+
+function isValidPostalZip(value, _view, record) {
+    return !value || hasValidZip(record);
+}
+
+function isAvailablePickupStore(value, _view, record) {
+    return !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value);
+}
+
+const deliveryMethod = field.label(deliveryMethodLabel)
+    .options(deliveryMethodOptions);
+const shippingAddress = field.label(shippingAddressLabel)
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
-const shippingCity = field.label('City')
+const shippingCity = field.label(shippingCityLabel)
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
-const shippingState = field.label('State')
+const shippingState = field.label(shippingStateLabel)
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress)
-    .options([{ text: 'Select a state', value: '' }, ...stateOptions]);
-const postalZip = field.label('ZIP code')
+    .options(shippingStateOptions);
+const postalZip = field.label(postalZipLabel)
     .required()
-    .validator({
-        name: 'must contain five digits',
-        validate: (value, _view, record) => !value || hasValidZip(record),
-    });
-const pickupStore = field.label('Pickup store')
+    .validator(postalZipValidator);
+const pickupStore = field.label(pickupStoreLabel)
     .visible(whenPickingUp)
-    .disabled(record => !hasValidZip(record))
+    .disabled(whenZipIsInvalid)
     .required(whenPickingUp)
-    .options({ fields: ['zip', 'fulfillment'], fetch: loadStoresForZip })
-    .validator({
-        name: 'must be available for this ZIP code',
-        validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
-    });
+    .options(pickupStoreOptions)
+    .validator(pickupStoreValidator);
 
 export const delivery = new Record({
   fulfillment: deliveryMethod,
@@ -163,34 +224,26 @@ export class DeliveryForm extends LitElement {
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
-    private deliveryMethod = field.label('Delivery method').options([
-        { text: 'Ship to address', value: 'ship' }, { text: 'Pick up from store', value: 'pickup' },
-    ]);
-    private shippingAddress = field.label('Shipping address')
+    private deliveryMethod = field.label(deliveryMethodLabel).options(deliveryMethodOptions);
+    private shippingAddress = field.label(shippingAddressLabel)
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
-    private shippingCity = field.label('City')
+    private shippingCity = field.label(shippingCityLabel)
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
-    private shippingState = field.label('State')
+    private shippingState = field.label(shippingStateLabel)
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress)
-        .options([{ text: 'Select a state', value: '' }, ...stateOptions]);
-    private postalZip = field.label('ZIP code')
+        .options(shippingStateOptions);
+    private postalZip = field.label(postalZipLabel)
         .required()
-        .validator({
-            name: 'must contain five digits',
-            validate: (value, _view, record) => !value || hasValidZip(record),
-        });
-    private pickupStore = field.label('Pickup store')
+        .validator(postalZipValidator);
+    private pickupStore = field.label(pickupStoreLabel)
         .visible(whenPickingUp)
-        .disabled(record => !hasValidZip(record))
+        .disabled(whenZipIsInvalid)
         .required(whenPickingUp)
-        .options({ fields: ['zip', 'fulfillment'], fetch: loadStoresForZip })
-        .validator({
-            name: 'must be available for this ZIP code',
-            validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
-        });
+        .options(pickupStoreOptions)
+        .validator(pickupStoreValidator);
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
