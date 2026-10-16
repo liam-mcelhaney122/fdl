@@ -19,6 +19,8 @@ modifier reference pages that group related rules, with live examples, model
 state, and highlighted code. Each modifier retains its own hash link.
 Run it locally with `npm run docs:dev` and open the root URL printed by Vite.
 Building or previewing the site does not publish it.
+Pushing to `main` builds and publishes it to
+[GitHub Pages](https://patrickmcelhaney.org/FDL/).
 
 ## First working form
 
@@ -202,6 +204,13 @@ npm run docs:build
 
 The site source is in `examples/fdl-input/`. The repository's Markdown API
 references and architecture records remain under `docs/`.
+
+The **Documentation site** GitHub Actions workflow checks the production build
+on pull requests and publishes it after pushes to `main`. It can also be run
+manually from the Actions tab on `main`. The workflow builds with the `/FDL/`
+base path and publishes `examples/fdl-input/dist`; local development continues
+to use the root URL. In repository **Settings → Pages**, the publishing source
+must be **GitHub Actions**.
 
 ## Project status
 
