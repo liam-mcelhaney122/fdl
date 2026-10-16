@@ -1463,6 +1463,73 @@ export class FdlModifierExplorer extends LitElement {
         .concepts dd {
             margin: 8px 0 0;
         }
+        .model-concepts {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+            margin: 24px 0 36px;
+        }
+        .model-concept {
+            min-width: 0;
+            padding: 20px;
+            border: 1px solid #dfe3ee;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .model-concept h3 {
+            margin: 0 0 12px;
+            font-size: 1.25rem;
+        }
+        .model-concept p {
+            margin: 12px 0;
+        }
+        .model-concept .model-analogy {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .model-diagram {
+            margin: 24px 0;
+        }
+        .model-diagram table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            text-align: left;
+        }
+        .model-diagram caption {
+            padding-bottom: 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+        .model-diagram th,
+        .model-diagram td {
+            padding: 10px 8px;
+            border: 1px solid #dfe3ee;
+        }
+        .model-diagram th {
+            background: #f4f6fa;
+        }
+        .model-diagram--field tr > :first-child,
+        .model-diagram--record tbody tr:first-child > *,
+        .model-diagram--recordset th,
+        .model-diagram--recordset td {
+            background: #e4edff;
+            color: #183b79;
+            font-weight: 600;
+            border-color: #87a8de;
+        }
+        .model-concept .model-example {
+            font-size: 0.9375rem;
+        }
+        @media (max-width: 1100px) {
+            .model-concepts {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            .model-diagram {
+                max-width: 24rem;
+            }
+        }
         .empty-search {
             font-size: 1rem;
         }

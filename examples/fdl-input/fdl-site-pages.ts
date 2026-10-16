@@ -43,6 +43,28 @@ person.isValid(); // false
 person.setField('name', 'Ada');
 person.isValid(); // true`;
 
+function renderModelDiagram(part: 'field' | 'record' | 'recordset') {
+    const captions = {
+        field: 'One field → one column',
+        record: 'One record → one row',
+        recordset: 'One recordset → the whole table',
+    };
+    return html`<figure class="model-diagram model-diagram--${part}">
+        <table>
+            <caption>${captions[part]}</caption>
+            <thead
+                ><tr
+                    ><th scope="col">Name</th><th scope="col">City</th></tr
+                ></thead
+            >
+            <tbody>
+                <tr><td>Ada</td><td>London</td></tr>
+                <tr><td>Grace</td><td>New York</td></tr>
+            </tbody>
+        </table>
+    </figure>`;
+}
+
 export function renderSitePage(
     page: SitePage,
     learningState?: LearningState,
@@ -149,29 +171,56 @@ export function renderSitePage(
                 </ul></section
             >
             <h2>Three parts of the model</h2>
-            <dl class="concepts">
-                <dt>Field definitions</dt
-                ><dd
-                    >Start with <code>field</code> to describe a field’s
-                    behavior. Modifiers such as
-                    <a href="#required">required()</a> and
-                    <a href="#formatter">formatter()</a> return new definitions
-                    without changing the original. Pass them directly to records
-                    and recordsets.</dd
+            <div class="model-concepts">
+                <section class="model-concept" aria-labelledby="model-field">
+                    <h3 id="model-field">Field</h3>
+                    <p
+                        >A field is a container for one element of data. Its
+                        definition encapsulates rules such as what makes a value
+                        valid and how to format it for display.</p
+                    >
+                    <p class="model-analogy">Like a column in a database.</p>
+                    ${renderModelDiagram('field')}
+                    <p class="model-example"
+                        >The <strong>Name</strong> field has the same rules in
+                        every record. For example, a name may be required and
+                        displayed as text.</p
+                    >
+                </section>
+                <section class="model-concept" aria-labelledby="model-record">
+                    <h3 id="model-record">Record</h3>
+                    <p
+                        >A record is a collection of fields bound to particular
+                        values. Each field’s rules apply to its value in that
+                        record.</p
+                    >
+                    <p class="model-analogy">Like a row in a database.</p>
+                    ${renderModelDiagram('record')}
+                    <p class="model-example"
+                        >One record binds <strong>Name</strong> to “Ada” and
+                        <strong>City</strong> to “London”.</p
+                    >
+                </section>
+                <section
+                    class="model-concept"
+                    aria-labelledby="model-recordset"
                 >
-                <dt>Record</dt
-                ><dd
-                    >Connects field definitions to values. Use it to read or
-                    update a field, parse input, request a formatted value, or
-                    validate the record.</dd
-                >
-                <dt>Recordset</dt
-                ><dd
-                    >Manages a collection of records, including fetching,
-                    sorting, filtering, and pagination. A table can consume the
-                    same field definitions as a form.</dd
-                >
-            </dl>
+                    <h3 id="model-recordset">Recordset</h3>
+                    <p
+                        >A recordset is a collection of records that share field
+                        definitions. You can work with the collection by sorting
+                        and filtering its records.</p
+                    >
+                    <p class="model-analogy">Like a database table or view.</p>
+                    ${renderModelDiagram('recordset')}
+                    <p class="model-example"
+                        >These two records form a
+                        <strong>People</strong> recordset, with the same
+                        <strong>Name</strong> and
+                        <strong>City</strong> fields.</p
+                    >
+                </section>
+            </div>
             <h2>A rule you can check without a UI</h2>
             <pre
                 class="code markup"
