@@ -1,6 +1,7 @@
 import { html, type TemplateResult } from 'lit';
 import { explainModifierCall } from './modifier-call-explanation';
 import { modifierSignatures } from './modifier-signatures';
+import { modifierDescriptions } from './modifier-descriptions';
 
 const keywords = new Set([
     'async',
@@ -62,12 +63,30 @@ function modifierCallText(
 export function highlightJavaScript(
     source: string,
     context = source,
-    offset = 0
+    offset = 0,
+    tooltipMode: 'contextual' | 'generic' = 'contextual'
 ): Array<string | TemplateResult> {
     const output: Array<string | TemplateResult> = [];
     let cursor = 0;
     const contextTokens = [...context.matchAll(tokens)];
-    for (const match of source.matchAll(tokens)) {
+    const sourceTokens = [...source.matchAll(tokens)];
+    const significantTokens = sourceTokens.filter(
+        token => !token[0].startsWith('//') && !token[0].startsWith('/*')
+    );
+    const calls = new Set(
+        significantTokens
+            .filter(
+                (token, index) =>
+                    significantTokens[index - 1]?.[0] === '.' &&
+                    significantTokens[index + 1]?.[0] === '(' &&
+                    Object.prototype.hasOwnProperty.call(
+                        modifierSignatures,
+                        token[0]
+                    )
+            )
+            .map(token => token.index)
+    );
+    for (const match of sourceTokens) {
         const value = match[0];
         const index = match.index!;
         output.push(source.slice(cursor, index));
@@ -87,10 +106,7 @@ export function highlightJavaScript(
             kind = 'function';
         else if (/^[^\w$]+$/.test(value)) kind = 'punctuation';
         const token = html`<span class=${`syntax-${kind}`}>${value}</span>`;
-        const modifierCall =
-            source[index - 1] === '.' &&
-            modifierSignatures[value] !== undefined &&
-            /^\s*\(/.test(source.slice(index + value.length));
+        const modifierCall = calls.has(index);
         // Locate field boundaries in tokenized code, ignoring words in strings
         // and comments. Keep full-snippet context even when rendering one line.
         const fieldStarts = modifierCall
@@ -101,13 +117,16 @@ export function highlightJavaScript(
         const chainStart = fieldStarts.length
             ? fieldStarts[fieldStarts.length - 1].index!
             : 0;
-        const explanation = modifierCall
-            ? explainModifierCall(
-                  context.slice(chainStart, index + offset),
-                  value,
-                  modifierCallText(context, index + offset, value)
-              )
-            : '';
+        const explanation =
+            modifierCall && tooltipMode === 'generic'
+                ? modifierDescriptions[value]
+                : modifierCall
+                  ? explainModifierCall(
+                        context.slice(chainStart, index + offset),
+                        value,
+                        modifierCallText(context, index + offset, value)
+                    )
+                  : '';
         output.push(
             modifierCall
                 ? html`<a
@@ -123,6 +142,11 @@ export function highlightJavaScript(
     }
     output.push(source.slice(cursor));
     return output;
+}
+
+/** Render actual source text with modifier links and value-independent help. */
+export function highlightSourceCode(source: string) {
+    return highlightJavaScript(source, source, 0, 'generic');
 }
 
 /** Locate every complete call, skipping apparent calls inside strings/comments. */

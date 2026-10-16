@@ -1,10 +1,45 @@
 import { render } from 'lit';
 import {
     highlightJavaScript,
+    highlightSourceCode,
     highlightModifier,
     modifierLineRange,
     highlightMarkup,
 } from '../examples/fdl-input/highlight-javascript';
+import { modifierDescriptions } from '../examples/fdl-input/modifier-descriptions';
+import { modifierSignatures } from '../examples/fdl-input/modifier-signatures';
+
+it('provides generic help for every supported modifier in actual source', () => {
+    expect(Object.keys(modifierDescriptions).sort()).toEqual(Object.keys(modifierSignatures).sort());
+    const code = `import { field } from 'digital-fdl';
+const address = field.label('Shipping address')
+    .visible(whenShipping)
+    .required(whenShipping)
+    .validator(postalZipValidator);`;
+    const container = document.createElement('div');
+    render(highlightSourceCode(code), container);
+    expect(container.textContent).toBe(code);
+    for (const name of ['label', 'visible', 'required', 'validator']) {
+        const link = container.querySelector(`a[href="#${name}"]`)!;
+        expect(link.getAttribute('title')).toBe(modifierDescriptions[name]);
+        expect(link.getAttribute('aria-label')).toBe(`${name} modifier. ${modifierDescriptions[name]}`);
+        expect(link.getAttribute('title')).not.toContain('Shipping address');
+    }
+});
+
+it('parses spaced modifier calls without linking comments, strings, or non-calls', () => {
+    const code = `// field.required()
+const note = 'field.visible(whenShipping)';
+const definition = field . /* label */ label ('<img src=x>')
+    . required /* named condition */ (whenShipping);
+const method = definition.validator;
+const unrelated = object.constructor();`;
+    const container = document.createElement('div');
+    render(highlightSourceCode(code), container);
+    expect(container.textContent).toBe(code);
+    expect([...container.querySelectorAll('a')].map(link => link.getAttribute('href'))).toEqual(['#label', '#required']);
+    expect(container.querySelector('img')).toBeNull();
+});
 
 it('highlights JavaScript without changing source text or interpreting it as HTML', () => {
     const code =

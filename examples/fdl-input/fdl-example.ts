@@ -1,5 +1,5 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
-import { highlightJavaScript } from './highlight-javascript';
+import { highlightSourceCode } from './highlight-javascript';
 import { exampleTheme } from './example-theme';
 
 /** A collapsible live example with source tabs and slotted example content. */
@@ -67,7 +67,7 @@ export class FdlExample extends LitElement {
                     >
                         <pre
                             class="code"
-                        ><code>${highlightJavaScript(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
+                        ><code>${highlightSourceCode(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
                     </div>`
             )}
         </details>`;

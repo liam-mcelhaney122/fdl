@@ -249,6 +249,10 @@ it('reveals the actual source files alongside the slotted delivery form', async 
     }
     expect(frame.sources['delivery-form.ts']).toContain('<fdl-record-inspector');
     expect(frame.sources['delivery-model.ts']).toContain('.required(whenDeliveryMethodRequiresAddress)');
+    const requiredLink = root.querySelector('#example-panel-1 a[href="#required"]')!;
+    expect(requiredLink.getAttribute('title')).toBe(
+        'Requires a nonempty value, optionally depending on other values in the record.'
+    );
     // Switching tabs keeps the same live form and its state.
     root.querySelector<HTMLButtonElement>('#example-tab-0')!.click();
     await frame.updateComplete;
