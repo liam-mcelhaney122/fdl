@@ -16,7 +16,7 @@ it('explores delivery visibility and requiredness without discarding the address
     select.dispatchEvent(new Event('input'));
     select.dispatchEvent(new Event('change'));
     await demo.updateComplete;
-    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Enter a five-digit ZIP code to choose a pickup store.');
+    expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe('Choose a store to complete your pickup details.');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Hidden · Optional');
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('42 Orchard Street');
     select.value = 'ship';
@@ -51,6 +51,7 @@ it('keeps pickup stores visible but disabled until the ZIP is valid and validate
         expect(storeField.shadowRoot.querySelector('select').disabled).toBe(disabled);
     }
     expect(storeVisible()).toBe(false);
+    await editField(root, 'zip', '');
     await editField(root, 'fulfillment', 'pickup');
     await demo.updateComplete;
     expect(record.isValid()).toBe(false);
@@ -102,7 +103,7 @@ it('keeps pickup stores visible but disabled until the ZIP is valid and validate
     expect(record.getField('store')).toBe('chelsea');
 });
 
-it('shows state and ZIP for shipping and retains them when switching to pickup', async () => {
+it('starts with a complete shipping address and retains it when switching to pickup', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
@@ -116,9 +117,14 @@ it('shows state and ZIP for shipping and retains them when switching to pickup',
     expect(zip.shadowRoot.querySelector('input')).not.toBeNull();
     expect(record.fieldTypeForField('state').visible('', record)).toBe(true);
     expect(record.fieldTypeForField('zip').visible('', record)).toBe(true);
+    expect(record.values).toMatchObject({ address: '42 Orchard Street', city: 'Charlotte', state: 'NC', zip: '28202' });
+    expect(record.isValid()).toBe(true);
+    const city = root.querySelector('fdl-field[field="city"]') as any;
+    await city.updateComplete;
+    expect(city.shadowRoot.querySelector('input').value).toBe('Charlotte');
+    await editField(root, 'city', '');
     expect(record.isValid()).toBe(false);
-    await editField(root, 'state', 'NC');
-    await editField(root, 'zip', '28202');
+    await editField(root, 'city', 'Charlotte');
     await demo.updateComplete;
     expect(record.isValid()).toBe(true);
     await editField(root, 'zip', 'bad');
@@ -127,14 +133,17 @@ it('shows state and ZIP for shipping and retains them when switching to pickup',
     await editField(root, 'zip', '28202');
     await editField(root, 'fulfillment', 'pickup');
     await demo.updateComplete;
+    expect(record.fieldTypeForField('city').visible('Charlotte', record)).toBe(false);
     expect(record.fieldTypeForField('state').visible('NC', record)).toBe(false);
     expect(record.fieldTypeForField('zip').visible('28202', record)).toBe(true);
+    expect(record.getField('city')).toBe('Charlotte');
     expect(record.getField('state')).toBe('NC');
     await editField(root, 'store', 'uptown');
     await demo.updateComplete;
     expect(record.isValid()).toBe(true);
     await editField(root, 'fulfillment', 'ship');
     await demo.updateComplete;
+    expect(record.getField('city')).toBe('Charlotte');
     expect(record.getField('state')).toBe('NC');
     expect(record.getField('zip')).toBe('28202');
     expect(record.isValid()).toBe(true);
@@ -145,6 +154,7 @@ it('simulates two seconds of store lookup latency with a spinner', async () => {
     document.body.append(demo);
     await demo.updateComplete;
     const root = demo.shadowRoot!;
+    await editField(root, 'zip', '');
     await editField(root, 'fulfillment', 'pickup');
     const store = root.querySelector('fdl-field[field="store"]') as any;
     jest.useFakeTimers();

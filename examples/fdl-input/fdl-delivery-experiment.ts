@@ -114,6 +114,9 @@ const shippingAddress = field.label('Shipping address')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress);
 
+const shippingCity = field.label('City')
+    .visible(whenDeliveryMethodRequiresAddress)
+    .required(whenDeliveryMethodRequiresAddress);
 const shippingState = field.label('State')
     .visible(whenDeliveryMethodRequiresAddress)
     .required(whenDeliveryMethodRequiresAddress)
@@ -137,10 +140,11 @@ const pickupStore = field.label('Pickup store')
 export const delivery = new Record({
   fulfillment: deliveryMethod,
   address: shippingAddress,
+  city: shippingCity,
   state: shippingState,
   zip: postalZip,
   store: pickupStore,
-}, { fulfillment: 'ship', address: '42 Orchard Street', state: '', zip: '', store: '' });`;
+}, { fulfillment: 'ship', address: '42 Orchard Street', city: 'Charlotte', state: 'NC', zip: '28202', store: '' });`;
     private readonly litCode = `import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
@@ -150,6 +154,7 @@ export class DeliveryForm extends LitElement {
         return html\`
             <fdl-field .record=\${delivery} field="fulfillment"></fdl-field>
             <fdl-field .record=\${delivery} field="address"></fdl-field>
+            <fdl-field .record=\${delivery} field="city"></fdl-field>
             <fdl-field .record=\${delivery} field="state"></fdl-field>
             <fdl-field .record=\${delivery} field="zip"></fdl-field>
             <fdl-field .record=\${delivery} field="store"></fdl-field>
@@ -162,6 +167,9 @@ customElements.define('delivery-form', DeliveryForm);`;
         { text: 'Ship to address', value: 'ship' }, { text: 'Pick up from store', value: 'pickup' },
     ]);
     private shippingAddress = field.label('Shipping address')
+        .visible(whenDeliveryMethodRequiresAddress)
+        .required(whenDeliveryMethodRequiresAddress);
+    private shippingCity = field.label('City')
         .visible(whenDeliveryMethodRequiresAddress)
         .required(whenDeliveryMethodRequiresAddress);
     private shippingState = field.label('State')
@@ -186,10 +194,11 @@ customElements.define('delivery-form', DeliveryForm);`;
     private delivery = new Record({
         fulfillment: this.deliveryMethod,
         address: this.shippingAddress,
+        city: this.shippingCity,
         state: this.shippingState,
         zip: this.postalZip,
         store: this.pickupStore,
-    }, { fulfillment: 'ship', address: '42 Orchard Street', state: '', zip: '', store: '' });
+    }, { fulfillment: 'ship', address: '42 Orchard Street', city: 'Charlotte', state: 'NC', zip: '28202', store: '' });
     private refresh = () => this.requestUpdate();
     connectedCallback() { super.connectedCallback(); this.delivery.addEventListener('change', this.refresh); }
     disconnectedCallback() { this.delivery.removeEventListener('change', this.refresh); super.disconnectedCallback(); }
@@ -222,12 +231,13 @@ customElements.define('delivery-form', DeliveryForm);`;
                     <div class="editor">
                         <fdl-field .record=${this.delivery} field="fulfillment"></fdl-field>
                         <fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field>
+                        <fdl-field .record=${this.delivery} field="city" .showValidationErrors=${true}></fdl-field>
                         <fdl-field .record=${this.delivery} field="state" .showValidationErrors=${true}></fdl-field>
                         <fdl-field .record=${this.delivery} field="zip" .showValidationErrors=${true}></fdl-field>
                         ${pickup ? html`<p class="sample-note">Sample store lookup (2-second delay): try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
                         <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
                     </div>
-                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${hasValidZip(this.delivery) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
+                    <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored city</dt><dd>${this.delivery.getField('city') || '(empty)'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${hasValidZip(this.delivery) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
                 </div>
             </div>
             <div id="delivery-code-panel" class="tab-panel" role="tabpanel" aria-labelledby="delivery-code-tab" ?hidden=${this.activeTab !== 'code'}>
