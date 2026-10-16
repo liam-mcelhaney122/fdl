@@ -22,7 +22,17 @@ it('links modifier calls to their documentation without changing syntax color', 
     expect(link.textContent).toBe('required');
     expect(link.getAttribute('style')).toContain('color:inherit');
     expect(link.getAttribute('style')).toContain('text-decoration:underline');
+    expect(link.getAttribute('title')).toBe("Used here as .required()");
+    expect(link.getAttribute('aria-label')).toBe('required modifier. Used here as .required()');
     expect(link.querySelector('.syntax-function')!.textContent).toBe('required');
+});
+
+it('explains the complete modifier invocation in its tooltip', () => {
+    const code = "const definition = field.label('Name').validator({ name: 'code', validate: value => value.length > 0 });";
+    const container = document.createElement('div');
+    render(highlightJavaScript(code), container);
+    const link = container.querySelector<HTMLAnchorElement>('a[href="#validator"]')!;
+    expect(link.getAttribute('title')).toBe("Used here as .validator({ name: 'code', validate: value => value.length > 0 })");
 });
 
 

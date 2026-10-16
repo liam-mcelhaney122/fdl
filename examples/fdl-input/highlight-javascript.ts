@@ -8,6 +8,20 @@ const builtins = new Set(['Intl', 'Number', 'String', 'Boolean', 'Promise', 'Fie
 // token through Lit text bindings, so code never becomes executable HTML.
 const tokens = /\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|\/(?![/*])(?:\\.|\[(?:\\.|[^\]\\])*\]|[^/\n\\])+\/[dgimsuvy]*|\b\d+(?:\.\d+)?\b|[A-Za-z_$][\w$]*|=>|===|!==|[{}()[\].,;:?=+<>!-]/g;
 
+function modifierCallText(source: string, index: number, modifier: string): string {
+    const lexemes = [...source.matchAll(tokens)];
+    const modifierIndex = lexemes.findIndex(match => match.index === index && match[0] === modifier);
+    if (modifierIndex < 0) return `.${modifier}()`;
+    let depth = 0;
+    for (let cursor = modifierIndex + 1; cursor < lexemes.length; cursor++) {
+        if (lexemes[cursor][0] === '(') depth++;
+        if (lexemes[cursor][0] === ')' && --depth === 0) {
+            return source.slice(index - 1, lexemes[cursor].index! + 1);
+        }
+    }
+    return source.slice(index - 1, index + modifier.length);
+}
+
 export function highlightJavaScript(source: string): Array<string | TemplateResult> {
     const output: Array<string | TemplateResult> = [];
     let cursor = 0;
@@ -30,7 +44,7 @@ export function highlightJavaScript(source: string): Array<string | TemplateResu
             && modifierSignatures[value] !== undefined
             && /^\s*\(/.test(source.slice(index + value.length));
         output.push(modifierCall
-            ? html`<a href=${`#${value}`} style="color:inherit;text-decoration:underline;text-underline-offset:0.15em">${token}</a>`
+            ? html`<a href=${`#${value}`} title=${`Used here as ${modifierCallText(source, index, value)}`} aria-label=${`${value} modifier. Used here as ${modifierCallText(source, index, value)}`} style="color:inherit;text-decoration:underline;text-underline-offset:0.15em">${token}</a>`
             : token);
         cursor = index + value.length;
     }
