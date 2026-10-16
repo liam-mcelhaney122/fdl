@@ -84,8 +84,11 @@ const postalZipValidator = {
 };
 
 export const delivery = new Record(
+    // prettier-ignore
     {
-        fulfillment: field.label('Delivery method').options(deliveryMethodOptions),
+        fulfillment: field
+            .label('Delivery method')
+            .options(deliveryMethodOptions),
         address: field
             .label('Shipping address')
             .visible(whenDeliveryMethodRequiresAddress)
@@ -99,7 +102,10 @@ export const delivery = new Record(
             .visible(whenDeliveryMethodRequiresAddress)
             .required(whenDeliveryMethodRequiresAddress)
             .options(shippingStateOptions),
-        zip: field.label('ZIP code').required().validator(postalZipValidator),
+        zip: field
+            .label('ZIP code')
+            .required()
+            .validator(postalZipValidator),
         store: field
             .label('Pickup store')
             .visible(whenPickingUp)
@@ -208,8 +214,11 @@ export const storesByZip: { [zip: string]: { text: string; value: string }[] } =
 export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...stateOptions];`;
 
     private delivery = new Record(
+        // prettier-ignore
         {
-            fulfillment: field.label('Delivery method').options(deliveryMethodOptions),
+            fulfillment: field
+                .label('Delivery method')
+                .options(deliveryMethodOptions),
             address: field
                 .label('Shipping address')
                 .visible(whenDeliveryMethodRequiresAddress)
@@ -223,7 +232,10 @@ export const shippingStateOptions = [{ text: 'Select a state', value: '' }, ...s
                 .visible(whenDeliveryMethodRequiresAddress)
                 .required(whenDeliveryMethodRequiresAddress)
                 .options(shippingStateOptions),
-            zip: field.label('ZIP code').required().validator(postalZipValidator),
+            zip: field
+                .label('ZIP code')
+                .required()
+                .validator(postalZipValidator),
             store: field
                 .label('Pickup store')
                 .visible(whenPickingUp)
