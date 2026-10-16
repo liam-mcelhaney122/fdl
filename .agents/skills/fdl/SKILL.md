@@ -208,6 +208,15 @@ FDL has no required UI framework. Either:
 Do not put business rules in components or CSS, and do not add renderer-
 specific modifiers to field definitions.
 
+### Framework adapters
+
+When the application uses a UI framework, check `references/` next to this
+skill for a file named after it (for example `references/react.md`,
+`references/angular.md`, `references/svelte.md`). If one exists, read it
+before writing components: it covers that adapter's install path, field
+component, state hooks/stores/signals, and limits. If none exists, the
+framework has no packaged adapter yet; follow the adapter contract above.
+
 ## Pitfalls checklist
 
 - Forgot a parser for a formatted or non-string input → stored strings.
