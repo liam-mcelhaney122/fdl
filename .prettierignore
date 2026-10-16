@@ -5,3 +5,4 @@ examples/fdl-input/dist/
 .agents/
 .codex/
 skills-lock.json
+.claude/
