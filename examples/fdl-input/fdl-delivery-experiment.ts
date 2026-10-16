@@ -11,13 +11,10 @@ import {
 } from './delivery-data';
 
 const statusPaths = {
-    Visible:
-        'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12 M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
     Hidden: 'M3 3l18 18 M10 5a12 12 0 0 1 12 7s-1 2-3 4 M14 19C6 20 2 12 2 12s1-2 4-4 M10 10a3 3 0 0 0 4 4',
-    Enabled: 'M8 11V7a4 4 0 0 1 8 0 M5 11h14v10H5z M12 15v2',
     Disabled: 'M8 11V7a4 4 0 0 1 8 0v4 M5 11h14v10H5z M12 15v2',
     Required: 'M12 4v16 M5 8l14 8 M5 16l14-8',
-    Optional: 'M9 12h6 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    Invalid: 'M12 3L2 21h20z M12 9v5 M12 17v1',
 };
 
 function statusIcon(status: keyof typeof statusPaths) {
@@ -410,9 +407,10 @@ export const shippingStateOptions = [
                                         >
                                         <td
                                             ><span class="field-status">
-                                                ${statusIcon(type.visible(value, this.delivery) ? 'Visible' : 'Hidden')}
-                                                ${statusIcon(type.isDisabled(value, this.delivery) ? 'Disabled' : 'Enabled')}
-                                                ${statusIcon(type.required(value, this.delivery) ? 'Required' : 'Optional')}
+                                                ${!type.visible(value, this.delivery) ? statusIcon('Hidden') : ''}
+                                                ${type.isDisabled(value, this.delivery) ? statusIcon('Disabled') : ''}
+                                                ${type.required(value, this.delivery) ? statusIcon('Required') : ''}
+                                                ${!this.delivery.isValid(name) ? statusIcon('Invalid') : ''}
                                             </span></td
                                         >
                                     </tr>`;
@@ -615,7 +613,7 @@ export const shippingStateOptions = [
             padding-left: 0;
         }
         th:last-child {
-            width: 84px;
+            width: 110px;
         }
         .field-status {
             display: flex;
