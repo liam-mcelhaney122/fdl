@@ -12,7 +12,8 @@
         "docs:dev": "vite --config examples/fdl-input/vite.config.mjs examples/fdl-input",
         "docs:build": "vite build --config examples/fdl-input/vite.config.mjs examples/fdl-input",
         "test": "jest",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "node node_modules/typescript/bin/tsc --noEmit && npm run typecheck:angular",
+        "typecheck:angular": "node node_modules/typescript-angular/bin/tsc -p adapters/angular/tsconfig.json",
         "test:watch": "jest --watch",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
         "format": "node scripts/format-example-snippets.mjs && prettier . --write",
@@ -25,7 +26,19 @@
         "ts-loader": "^9.3.0",
         "typescript": "^4.6.4"
     },
+    "peerDependencies": {
+        "@angular/core": "^21.0.0"
+    },
+    "peerDependenciesMeta": {
+        "@angular/core": {
+            "optional": true
+        }
+    },
     "devDependencies": {
+        "@angular/common": "^21.2.25",
+        "@angular/compiler": "^21.2.25",
+        "@angular/core": "^21.2.25",
+        "@angular/platform-browser": "^21.2.25",
         "@babel/preset-env": "^7.15.6",
         "@open-wc/testing": "2.5.33",
         "@types/jest": "27.5.2",
@@ -35,6 +48,8 @@
         "jest": "^27.2.1",
         "prettier": "^3.9.10",
         "regenerator-runtime": "^0.13.9",
+        "rxjs": "^7.8.2",
+        "typescript-angular": "npm:typescript@~5.9.3",
         "vite": "^5.4.19"
     },
     "overrides": {

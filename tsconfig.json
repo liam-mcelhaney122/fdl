@@ -6,7 +6,9 @@
         "**/dist",
         "**/_references.js",
         "**/Scripts",
-        "**/coverage"
+        "**/coverage",
+        "adapters/angular",
+        "tests/angular"
     ],
     "compilerOptions": {
         "target": "es2020",

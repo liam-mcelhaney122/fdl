@@ -1,8 +1,29 @@
+// Angular ships ES-module bundles with `exports`-only subpaths, which Jest 27
+// cannot resolve itself. Map them to their bundles and transpile those bundles
+// to CommonJS for Node only; no other test imports Angular.
+const angularBundleTransform = [
+    'babel-jest',
+    {
+        babelrc: false,
+        configFile: false,
+        presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+    },
+];
+
 module.exports = {
-    setupFilesAfterEnv: ['./tests/jest-helpers/jest.init.js', './tests/jest-helpers/raw-sources.js'],
-    transformIgnorePatterns: [
-        '/node_modules/(?!(@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html)/)',
+    setupFilesAfterEnv: [
+        './tests/jest-helpers/jest.init.js',
+        './tests/jest-helpers/raw-sources.js',
     ],
+    transformIgnorePatterns: [
+        '/node_modules/(?!(@angular|@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html)/)',
+    ],
+    moduleNameMapper: {
+        '^@angular/core/primitives/([a-z-]+)$':
+            '<rootDir>/node_modules/@angular/core/fesm2022/primitives-$1.mjs',
+        '^@angular/([a-z-]+)$': '<rootDir>/node_modules/@angular/$1/fesm2022/$1.mjs',
+        '^@angular/([a-z-]+)/([a-z-]+)$': '<rootDir>/node_modules/@angular/$1/fesm2022/$2.mjs',
+    },
     watchman: false,
     testEnvironment: 'jsdom',
     verbose: false,
@@ -25,8 +46,17 @@ module.exports = {
         './filters/*.js',
         './helpers/*.js',
         './utilities/*.{js,ts}',
+        './adapters/angular/*.ts',
     ],
+    globals: {
+        'ts-jest': {
+            // The Angular adapter is type-checked with TypeScript 5.9 by
+            // `npm run typecheck:angular`; ts-jest's TypeScript 4 only transpiles it.
+            diagnostics: { exclude: ['**/adapters/angular/**', '**/tests/angular/**'] },
+        },
+    },
     transform: {
+        '/node_modules/@angular/.+\\.mjs$': angularBundleTransform,
         '^.+\\.tsx?$': 'ts-jest',
         '^.+\\.(js|mjs)$': 'babel-jest',
     },
