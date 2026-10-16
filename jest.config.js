@@ -25,6 +25,7 @@ module.exports = {
         './filters/*.js',
         './helpers/*.js',
         './utilities/*.{js,ts}',
+        './adapters/**/*.{ts,tsx}',
     ],
     transform: {
         '^.+\\.tsx?$': 'ts-jest',
