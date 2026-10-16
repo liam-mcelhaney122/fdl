@@ -24,8 +24,7 @@ export const delivery = new Record({
   fulfillment: deliveryMethod,
   address: shippingAddress,
 }, { fulfillment: 'ship', address: '42 Orchard Street' });`;
-    private readonly litCode = `// delivery-form.ts
-import { LitElement, html } from 'lit';
+    private readonly litCode = `import { LitElement, html } from 'lit';
 import { delivery } from './delivery-model';
 import './fdl-field';
 
