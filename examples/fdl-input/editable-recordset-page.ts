@@ -12,13 +12,17 @@ const shipmentFields = {
     .textAlign('right').required()
     .validator({name: 'must be a positive whole number',
       validate: value => Number.isInteger(value) && value > 0}),
+  unitPrice: field.label('Unit price').type('number').parser(Number)
+    .textAlign('right')
+    .validator({name: 'must be a non-negative number',
+      validate: value => Number.isFinite(value) && value >= 0}),
   status: field.label('Status'),
   reason: field.label('Hold reason')
     .required(record => record.getField('status') === 'hold'),
 };
 const shipments = new Recordset(shipmentFields, [
-  {id: 'S-101', quantity: 2, status: 'ready', reason: ''},
-  {id: 'S-102', quantity: 5, status: 'hold', reason: 'Awaiting allocation'},
+  {id: 'S-101', quantity: 2, unitPrice: 10, status: 'ready', reason: ''},
+  {id: 'S-102', quantity: 5, unitPrice: 20, status: 'hold', reason: 'Awaiting allocation'},
 ]);
 await shipments.requestHardUpdate(); // construction does not load rows
 const selected = shipments.allRecords[0];
