@@ -96,6 +96,7 @@
                 rows={$store.rows}
                 required={$store.required}
                 disabled={$store.disabled}
+                readonly={$store.readonly}
                 placeholder={$store.placeholder}
                 minlength={$store.minLength}
                 maxlength={$store.maxLength}
@@ -110,6 +111,7 @@
                 type={$store.inputType ?? 'text'}
                 required={$store.required}
                 disabled={$store.disabled}
+                readonly={$store.readonly}
                 placeholder={$store.placeholder}
                 minlength={$store.minLength}
                 maxlength={$store.maxLength}

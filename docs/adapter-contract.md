@@ -23,6 +23,10 @@ must not move that policy into `FieldType`. `FormElement.showValidationErrors`
 is one such setting: FDL supplies errors, the application decides when they are
 shown, and the adapter creates the accessible relationship.
 
+Two adapters implement this contract: the Lit `FormElement` described below
+and the [Svelte adapter](./svelte-adapter.md), which provides the same behavior
+through one `FdlField` component, field stores, and a native-control action.
+
 ## Native `FormElement` behavior
 
 For the built-in Lit adapter, `field` and `record` identify the model field.

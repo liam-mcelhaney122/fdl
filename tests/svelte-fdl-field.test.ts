@@ -1,6 +1,7 @@
 import { flushSync, mount, unmount } from 'svelte';
 import { compile } from 'svelte/compiler';
 import FdlField from '../adapters/svelte/FdlField.svelte';
+import RecordSummary from './svelte-fixtures/RecordSummary.svelte';
 import FieldTypeBuilder from '../field-type-builder';
 import Record from '../record.js';
 import { reactiveProps } from './jest-helpers/reactive-props.svelte.js';
@@ -359,4 +360,26 @@ describe('<FdlField>', () => {
         record.setField('name', 'Grace');
         expect(input.value).toBe('Ada');
     });
+});
+
+it('re-renders `$record` markup when the Record changes', () => {
+    const record = new Record({ name: new FieldTypeBuilder() }, { name: 'Ada' });
+    const target = document.createElement('div');
+    document.body.append(target);
+    mounted.push(mount(RecordSummary, { target, props: { record } }));
+    flushSync();
+    expect(target.textContent).toBe('Ada');
+    record.setField('name', 'Grace');
+    flushSync();
+    expect(target.textContent).toBe('Grace');
+});
+
+it('marks custom-print read-only controls as read-only', () => {
+    const record = new Record(
+        { code: new FieldTypeBuilder().readOnly().usesCustomPrint() },
+        { code: 'A1' }
+    );
+    const input = render({ record, field: 'code' }).querySelector('input')!;
+    expect(input.readOnly).toBe(true);
+    expect(input.value).toBe('A1');
 });

@@ -33,7 +33,8 @@ the displayed model and view does not supply those components.
 To use the current checkout in an application, install it with
 `npm install /absolute/path/to/FDL`. The package name is `@pmcelhaney/fdl`;
 check the selected version's API before using current-checkout examples.
-The model is independent of Lit. React integrations must connect Record changes
+The model is independent of Lit; Svelte applications can use the
+[Svelte adapter](./docs/svelte-adapter.md). React integrations must connect Record changes
 and edits to their existing components and accessible semantics.
 
 ## Common field definitions
@@ -164,6 +165,8 @@ See [field types](./docs/field-type.md) for custom definitions and migration det
 fetching, sorting, filtering, and pagination.
 
 Custom Lit controls can extend [`FormElement`](./docs/form-element.md) to connect a component to a field in a `Record`.
+Svelte 5 applications can use the optional [Svelte adapter](./docs/svelte-adapter.md),
+which provides one `FdlField` component, record and field stores, and a native-control action.
 
 Contributors working on field behavior, components, or presentation should
 follow the [FDL design principles](./docs/design-principles.md).
