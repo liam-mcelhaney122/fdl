@@ -1,3 +1,4 @@
+import { renderEditableRecordset } from './editable-recordset-page';
 import { renderIntegration } from './integration-page';
 import { renderQuickstart } from './quickstart-page';
 import { renderCategoryOverview } from './category-overview';
@@ -15,6 +16,7 @@ export const sitePages = [
     { id: 'how-it-works', title: 'How it Works' },
     { id: 'quickstart', title: 'Your first form' },
     { id: 'integration', title: 'Adapter and API contracts' },
+    { id: 'editable-recordset', title: 'Edit a recordset' },
     { id: 'learn', title: 'Learn by exploring' },
     { id: 'composition', title: 'Combine the rules' },
     { id: 'categories', title: 'Modifier categories' },
@@ -37,6 +39,7 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement, recipes: readonly ExplorerRecipe[] = []) {
+    if (page === 'editable-recordset') return renderEditableRecordset();
     if (page === 'integration') return renderIntegration();
     if (page === 'quickstart') return renderQuickstart();
     if (page === 'categories') return renderCategoryOverview(recipes);
@@ -52,7 +55,7 @@ export function renderSitePage(page: SitePage, learningState?: LearningState, co
                 <li><a href="#parser">Turn currency input into a stored number</a></li>
                 <li><a href="#options">Refresh choices when a related field changes</a></li>
                 <li><a href="#validator">Check a value against a business rule</a></li>
-                <li><a href="#how-it-works">Reuse field definitions in forms and tables</a></li>
+                <li><a href="#editable-recordset">Edit rows, filter, sort, and total a recordset</a></li>
             </ul></section>
             <h2>What belongs in FDL?</h2>
             <p>FDL (pronounced “fiddle”) is a JavaScript and TypeScript library for modeling fields, records, and collections of records independently of the interface that displays them.</p>
@@ -102,7 +105,7 @@ person.isValid(); // true`)}</code></pre>
             <h2>4. Express dependencies as predicates</h2>
             <p>For rules that depend on another field, a callback reads the current record. For example, <a href="#visibleWhen">visibleWhen()</a> can show an address only when shipping is selected. <a href="#required">required()</a> separately controls whether that address is required.</p>
             <h2>5. Reuse definitions in a collection</h2>
-            <p>A <code>Recordset</code> applies field definitions to multiple records. The table example reads comparison, filtering, formatting, and alignment behavior from those definitions. Read the <a href="#integration">Record and Recordset API references</a> for loading, events, and lifecycle. Start with <a href="#compareFunction">compareFunction()</a> or <a href="#filter">filter()</a>.</p>
+            <p>A <code>Recordset</code> applies field definitions to multiple records. <a href="#editable-recordset">Edit a recordset</a> demonstrates actual row identity, a shared detail editor, validation, filtering, sorting, and scoped totals. The table example reads comparison, filtering, formatting, and alignment behavior from those definitions. Read the <a href="#integration">Record and Recordset API references</a> for loading, events, and lifecycle. Start with <a href="#compareFunction">compareFunction()</a> or <a href="#filter">filter()</a>.</p>
             <h2>Who owns what?</h2>
             <dl class="concepts"><dt>FDL</dt><dd>Reusable parsing, formatting, validation, dependencies, and field state.</dd><dt>Component</dt><dd>Accessible markup, labels, keyboard interaction, focus, and input events.</dd><dt>Application and CSS</dt><dd>Workflow, page layout, and visual presentation.</dd></dl>
         </article>`;
