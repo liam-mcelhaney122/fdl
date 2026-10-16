@@ -31,6 +31,18 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.state')!.textContent).toContain('Invalid');
 });
 
+it('reveals the FDL delivery model behind the interactive example', async () => {
+    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    document.body.append(demo);
+    await demo.updateComplete;
+    const codeTab = demo.shadowRoot!.querySelector<HTMLButtonElement>('#delivery-code-tab')!;
+    codeTab.click();
+    await demo.updateComplete;
+    expect(codeTab.getAttribute('aria-selected')).toBe('true');
+    expect(demo.shadowRoot!.querySelector('#delivery-code-panel')!.textContent).toContain(".visibleWhen(record => record.getField('fulfillment') === 'ship')");
+    expect(demo.shadowRoot!.querySelector('#delivery-example-panel')!.hasAttribute('hidden')).toBe(true);
+});
+
 import '../examples/fdl-input/fdl-modifier-explorer';
 import type { FdlModifierExplorer } from '../examples/fdl-input/fdl-modifier-explorer';
 import type { FdlModifierCatalog } from '../examples/fdl-input/fdl-modifier-catalog';
