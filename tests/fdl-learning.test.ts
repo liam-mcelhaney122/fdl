@@ -1,17 +1,19 @@
 import '../examples/fdl-input/fdl-delivery-experiment';
 import type { FdlRecordInspector } from '../examples/fdl-input/fdl-record-inspector';
+import type { DeliveryForm } from '../examples/fdl-input/delivery-form';
+import type { FdlExample } from '../examples/fdl-input/fdl-example';
 import type { FdlDeliveryExperiment } from '../examples/fdl-input/fdl-delivery-experiment';
 
 afterEach(() => document.body.replaceChildren());
 
-async function inspectorRoot(demo: FdlDeliveryExperiment) {
+async function inspectorRoot(demo: DeliveryForm) {
     const inspector = demo.shadowRoot!.querySelector('fdl-record-inspector') as FdlRecordInspector;
     await inspector.updateComplete;
     return inspector.shadowRoot!;
 }
 
 it('explores delivery visibility and requiredness without discarding the address', async () => {
-    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    const demo = document.createElement('delivery-form') as DeliveryForm;
     document.body.append(demo);
     await demo.updateComplete;
     const inspection = await inspectorRoot(demo);
@@ -64,7 +66,7 @@ it('explores delivery visibility and requiredness without discarding the address
 });
 
 it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable selections', async () => {
-    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    const demo = document.createElement('delivery-form') as DeliveryForm;
     document.body.append(demo);
     await demo.updateComplete;
     const root = demo.shadowRoot!;
@@ -141,7 +143,7 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
 }, 10000);
 
 it('starts with a complete shipping address and retains it when switching to pickup', async () => {
-    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    const demo = document.createElement('delivery-form') as DeliveryForm;
     document.body.append(demo);
     await demo.updateComplete;
     const root = demo.shadowRoot!;
@@ -192,7 +194,7 @@ it('starts with a complete shipping address and retains it when switching to pic
 });
 
 it('simulates two seconds of store lookup latency with a spinner', async () => {
-    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    const demo = document.createElement('delivery-form') as DeliveryForm;
     document.body.append(demo);
     await demo.updateComplete;
     const root = demo.shadowRoot!;
@@ -220,54 +222,70 @@ it('simulates two seconds of store lookup latency with a spinner', async () => {
     }
 });
 
-it('reveals the FDL delivery model behind the interactive example', async () => {
+it('reveals the actual source files alongside the slotted delivery form', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
     await demo.updateComplete;
-    const root = demo.shadowRoot!;
+    const frame = demo.shadowRoot!.querySelector('fdl-example') as FdlExample;
+    await frame.updateComplete;
+    const root = frame.shadowRoot!;
+    expect(root.querySelector('details')!.open).toBe(false);
+    expect(root.querySelector('h2')!.textContent).toBe('See FDL in Action');
+    const form = frame.querySelector('delivery-form') as DeliveryForm;
+    await form.updateComplete;
+    expect(form.shadowRoot!.querySelector('fdl-record-inspector')).not.toBeNull();
     expect([...root.querySelectorAll('[role="tab"]')].map(tab => tab.textContent!.trim())).toEqual([
         'Interactive example', 'delivery-model.ts', 'delivery-form.ts', 'delivery-data.ts',
     ]);
-    for (const id of ['model', 'form', 'data']) {
-        const tab = root.querySelector<HTMLButtonElement>(`#delivery-${id}-tab`)!;
+    for (let index = 0; index < frame.filenames.length; index++) {
+        const tab = root.querySelector<HTMLButtonElement>(`#example-tab-${index + 1}`)!;
         tab.click();
-        await demo.updateComplete;
+        await frame.updateComplete;
         expect(tab.getAttribute('aria-selected')).toBe('true');
         const panel = root.getElementById(tab.getAttribute('aria-controls')!)!;
         expect(panel.hasAttribute('hidden')).toBe(false);
-        expect(panel.querySelectorAll('pre')).toHaveLength(1);
-        expect(panel.querySelector('code')!.textContent).toMatch(/^\/\//);
-        expect(panel.querySelectorAll('h3, p')).toHaveLength(0);
+        expect(panel.querySelector('code')!.textContent).toBe(frame.sources[frame.filenames[index]]);
         expect(root.querySelectorAll('[role="tabpanel"]:not([hidden])')).toHaveLength(1);
     }
-    const codePanel = root.querySelector('#delivery-model-panel')!;
-    const formPanel = root.querySelector('#delivery-form-panel')!;
-    const dataPanel = root.querySelector('#delivery-data-panel')!;
-    expect(codePanel.textContent).toContain("from './delivery-data'");
-    expect(codePanel.textContent).toContain('// Defines the delivery fields');
-    expect(codePanel.textContent).toContain('export const delivery = new Record');
-    expect(codePanel.textContent).not.toContain('const stateOptions =');
-    expect(formPanel.textContent).toContain('// Connects the delivery model');
-    expect(formPanel.textContent).toContain("import { delivery } from './delivery-model';");
-    expect(dataPanel.textContent).toContain('// Supplies delivery methods');
-    expect(dataPanel.textContent).toContain('export const deliveryMethodOptions =');
-    expect(dataPanel.textContent).toContain('export const shippingStateOptions =');
-    expect(dataPanel.textContent).toContain('export const storesByZip');
-    expect(codePanel.textContent).toMatch(/fulfillment: field\s*\.label\('Delivery method'\)/);
-    expect(codePanel.textContent).toMatch(/address: field\s*\.label/);
-    expect(codePanel.textContent).not.toContain('const shippingAddress =');
-    expect(codePanel.textContent).toContain('function whenDeliveryMethodRequiresAddress(record)');
-    expect(codePanel.textContent).toContain('.visible(whenDeliveryMethodRequiresAddress)');
-    expect(codePanel.textContent).toContain('.required(whenDeliveryMethodRequiresAddress)');
-    expect(formPanel.textContent).toContain(
-        '<fdl-field .record=${delivery} field="fulfillment"></fdl-field>'
+    expect(frame.sources['delivery-form.ts']).toContain('<fdl-record-inspector');
+    expect(frame.sources['delivery-model.ts']).toContain('.required(whenDeliveryMethodRequiresAddress)');
+    // Switching tabs keeps the same live form and its state.
+    root.querySelector<HTMLButtonElement>('#example-tab-0')!.click();
+    await frame.updateComplete;
+    expect(frame.querySelector('delivery-form')).toBe(form);
+});
+
+it('supports other slotted content, filenames, keyboard navigation, and changed file lists', async () => {
+    const frame = document.createElement('fdl-example') as FdlExample;
+    frame.heading = 'Another example';
+    frame.filenames = ['other.ts'];
+    frame.sources = { 'other.ts': 'const value = 42;' };
+    const content = document.createElement('input');
+    content.value = 'keep this';
+    frame.append(content);
+    document.body.append(frame);
+    await frame.updateComplete;
+    const root = frame.shadowRoot!;
+    root.querySelector<HTMLButtonElement>('#example-tab-0')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })
     );
-    expect(
-        codePanel.querySelectorAll('.syntax-keyword, .syntax-builtin, .syntax-string').length
-    ).toBeGreaterThan(0);
-    expect(demo.shadowRoot!.querySelector('#delivery-example-panel')!.hasAttribute('hidden')).toBe(
-        true
-    );
+    await frame.updateComplete;
+    expect(root.querySelector('#example-tab-1')!.getAttribute('aria-selected')).toBe('true');
+    expect(root.querySelector('code')!.textContent).toBe('const value = 42;');
+    frame.filenames = [];
+    await frame.updateComplete;
+    expect(root.querySelector('#example-panel-0')!.hasAttribute('hidden')).toBe(false);
+    expect(content.value).toBe('keep this');
+});
+
+it('gives each delivery form its own record', async () => {
+    const first = document.createElement('delivery-form') as DeliveryForm;
+    const second = document.createElement('delivery-form') as DeliveryForm;
+    document.body.append(first, second);
+    await Promise.all([first.updateComplete, second.updateComplete]);
+    await editField(first.shadowRoot!, 'address', 'A different address');
+    const secondField = second.shadowRoot!.querySelector('fdl-field[field="address"]') as any;
+    expect(secondField.record.getField('address')).toBe('42 Orchard Street');
 });
 
 import '../examples/fdl-input/fdl-modifier-explorer';

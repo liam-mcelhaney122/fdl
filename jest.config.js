@@ -1,5 +1,5 @@
 module.exports = {
-    setupFilesAfterEnv: ['./tests/jest-helpers/jest.init.js'],
+    setupFilesAfterEnv: ['./tests/jest-helpers/jest.init.js', './tests/jest-helpers/raw-sources.js'],
     transformIgnorePatterns: [
         '/node_modules/(?!(@lit/reactive-element|@open-wc/testing-helpers|lit|lit-element|lit-html)/)',
     ],
