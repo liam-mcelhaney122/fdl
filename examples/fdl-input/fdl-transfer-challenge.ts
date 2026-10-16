@@ -9,8 +9,8 @@ import './fdl-field';
 
 export class FdlTransferChallenge extends LitElement {
     private configuration=new Record({
-        visibility:field.label('Show cancellation reason').tag('select').options([{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
-        requiredness:field.label('Require cancellation reason').tag('select').options([{text:'Never',value:'never'},{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
+        visibility:field.label('Show cancellation reason').options([{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
+        requiredness:field.label('Require cancellation reason').options([{text:'Never',value:'never'},{text:'Always',value:'always'},{text:'Only when Cancelled',value:'cancelled'}]),
     },{visibility:'always',requiredness:'never'});
     private get rules(){return this.configuration.values as CancellationRules;}
     private record=new Record(cancellationFields(this.rules),{status:'cancelled',reason:''});

@@ -90,10 +90,10 @@ export class FdlModifierExplorer extends LitElement {
 
     private resetVersions: {[name: string]: number} = {};
     private selectedCategories = new Set<string>();
-    private person = new Record({ name: field.label('Legal name').required(), followUp: field.label('Follow-up needed?').options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]).tag('select'), followUpNotes:field.label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
+    private person = new Record({ name: field.label('Legal name').required(), followUp: field.label('Follow-up needed?').options([{text:'No',value:'no'},{text:'Yes',value:'yes'}]), followUpNotes:field.label('Follow-up notes').rowCount(2).required(record => record.getField('followUp') === 'yes') }, { name: '', followUp:'no', followUpNotes:'' });
     private money = new Record({ amount: field.label('Amount').type('number').parser(value => Number(value)).formatter((value, _record?: unknown, context?: string) => context === 'input-focus' ? String(value) : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))) }, { amount: 1250 });
     private delivery = new Record({
-        fulfillment: field.label('Delivery method').tag('select').options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
+        fulfillment: field.label('Delivery method').options([{ text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' }]),
         address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
     }, { fulfillment: 'ship', address: '42 Orchard Street' });
     private refresh = () => this.requestUpdate();
@@ -231,7 +231,7 @@ export class FdlModifierExplorer extends LitElement {
                 </section>
                 <div class="details">
                 <p class="source-intro">Starting values are shown below. These two files require the repository’s example adapters and their dependencies. Read <a href="#quickstart">setup and adapter prerequisites</a> before copying them. Save the model and view in the same folder within that environment. The model file exports the record and the Lit file imports it to render the core example with its current rules. The demo’s teaching panels and rule selectors are omitted.</p>
-                ${/\.(tag|rowCount)\(/.test(source.definition) ? html`<p class="compatibility-note"><strong>Example adapter compatibility:</strong> <code>tag()</code> chooses this legacy adapter’s control, and <code>rowCount()</code> sizes its textarea. Both are deprecated compatibility APIs. Keep control selection and sizing in your adapter for new integrations; the reusable rules remain in the field model. <a href="#integration">Read the adapter boundary.</a></p>` : ''}
+                ${/\.rowCount\(/.test(source.definition) ? html`<p class="compatibility-note"><strong>Example adapter compatibility:</strong> <code>rowCount()</code> sizes this textarea. It is a deprecated compatibility API. Keep control selection and sizing in your adapter for new integrations; the reusable rules remain in the field model. <a href="#integration">Read the adapter boundary.</a></p>` : ''}
                 <section class="code-section"><div class="detail-heading"><h3>Define the ${source.kind === 'Recordset' ? 'recordset' : 'record'}</h3><span><code>${source.modelFile}</code></span></div><pre class="code"><code>${highlightModifier(source.definition, recipe.name)}</code></pre></section>
                 <section class="markup-section"><div class="detail-heading"><h3>Render with Lit</h3><span><code>${source.uiFile}</code></span></div>
                     <p class="markup-note">This file imports <code>${source.modelName}</code> from <code>./${source.modelFile}</code>.${source.contract ? ' This adapter has no supported control for this modifier, so the UI states that limitation.' : html` The <code>fdl-field</code> and <code>fdl-table</code> components are this site’s example adapters.`}</p><pre class="code markup"><code>${highlightJavaScript(source.ui)}</code></pre>
@@ -323,7 +323,7 @@ export class FdlModifierExplorer extends LitElement {
                 ${group.names.map(name => keyed(name, this.renderModifierSection(recipes.find(entry => entry.name === name)!)))}
                 <footer><button class="pager" ?disabled=${!previous} @click=${() => previous && this.select(previous.index)}>← Back${previous ? html`<small>${modifierPage(previous.entry.name).title || html`.${previous.entry.name}${previous.entry.signature}`}</small>` : ''}</button><span class="page-count">${position < 0 ? 'Current page is outside the results' : `${position + 1} of ${pages.length}`}${filtering ? html`<small>Filtered pages</small>` : ''}</span><button class="pager next" ?disabled=${!next} @click=${() => next && this.select(next.index)}>Next →${next ? html`<small>${modifierPage(next.entry.name).title || html`.${next.entry.name}${next.entry.signature}`}</small>` : ''}</button></footer>
                 `}
-                ${['home', 'learn', 'composition'].includes(this.page) ? html`<p class="compatibility-note">These live examples use <code>tag()</code> to configure the legacy adapter’s controls. It is a deprecated compatibility API; new integrations should choose controls in their adapter. <a href="#integration">Model and adapter responsibilities</a>.</p>` : ''}
+                ${['home', 'learn', 'composition'].includes(this.page) ? html`<p class="compatibility-note">These live examples choose a select automatically when a field provides options. <a href="#integration">Read the model and adapter responsibilities</a>.</p>` : ''}
             </main>
         </div>
         ${this.tooltip ? html`<div id="modifier-tooltip" role="tooltip" style=${`left:${this.tooltip.left}px;top:${this.tooltip.top}px`} @mouseenter=${() => clearTimeout(this.tooltipTimer)} @mouseleave=${this.deferHideTooltip}><pre><code>${modifierSignatures[this.tooltip.recipe.name]}</code></pre><p>${this.tooltip.recipe.title}</p></div>` : ''}`;

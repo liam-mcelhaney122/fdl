@@ -949,17 +949,6 @@ describe('FieldType', () => {
         });
     });
 
-    describe('tag', () => {
-        it('has a default input tag', () => {
-            const field = new FieldTypeBuilder();
-            expect(field.valueOf().tag()).toEqual('input');
-        });
-        it('sets a tag property', () => {
-            const field = new FieldTypeBuilder().tag('select');
-            expect(field.valueOf().tag()).toEqual('select');
-        });
-    });
-
     describe('type', () => {
         it('has a default input type', () => {
             const field = new FieldTypeBuilder();

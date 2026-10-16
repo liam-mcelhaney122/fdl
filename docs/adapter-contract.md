@@ -29,7 +29,8 @@ For the built-in Lit adapter, `field` and `record` identify the model field.
 After its first update, the adapter:
 
 1. resolves the field's `FieldType`;
-2. creates the element named by `FieldType.tag()`;
+2. chooses a native `select` when the field provides options, a `textarea` when
+   `rowCount()` is configured, and an `input` otherwise;
 3. copies the formatted value and supported field state to that element;
 4. creates a stable, per-instance ID and associates the visible label with it;
 5. translates control events into `Record.parseAndSetField()` calls; and
@@ -60,11 +61,10 @@ icon, or color may reinforce the state, but it is not the source of validity.
 
 ## Custom child controls
 
-`FieldType.tag()` remains compatible with custom tags. `FormElement` assigns
-the existing value and modifier-derived properties to that element and listens
-for the existing configured event set. A custom control is responsible for
-interpreting those properties, exposing a focusable accessible control, and
-forwarding its accessible name and description into any internal shadow DOM.
+The built-in adapter chooses among native controls from stable field metadata:
+options imply a `select`, configured `rowCount()` implies a `textarea`, and
+other fields use an `input`. Custom controls belong in a renderer-specific
+adapter rather than in `FieldType` metadata.
 
 The outer label's `for` association works directly for native labelable
 elements. A custom element must implement the appropriate form-associated or

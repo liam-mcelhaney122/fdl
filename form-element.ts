@@ -48,8 +48,12 @@ class FormElement extends ListeningElement {
         if (!this.record) throw new Error('OmegaFormElement: record is required');
         if (!this.field) throw new Error('OmegaFormElement: field is required');
         this.fieldType = this.record.fieldTypeForField(this.field);
-        const tag = this.fieldType.tag();
-        this.element = document.createElement(tag);
+        const controlTag = this.fieldType.hasOptions()
+            ? 'select'
+            : this.fieldType.hasRowCount()
+                ? 'textarea'
+                : 'input';
+        this.element = document.createElement(controlTag);
         await this.destructureFieldType();
         this.addListenersToElement();
         this.addListenersToRecord();

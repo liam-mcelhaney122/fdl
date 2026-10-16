@@ -187,10 +187,6 @@ export default class FieldType {
         return type;
     }
 
-    tag() {
-        return this.properties.tag;
-    }
-
     label(value, record, context = 'model') {
         const settings = this.properties.labelFunctions;
         return resolveRecordSetting(settings[settings.length - 1] ?? '', record);
@@ -395,6 +391,10 @@ export default class FieldType {
     /** @deprecated Textarea sizing is a presentation concern. Move row-count configuration into fdl-field instead of FieldType. */
     rowCount() {
         return this.properties.numberOfRows;
+    }
+
+    hasRowCount() {
+        return this.properties.rowCountConfigured;
     }
 
     placeholder(value, record, context = 'model') {

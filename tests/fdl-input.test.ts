@@ -48,7 +48,6 @@ describe('<fdl-field>', () => {
         const record = new Record(
             {
                 colors: new FieldTypeBuilder()
-                    .tag('select')
                     .multipleValues()
                     .options([
                         { text: 'Blue', value: 'blue' },
@@ -77,7 +76,7 @@ describe('<fdl-field>', () => {
     });
 
     it('round-trips checkbox dropdown selections, model edits, and clearing', async () => {
-        const record = new Record({ colors: new FieldTypeBuilder().label('Colors').tag('select').multipleValues().options([
+        const record = new Record({ colors: new FieldTypeBuilder().label('Colors').multipleValues().options([
             { text: 'Blue', value: 'blue' }, { text: 'Green', value: 'green' },
         ]) }, { colors: ['blue', 'green'] });
         const element = document.createElement('fdl-field') as TestElement & { record: Record; field: string };
@@ -119,7 +118,7 @@ describe('<fdl-field>', () => {
     });
 
     it('exposes required, invalid, and disabled states on the multiple-selection trigger', async () => {
-        const record = new Record({colors: new FieldTypeBuilder().label('Colors').tag('select').multipleValues().options([
+        const record = new Record({colors: new FieldTypeBuilder().label('Colors').multipleValues().options([
             {text:'Blue',value:'blue'},
         ]).required().validator({name:'select at least one color', validate:value => Array.isArray(value) && value.length > 0}).disabled(record => record.getField('locked')),
         locked: new FieldTypeBuilder()}, {colors:[] as string[],locked:false});
@@ -150,7 +149,7 @@ describe('<fdl-field>', () => {
 
     it('creates a textarea without assigning an unsupported input type', async () => {
         const record = new Record(
-            { notes: new FieldTypeBuilder().tag('textarea').rowCount(3) },
+            { notes: new FieldTypeBuilder().rowCount(3) },
             { notes: '' }
         );
         const element = document.createElement('fdl-field') as HTMLElement & {
@@ -173,7 +172,6 @@ describe('<fdl-field>', () => {
         const record = new Record(
             {
                 status: new FieldTypeBuilder()
-                    .tag('select')
                     .options([
                         { text: 'Draft', value: 'draft' },
                         { text: 'Approved', value: 'approved' },
@@ -228,8 +226,9 @@ describe('<fdl-field>', () => {
 });
 
 describe('native input masks', () => {
-    async function maskedField(tag = 'input') {
-        const record = new Record({value: new FieldTypeBuilder<string>().tag(tag).inputMask(/[0-9.]/)}, {value: '12.3'});
+    async function maskedField(control: string = 'input') {
+        const definition = new FieldTypeBuilder<string>().inputMask(/[0-9.]/);
+        const record = new Record({value: control === 'textarea' ? definition.rowCount(2) : definition}, {value: '12.3'});
         const element = document.createElement('fdl-field') as TestElement & {record: Record; field: string};
         element.record = record;
         element.field = 'value';
@@ -254,8 +253,8 @@ describe('native input masks', () => {
         element.remove();
     });
 
-    it.each(['input', 'textarea'])('filters mixed pasted text in a native %s and preserves the caret', async tag => {
-        const {record, element, input} = await maskedField(tag);
+    it.each(['input', 'textarea'])('filters mixed pasted text in a native %s and preserves the caret', async control => {
+        const {record, element, input} = await maskedField(control);
         input.value = '1a😀4.2b3';
         input.setSelectionRange(8, 8);
         input.dispatchEvent(new InputEvent('input', {inputType: 'insertFromPaste'}));

@@ -281,13 +281,13 @@ legacy renderer-oriented metadata for compatibility. See the
 [adapter contract](./adapter-contract.md) before mapping these values into a
 design system or another framework.
 
-The current adapter interprets the following metadata. `tag`, `autocomplete`,
-and `autofocus` are deprecated compatibility APIs; their configuration belongs
+The current adapter interprets the following metadata. `autocomplete` and
+`autofocus` are deprecated compatibility APIs; their configuration belongs
 in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md)).
 
 | Modifier | Purpose |
 | --- | --- |
-| `tag(name)` / `type(name)` | Choose the child element and native input type. |
+| `type(name)` | Choose the native input type for input controls. |
 | `label(value)` | Set a string label or compute one from the record. |
 | `placeholder(value)`, `autocomplete(value)`, `autofocus()` | Configure common input attributes. |
 | `defaultValue(valueOrFactory)` | Provide defaults for clearing a record, appending a row, and omitted values in a partial clone; constructor values are kept as supplied. |
@@ -295,12 +295,11 @@ in the renderer (see [ADR-0001](./adr/0001-retire-post-jack-henry-modifiers.md))
 | `multipleValues(min, max)` | Declare multiple-value metadata. The native select adapter stores arrays; the declared count bounds do not add validators. |
 | `options(config)` | Provide options for a select-like control. |
 
-For the legacy adapter’s native dropdown, the compatibility configuration is `tag('select')` and option objects with `text` and
-`value` properties:
+For the built-in adapter, providing options creates a native dropdown. Option
+objects use `text` and `value` properties:
 
 ```js
 const contactMethod = field
-  .tag('select')
   .label('Preferred contact method')
   .options([
     { text: 'Choose a method', value: '' },

@@ -8,7 +8,7 @@ import {highlightJavaScript} from './highlight-javascript';
 import {exampleTheme} from './example-theme';
 import './fdl-field';
 const choiceText:{[value:string]:string}={always:'Always',enabled:'When Condition is Enabled',never:'Never',none:'No value check',minimum:'At least 3 characters',digits:'Digits only'};
-const choice=(label:string,values:string[])=>field.label(label).tag('select').options(values.map(value=>({text:choiceText[value],value})));
+const choice=(label:string,values:string[])=>field.label(label).options(values.map(value=>({text:choiceText[value],value})));
 export class FdlFieldBuilder extends LitElement{
     private configuration=new Record({
         name:field.label('Field name').required().validator({name:'must be a distinct field name using letters, numbers, or underscores',validate:value=>/^[A-Za-z_]\w*$/.test(value)&&!['condition','__proto__','constructor','prototype'].includes(value)}),

@@ -25,7 +25,7 @@ export function compositionFields(rules: CompositionRules) {
         validate: value => value === '' || hasStreetNumber(value),
     });
     return {
-        fulfillment: field.label('Delivery method').tag('select').options([
+        fulfillment: field.label('Delivery method').options([
             {text: 'Ship to address', value: 'ship'}, {text: 'Pick up in person', value: 'pickup'},
         ]),
         address,

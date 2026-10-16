@@ -16,7 +16,7 @@ const type = (chain: string) => `field\n    .${chain}`;
 const currency = `const currency = new Intl.NumberFormat('en-US', {
   style: 'currency', currency: 'USD',
 });`;
-const choose = (label: string, choices: string[][]) => type(`label('${label}').tag('select').options(${JSON.stringify(choices.map(([text,value]) => ({text,value})), null, 2)})`);
+const choose = (label: string, choices: string[][]) => type(`label('${label}').options(${JSON.stringify(choices.map(([text,value]) => ({text,value})), null, 2)})`);
 const peopleFields = {
     firstName: type("label('First name').compareFunction((a, b) => a.localeCompare(b))"),
     lastName: type("label('Last name').compareFunction((a, b) => a.localeCompare(b))"),
@@ -25,7 +25,7 @@ const peopleFields = {
 /** Complete model declarations paired with the bindings in modifier-example-markup. */
 function modelFor(name: string, settings: ExampleSettings): Model {
     const records: {[key: string]: Model} = {
-        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.required()'}`),followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes')")}, values:{name:'',followUp:'no',followUpNotes:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional. Follow-up notes keep their conditional rule.' : undefined},
+        required: {name:'person', fields:{name:type(`label('Legal name')${settings.required === false ? '' : '.required()'}`),followUp:choose('Follow-up needed?',[['No','no'],['Yes','yes']]),followUpNotes:type("label('Follow-up notes').rowCount(2).required(record => record.getField('followUp') === 'yes')")}, values:{name:'',followUp:'no',followUpNotes:''}, prefix: settings.required === false ? '// The required rule is removed; the field is optional. Follow-up notes keep their conditional rule.' : undefined},
         formatter: {name:'money', prefix:currency, fields:{amount:type(`label('Amount').type('number')
     .parser(value => Number(value))
     .formatter((value, record, context) =>
@@ -37,17 +37,17 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         label: {name:'record',fields:{expenseType:choose('Expense type',[['Travel','travel'],['Equipment','equipment']]),dynamicAmount:type("label(record => `Amount for ${record.getField('expenseType')}`).type('number')")},values:{expenseType:'travel',dynamicAmount:''}},
         maxLength: {name:'record',fields:{shortCode:type("label('Short code').maxLength(12)")},values:{shortCode:''}},
         minLength: {name:'record',fields:{longCode:type(`label('Access code').minLength(${settings.minimum ?? 4})`)},values:{longCode:''}},
-        multipleValues: {name:'record',fields:{skills:type(`label('Skills').tag('select').multipleValues().options([
+        multipleValues: {name:'record',fields:{skills:type(`label('Skills').multipleValues().options([
     { text: 'Design', value: 'design' },
     { text: 'Engineering', value: 'engineering' },
     { text: 'Research', value: 'research' },
   ])`)},values:{skills:['design']}},
         options: {name:'record',prefix:`const directory = ${JSON.stringify(assigneeDirectory, null, 2)};`,fields:{
             department:choose('Department',[['Engineering','engineering'],['Finance','finance']]),
-            assignee:type(`label('Assignee (function)').tag('select').options(record =>
+            assignee:type(`label('Assignee (function)').options(record =>
       directory[record.getField('department')]
     )`),
-            asyncAssignee:type(`label('Assignee (async function)').tag('select').options(async record => {
+            asyncAssignee:type(`label('Assignee (async function)').options(async record => {
       const choices = directory[record.getField('department')];
       // Simulate an asynchronous directory lookup.
       await new Promise(resolve => setTimeout(resolve, ${optionsDelay}));
@@ -60,7 +60,7 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         placeholder: {name:'record',fields:{projectName:type("label('Project name').placeholder('For example, Apollo migration')")},values:{projectName:''}},
         readOnly: {name:'record',fields:{fixedOwner:type("label('Owner').readOnly()")},values:{fixedOwner:'Ada Lovelace'}},
         readOnlyWhen: {name:'record',fields:{phase:choose('Phase',[['Draft','draft'],['Submitted','submitted']]),conditionalOwner:type("label('Request owner').readOnlyWhen(record => record.getField('phase') === 'submitted')")},values:{phase:'draft',conditionalOwner:'Ada Lovelace'}},
-        rowCount: {name:'record',prefix:'// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',fields:{comments:type(`label('Comments').tag('textarea').rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
+        rowCount: {name:'record',prefix:'// Deprecated: textarea sizing belongs in fdl-field, not FieldType.\n// This example preserves the existing modifier for compatibility.',fields:{comments:type(`label('Comments').rowCount(${settings.rows ?? 4})`)},values:{comments:''}},
         type: {name:'record',fields:{inputValue:type(`label('Example: ${settings.inputType ?? 'text'}').type('${settings.inputType ?? 'text'}')${inputTypeNeedsNumber(settings.inputType ?? 'text') ? '.parser(Number)' : ''}`)},values:{inputValue:inputTypeInitialValue(settings.inputType ?? 'text')}},
         validator: {name:'record',fields:{
             email:type(`label('Email address').type('email').validator({
@@ -125,8 +125,8 @@ export function exampleSource(name: string, settings: ExampleSettings = {}) {
     const exports = [model.name, ...(helpers[name] ?? [])];
     const modelFile = `${name}-model.js`;
     const uiFile = `${name}-view.js`;
-    const legacyAdapter = Object.values(model.fields).some(chain => /\.(tag|rowCount)\(/.test(chain));
-    const compatibility = legacyAdapter ? '// Adapter compatibility: tag() and rowCount() configure this legacy example renderer.\n// Choose controls and textarea sizing in your adapter for new integrations.\n' : '';
+    const legacyAdapter = Object.values(model.fields).some(chain => /\.rowCount\(/.test(chain));
+    const compatibility = legacyAdapter ? '// Adapter compatibility: rowCount() configures textarea sizing in this legacy example renderer.\n// Choose control selection and textarea sizing in your adapter for new integrations.\n' : '';
     const definition = `${name === 'template' ? "import { html } from 'lit';\n" : ''}import { field, ${kind} } from 'digital-fdl';\n\n${model.prefix ? `${model.prefix}\n\n` : ''}${compatibility}const ${model.name} = new ${kind}({\n${Object.entries(model.fields).map(([key,value]) => `  ${key}: ${value.replace(modifierCall, '\n    .')},`).join('\n')}\n}, ${JSON.stringify(model.values, null, 2)});\n\nexport { ${exports.join(', ')} };`;
     let markup = exampleMarkup(name);
     let setup = '';

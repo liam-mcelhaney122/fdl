@@ -74,6 +74,11 @@ The `toggle()` removal is immediate. Consumers must choose checkbox, switch,
 or other Boolean-control presentation in their component or form adapter.
 There is no replacement modifier in FDL.
 
+The `tag()` removal is immediate. The built-in form adapter chooses a native
+select when a field provides options, a textarea when `rowCount()` is
+configured, and an input otherwise. Other renderers should make control
+selection in their own adapter.
+
 FDL gains a smaller, more durable public vocabulary. Its modifiers become easier
 to understand, test, and render consistently in forms, tables, documents, and
 other consumers. The explicit inventory makes removals auditable and prevents
@@ -118,7 +123,7 @@ future retirement work from losing historical context.
 | `selectOnFocus` | Removed — 2026-10-15 | Component or form adapter | Focus and text selection are control interactions, not reusable field behavior. |
 | `segmented` | Deprecated | Renderer-specific control configuration | Control presentation choice. |
 | `step` | Deprecated | Renderer-specific input configuration | Browser input attribute. |
-| `tag` | Deprecated | Renderer-specific control configuration | HTML/control selection. |
+| `tag` | Removed — 2026-10-16 | Adapter control selection inferred from options and row-count metadata | Renderer-specific control selection does not belong in the reusable field model. |
 | `toggle` | Removed — 2026-10-15 | Component or form adapter | Boolean-control presentation and interaction belong to the component, not the field model. |
 | `usesCustomPrint` | Deprecated | Renderer | Custom print behavior. |
 

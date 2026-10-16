@@ -152,6 +152,7 @@ export interface Properties<T = unknown> {
     minLength?: RecordSetting<number>;
     minValueCount: number;
     numberOfRows: number;
+    rowCountConfigured: boolean;
     onValueChange: Array<Function>;
     options: OptionsApi | null;
     parseDynamicRange: boolean;
@@ -176,7 +177,6 @@ export interface Properties<T = unknown> {
     sortable?: ColumnSetting<boolean>;
     specificDate?: boolean;
     step?: number;
-    tag: string;
     targetColumnWidth?: ColumnSetting<number>;
     template: Function;
     textAlign: FieldSetting<any, 'left' | 'center' | 'right'>;
@@ -220,6 +220,7 @@ export const defaultProperties: Properties = {
     minColumnWidth: 30,
     minValueCount: 1,
     numberOfRows: 1,
+    rowCountConfigured: false,
     onValueChange: [],
     options: null,
     parseDynamicRange: false,
@@ -238,7 +239,6 @@ export const defaultProperties: Properties = {
     segmented: false,
     segmentedFunctions: [() => false],
     selectionDisabledFunctions: {},
-    tag: 'input',
     sortable: true,
     template: (value: any) => value,
     textAlign: 'left',
@@ -388,7 +388,7 @@ export default class FieldTypeBuilder<T = unknown> {
     }
 
     /**
-     * @deprecated use tag(element) and additionalProperties({props}) instead
+     * @deprecated Use renderer-specific integration instead.
      */
     formElement(name: string, properties = {}) {
         const copy = this.copy();
@@ -556,18 +556,6 @@ export default class FieldTypeBuilder<T = unknown> {
         const copy = this.copy();
         copy.properties.type = type;
         copy.properties.descriptions = [...copy.properties.descriptions, `type: ${type}`];
-        return copy;
-    }
-
-    /**
-     * @deprecated Use a renderer-specific control configuration instead.
-     * the html tag to be used on this field type
-     * @param tag
-     */
-    tag(tag: string) {
-        const copy = this.copy();
-        copy.properties.tag = tag;
-        copy.properties.descriptions = [...copy.properties.descriptions, `tag: ${tag}`];
         return copy;
     }
 
@@ -880,6 +868,7 @@ export default class FieldTypeBuilder<T = unknown> {
     rowCount(numberOfRows: number) {
         const copy = this.copy();
         copy.properties.numberOfRows = numberOfRows;
+        copy.properties.rowCountConfigured = true;
         copy.properties.descriptions = [...copy.properties.descriptions, `${numberOfRows} rows`];
         return copy;
     }

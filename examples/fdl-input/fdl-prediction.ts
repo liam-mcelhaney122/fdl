@@ -5,7 +5,7 @@ import { addressCases, compositionExplanation, compositionRecord, defaultComposi
 import { exampleTheme } from './example-theme';
 import './fdl-field';
 
-const choice = (label: string, options: {text:string;value:string}[]) => field.label(label).tag('select').options(options);
+const choice = (label: string, options: {text:string;value:string}[]) => field.label(label).options(options);
 export class FdlPrediction extends LitElement {
     static properties = {rules:{attribute:false}};
     rules: CompositionRules = {...defaultCompositionRules};

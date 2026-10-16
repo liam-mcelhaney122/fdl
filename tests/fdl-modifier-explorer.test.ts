@@ -119,7 +119,7 @@ describe('complete explorer', () => {
             'accept', 'additionalProperties', 'autofocus', 'autocomplete', 'field', 'formElement',
             'filtering', 'formatOnChange', 'hideLabel', 'iconMessage', 'list', 'max', 'onValueChange',
             'description', 'hasSearch', 'inline', 'inlineWhen', 'parseDynamicRange', 'pattern',
-            'readOnlyExceptionWhen', 'schema', 'segmented', 'selectionDisabledFunctions', 'step', 'tag', 'usesCustomPrint',
+            'readOnlyExceptionWhen', 'schema', 'segmented', 'selectionDisabledFunctions', 'step', 'usesCustomPrint',
         ]);
         const expected = Object.getOwnPropertyNames(Object.getPrototypeOf(builder))
             .filter(name => !['constructor', 'copy', 'valueOf'].includes(name) && !omitted.has(name))

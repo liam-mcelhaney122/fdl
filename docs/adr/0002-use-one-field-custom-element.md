@@ -16,8 +16,9 @@ metadata; consumers do not choose a field-specific custom element.**
 
 The component owns the mapping from field metadata to accessible HTML and the
 synchronization between that control and its `Record`. Input, select, and
-textarea remain internal rendering choices. The current native adapter uses the
-field's configured `tag()` for that choice.
+textarea remain internal rendering choices. The current native adapter chooses
+a select when a field provides options, a textarea when `rowCount()` is
+configured, and an input otherwise.
 
 This decision does not reverse the deprecation of DOM-specific `FieldType`
 modifiers. A future adapter may derive the native control from stable field
@@ -53,8 +54,7 @@ from supporting richer interactions when their semantics require them.
 - **Keep dependency flow moving forward.** A consumer should provide a field
   and record, not inspect model metadata and reproduce renderer branching.
 - **Keep modifiers renderer-independent.** The stable decision is the unified
-  component boundary, not a permanent endorsement of `tag()` as model
-  vocabulary.
+  component boundary, not a control selector in model vocabulary.
 - **Use the model as the source of truth for model behavior.** Requiredness,
   visibility, disabled state, parsing, formatting, and validation continue to
   come from `FieldType` and `Record`.
@@ -126,8 +126,8 @@ Cons:
   the same custom element.
 - Richer controls may require additional internal rendering strategies, but
   they must not fragment the outer API into one custom element per field type.
-- A later decision may replace legacy `tag()` metadata with renderer-local
-  control selection without changing consumer markup.
+- The adapter derives native control selection from field metadata without
+  exposing a control-selector modifier in the reusable model.
 
 ## Advice
 

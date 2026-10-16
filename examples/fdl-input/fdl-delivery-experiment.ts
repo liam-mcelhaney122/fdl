@@ -15,7 +15,6 @@ const whenDeliveryMethodRequiresAddress = record =>
   record.getField('fulfillment') === 'ship';
 
 const deliveryMethod = field.label('Delivery method')
-    .tag('select')
     .options([
       { text: 'Ship to address', value: 'ship' },
       { text: 'Pick up in person', value: 'pickup' },
@@ -42,7 +41,7 @@ export class DeliveryForm extends LitElement {
 }
 
 customElements.define('delivery-form', DeliveryForm);`;
-    private deliveryMethod = field.label('Delivery method').tag('select').options([
+    private deliveryMethod = field.label('Delivery method').options([
         { text: 'Ship to address', value: 'ship' }, { text: 'Pick up in person', value: 'pickup' },
     ]);
     private shippingAddress = field.label('Shipping address')

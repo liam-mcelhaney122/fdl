@@ -1,8 +1,9 @@
 # Form elements
 
-> Compatibility note: examples using `tag()` select controls through the legacy
-> adapter. `tag()` and `rowCount()` are deprecated compatibility APIs. Keep control
-> selection and textarea sizing in renderer configuration and styles for new
+> Compatibility note: `rowCount()` remains a deprecated textarea-sizing API.
+> The built-in adapter chooses a select when a field provides options, a textarea
+> when `rowCount()` is configured, and an input otherwise. Keep
+> control selection and textarea sizing in renderer configuration for new
 > integrations; keep validation and dependencies in the field model.
 
 `FormElement` is the Lit base class for FDL field controls. Extend it when you
@@ -12,7 +13,8 @@ The base class owns the FDL integration:
 
 - it requires a `record` and `field` property;
 - it resolves the field's `FieldType` after the first update;
-- it creates the child control named by `FieldType.tag()`;
+- it creates a select for fields with options, a textarea for fields with more
+  than one requested row, and an input otherwise;
 - it copies the field value and modifiers (`label`, `required`, `disabled`,
   `placeholder`, and so on) to that child;
 - it loads `FieldType.options()` when the field has options; and
@@ -62,13 +64,12 @@ customElements.define('fdl-field', FdlField);
 ```
 
 Always use that component as the outer form control and pass the record and
-field. The `FieldType` tag names the native child created inside it:
+field. Fields with options render as native selects:
 
 ```ts
 import { field, Record } from 'digital-fdl';
 
 const contactMethod = field
-  .tag('select')
   .label('Preferred contact method')
   .options([
     { text: 'Choose a method', value: '' },
@@ -84,8 +85,8 @@ html`<fdl-field field="contactMethod" .record=${record}></fdl-field>`
 ```
 
 Do not create separate `<fdl-input>`, `<fdl-select>`, or `<fdl-textarea>` APIs.
-Use `tag('input')`, `tag('select')`, or `tag('textarea')` in the field metadata
-and keep `<fdl-field>` stable at the call site.
+Keep `<fdl-field>` stable at the call site; its adapter chooses the native
+control from the field metadata.
 
 ## Labels, IDs, and read-only values
 

@@ -35,7 +35,7 @@ export class FdlLearningPath extends LitElement {
         }
         if (this.step >= 3) charge = charge.visibleWhen(record => record.getField('method') === 'ship');
         return {
-            method: field.label('Delivery method').tag('select').options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
+            method: field.label('Delivery method').options([{text: 'Ship', value: 'ship'}, {text: 'Pickup', value: 'pickup'}]),
             charge,
         };
     }

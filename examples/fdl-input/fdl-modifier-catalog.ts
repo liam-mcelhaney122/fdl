@@ -65,7 +65,7 @@ field
     live('maxLength', 'Caps input length and adds equivalent record validation.', 'maxLength', `.maxLength(12)`),
     live('minColumnWidth', 'Sets the minimum width requested for a table column.', 'minColumnWidth', `.minColumnWidth(110)`),
     live('minLength', 'Sets a minimum input length and adds equivalent record validation.', 'minLength', `.minLength(4)`),
-    live('multipleValues', 'Allows more than one option to be selected.', 'multipleValues', `.tag('select')
+    live('multipleValues', 'Allows more than one option to be selected.', 'multipleValues', `
   .multipleValues()
   .options([
     { text: 'Design', value: 'design' },
@@ -119,12 +119,12 @@ export class FdlModifierCatalog extends LitElement {
         {
             extraProperty: field.label('Extra property example'),
             lockedId: field.label('System ID').disabled(),
-            approvalStatus: field.label('Approval status').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
+            approvalStatus: field.label('Approval status').options([{ text: 'Draft', value: 'draft' }, { text: 'Approved', value: 'approved' }]),
             budget: field.label('Budget').type('number').disabled(record => record.getField('approvalStatus') === 'approved'),
             emptyCode: field.label('Reference').emptyWhen(value => value === 'N/A').required(),
             optionalEmptyCode: field.label('Optional reference').emptyWhen(value => value === 'N/A'),
             hiddenSearch: field.label('Search directory').placeholder('Search directory'),
-            expenseType: field.label('Expense type').tag('select').options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
+            expenseType: field.label('Expense type').options([{ text: 'Travel', value: 'travel' }, { text: 'Equipment', value: 'equipment' }]),
             dynamicAmount: field.label((record: any) => `Amount for ${record.getField('expenseType')}`).type('number'),
             money: field
                 .label('Money')
@@ -132,28 +132,28 @@ export class FdlModifierCatalog extends LitElement {
                 .parser(value => Number(String(value).replace(/[$,]/g, ''))),
             shortCode: field.label('Short code').maxLength(12),
             longCode: field.label('Access code').minLength(4),
-            skills: field.label('Skills').tag('select').multipleValues().options([
+            skills: field.label('Skills').multipleValues().options([
                 { text: 'Design', value: 'design' },
                 { text: 'Engineering', value: 'engineering' },
                 { text: 'Research', value: 'research' },
             ]),
-            quantity: field.label('Quantity').tag('select').options([{ text: '1', value: 1 }, { text: '2', value: 2 }, { text: '4', value: 4 }]),
+            quantity: field.label('Quantity').options([{ text: '1', value: 1 }, { text: '2', value: 2 }, { text: '4', value: 4 }]),
             total: field.label('Total at $25 each').formatter(value => currency.format(Number(value))).readOnly(),
-            department: field.label('Department').tag('select').options([{ text: 'Engineering', value: 'engineering' }, { text: 'Finance', value: 'finance' }]),
-            assignee: field.label('Assignee (function)').tag('select').options((record: any) => assigneeDirectory[record.getField('department')]),
-            asyncAssignee: field.label('Assignee (async function)').tag('select').options(async (record: any) => {
+            department: field.label('Department').options([{ text: 'Engineering', value: 'engineering' }, { text: 'Finance', value: 'finance' }]),
+            assignee: field.label('Assignee (function)').options((record: any) => assigneeDirectory[record.getField('department')]),
+            asyncAssignee: field.label('Assignee (async function)').options(async (record: any) => {
                 const choices = assigneeDirectory[record.getField('department')];
                 await new Promise(resolve => setTimeout(resolve, optionsDelay));
                 return choices;
             }),
             projectName: field.label('Project name').placeholder('For example, Apollo migration'),
             fixedOwner: field.label('Owner').readOnly(),
-            phase: field.label('Phase').tag('select').options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
+            phase: field.label('Phase').options([{ text: 'Draft', value: 'draft' }, { text: 'Submitted', value: 'submitted' }]),
             conditionalOwner: field.label('Request owner').readOnlyWhen(record => record.getField('phase') === 'submitted'),
             requiredName: field.label('Legal name').required(),
-            followUp: field.label('Follow-up needed?').tag('select').options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
-            followUpNotes: field.label('Follow-up notes').tag('textarea').rowCount(2).required(record => record.getField('followUp') === 'yes'),
-            comments: field.label('Comments').tag('textarea').rowCount(4),
+            followUp: field.label('Follow-up needed?').options([{ text: 'No', value: 'no' }, { text: 'Yes', value: 'yes' }]),
+            followUpNotes: field.label('Follow-up notes').rowCount(2).required(record => record.getField('followUp') === 'yes'),
+            comments: field.label('Comments').rowCount(4),
             email: field.label('Email address').type('email')
                 .validator({name:'must be a valid email address', validate:value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))}),
             orderQuantity: field.label('Order quantity').type('number').parser(Number)
@@ -162,7 +162,7 @@ export class FdlModifierCatalog extends LitElement {
             username: field.label('Username')
                 .validator({name:'must start with a letter', validate:value => /^[A-Za-z]/.test(String(value))})
                 .validator({name:'must contain only letters, numbers, or underscores', validate:value => /^[A-Za-z0-9_]+$/.test(String(value))}),
-            fulfillment: field.label('Fulfillment').tag('select').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
+            fulfillment: field.label('Fulfillment').options([{ text: 'Ship', value: 'ship' }, { text: 'Pickup', value: 'pickup' }]),
             address: field.label('Shipping address').visibleWhen(record => record.getField('fulfillment') === 'ship'),
         },
         {
@@ -294,12 +294,12 @@ export class FdlModifierCatalog extends LitElement {
         ),
     };
     private probes = new Record({
-        inputType: field.label('Input type').tag('select').options(inputTypeChoices),
-        textareaRows: field.label('Row count').tag('select').parser(Number).options([1, 4, 10].map(value => ({text: String(value), value}))),
+        inputType: field.label('Input type').options(inputTypeChoices),
+        textareaRows: field.label('Row count').parser(Number).options([1, 4, 10].map(value => ({text: String(value), value}))),
         classThreshold: field.label('Daily Expense Limit').type('number').parser(Number),
         input: field.label('Digits and periods').inputMask(/[0-9.]/),
         filterProbe: field.label('Search names'),
-        matchRule: field.label('Filter matching rule').tag('select').options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
+        matchRule: field.label('Filter matching rule').options([{text: 'Starts with', value: 'prefix'}, {text: 'Contains', value: 'contains'}]),
         firstId: field.label('First employee ID'),
         secondId: field.label('Second employee ID'),
         firstAmount: field.label('First amount').type('number').parser(Number),
@@ -351,7 +351,7 @@ export class FdlModifierCatalog extends LitElement {
 
         if (this.modifier === 'rowCount') {
             const rows = this.probes.getField('textareaRows');
-            this.record.addField('comments', field.label('Comments').tag('textarea').rowCount(rows), this.record.getField('comments'));
+            this.record.addField('comments', field.label('Comments').rowCount(rows), this.record.getField('comments'));
             this.dispatchEvent(new CustomEvent('example-settings-change', {detail: {rows}, bubbles: true, composed: true}));
         }
 
