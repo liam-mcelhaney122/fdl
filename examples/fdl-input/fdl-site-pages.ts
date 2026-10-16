@@ -1,3 +1,4 @@
+import { renderChangeRule } from './change-rule-page';
 import { renderEditableRecordset } from './editable-recordset-page';
 import { renderIntegration } from './integration-page';
 import { renderQuickstart } from './quickstart-page';
@@ -17,6 +18,7 @@ export const sitePages = [
     { id: 'quickstart', title: 'Your first form' },
     { id: 'integration', title: 'Adapter and API contracts' },
     { id: 'editable-recordset', title: 'Edit a recordset' },
+    { id: 'change-a-rule', title: 'Change and test a rule' },
     { id: 'learn', title: 'Learn by exploring' },
     { id: 'composition', title: 'Combine the rules' },
     { id: 'categories', title: 'Modifier categories' },
@@ -39,6 +41,7 @@ person.setField('name', 'Ada');
 person.isValid(); // true`;
 
 export function renderSitePage(page: SitePage, learningState?: LearningState, compositionView?: HTMLElement, recipes: readonly ExplorerRecipe[] = []) {
+    if (page === 'change-a-rule') return renderChangeRule();
     if (page === 'editable-recordset') return renderEditableRecordset();
     if (page === 'integration') return renderIntegration();
     if (page === 'quickstart') return renderQuickstart();
@@ -125,7 +128,7 @@ npm run docs:dev</code></pre>
             <pre class="code markup"><code>npm test
 npm run typecheck
 npm run docs:build</code></pre>
-            <p>Add focused coverage for behavior changes. If an exported API changes, update its public behavior, declarations, and documentation together. Check live examples in the browser, including keyboard interaction and narrow screens.</p>
+            <p>Follow <a href="#change-a-rule">a complete rule change with its source map and behavior tests</a>. Add focused coverage for behavior changes. If an exported API changes, update its public behavior, declarations, and documentation together. Check live examples in the browser, including keyboard interaction and narrow screens.</p>
             <h2>Keep the boundaries clear</h2>
             <ul><li>Put reusable model rules in field types, records, or recordsets.</li><li>Keep DOM structure, focus, and event handling in components.</li><li>Use CSS for visual expression.</li><li>Document adapter limitations instead of simulating unsupported behavior.</li></ul>
             <h2>Submit a focused change</h2>

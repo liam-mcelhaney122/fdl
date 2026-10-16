@@ -1,3 +1,4 @@
+import { renderValidatorContract } from './change-rule-page';
 import { field } from '../../index';
 import { modifierPage } from './modifier-page-groups';
 import { relatedModifierNames } from './related-modifiers';
@@ -238,7 +239,7 @@ export class FdlModifierExplorer extends LitElement {
                     <p class="markup-note">These rules live in <code>${source.stylesComponent}</code>’s shadow-root stylesheet (<code>static styles</code>). ${source.stylesComponent === 'fdl-field' ? 'The adapter sets the native disabled state from the field definition; CSS gives it its appearance.' : 'The field definition supplies the class; CSS gives it its appearance.'}</p>
                     <pre class="code example-css"><code>${source.styles}</code></pre>
                 </section>` : ''}
-                <section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
+                ${recipe.name === "validator" ? renderValidatorContract() : ""}<section class="explanation"><h3>What happens</h3><ol>${recipe.steps.map(step => html`<li>${step}</li>`)}</ol><p class="use"><strong>Good for</strong>${recipe.use}</p></section></div>
                 <section class="note"><div><h3>Behavior details</h3><p>${recipe.note}</p></div></section>
                 <section class="related-modifiers" aria-labelledby=${`${recipe.name}-related-title`}><h3 id=${`${recipe.name}-related-title`}>Related modifiers</h3><ul>${relatedModifierNames(recipe.name).map(name => {
                     const related = recipes.find(entry => entry.name === name)!;
