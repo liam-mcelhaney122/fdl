@@ -95,13 +95,17 @@ export class FdlRecordsetInspector extends LitElement {
             : 'Collapse recordset inspector';
         return html`<section aria-label="Recordset Inspector">
             <header>
-                <span class="inspector-icon" aria-hidden="true">
+                <span
+                    class="inspector-icon"
+                    aria-hidden="true"
+                    ?hidden=${this.collapsed}
+                >
                     <svg viewBox="0 0 24 24" focusable="false">
                         <circle cx="10" cy="10" r="6"></circle>
                         <path d="m15 15 6 6"></path>
                     </svg>
                 </span>
-                <div class="inspector-heading">
+                <div class="inspector-heading" ?hidden=${this.collapsed}>
                     <h3>Recordset Inspector</h3>
                     <p>Current view · Stored values</p>
                 </div>
@@ -118,7 +122,11 @@ export class FdlRecordsetInspector extends LitElement {
                         aria-hidden="true"
                         focusable="false"
                     >
-                        <path d="m6 9 6 6 6-6"></path>
+                        <g ?hidden=${!this.collapsed}>
+                            <circle cx="10" cy="10" r="6"></circle>
+                            <path d="m15 15 6 6"></path>
+                        </g>
+                        <path ?hidden=${this.collapsed} d="m6 9 6 6 6-6"></path>
                     </svg>
                 </button>
             </header>
@@ -241,7 +249,7 @@ ${JSON.stringify(
             .counts {
                 padding: 0 0 8px;
                 border-bottom: 1px solid var(--example-border);
-                color: #334155;
+                color: #404040;
             }
             .counts p {
                 margin: 12px 0;
@@ -251,7 +259,7 @@ ${JSON.stringify(
             }
             .table-scroll:focus-visible,
             summary:focus-visible {
-                outline: 3px solid #2563eb;
+                outline: 3px solid #525252;
                 outline-offset: 3px;
             }
             table {
@@ -285,10 +293,10 @@ ${JSON.stringify(
                 cursor: pointer;
                 padding: 12px 14px;
                 min-height: 44px;
-                border: 1px solid #b9d6d5;
+                border: 1px solid #d4d4d4;
                 border-radius: 8px;
-                background: #f1f8f8;
-                color: #134e4a;
+                background: #fafafa;
+                color: #262626;
                 font-size: 0.875rem;
                 font-weight: 600;
             }

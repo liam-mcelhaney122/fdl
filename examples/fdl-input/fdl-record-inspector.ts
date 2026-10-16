@@ -110,13 +110,17 @@ export class FdlRecordInspector extends LitElement {
             : 'Collapse record inspector';
         return html`<section aria-label="Record Inspector">
             <header>
-                <span class="inspector-icon" aria-hidden="true">
+                <span
+                    class="inspector-icon"
+                    aria-hidden="true"
+                    ?hidden=${this.collapsed}
+                >
                     <svg viewBox="0 0 24 24" focusable="false">
                         <circle cx="10" cy="10" r="6"></circle>
                         <path d="m15 15 6 6"></path>
                     </svg>
                 </span>
-                <div class="inspector-heading">
+                <div class="inspector-heading" ?hidden=${this.collapsed}>
                     <h3>Record Inspector</h3>
                     <p>Stored values · Field state</p>
                 </div>
@@ -133,38 +137,66 @@ export class FdlRecordInspector extends LitElement {
                         aria-hidden="true"
                         focusable="false"
                     >
-                        <path d="m6 9 6 6 6-6"></path>
+                        <g ?hidden=${!this.collapsed}>
+                            <circle cx="10" cy="10" r="6"></circle>
+                            <path d="m15 15 6 6"></path>
+                        </g>
+                        <path ?hidden=${this.collapsed} d="m6 9 6 6 6-6"></path>
                     </svg>
                 </button>
             </header>
             <div id="record-details" ?hidden=${this.collapsed}>
                 ${
                     record
-                        ? html`<table aria-label="Field state">
-                                  <thead
-                                      ><tr
-                                          ><th scope="col">Field</th
-                                          ><th scope="col">Stored value</th
-                                          ><th scope="col">Status</th></tr
-                                      ></thead
-                                  >
-                                  <tbody
-                                      >${fields.map(name => {
-                                          const type =
-                                              record.fieldTypeForField(name);
-                                          const value = record.getField(name);
-                                          return html`<tr data-field=${name}>
-                                              <th scope="row"
-                                                  >${type.label(value, record) || name}</th
+                        ? html`<div
+                                  class="table-scroll"
+                                  role="region"
+                                  aria-label="Record fields"
+                                  tabindex="0"
+                                  ><table aria-label="Field state">
+                                      <thead
+                                          ><tr
+                                              ><th
+                                                  scope="col"
+                                                  class="status-column"
+                                              ></th
+                                              ><th scope="col">Field</th
+                                              ><th scope="col">Label</th
+                                              ><th scope="col"
+                                                  >Stored value</th
+                                              ></tr
+                                          ></thead
+                                      >
+                                      <tbody
+                                          >${fields.map(name => {
+                                              const type =
+                                                  record.fieldTypeForField(
+                                                      name
+                                                  );
+                                              const value =
+                                                  record.getField(name);
+                                              return html`<tr
+                                                  data-field=${name}
                                               >
-                                              <td>${storedValue(value)}</td>
-                                              <td
-                                                  >${fieldStatus(record, name)}</td
-                                              >
-                                          </tr>`;
-                                      })}</tbody
-                                  >
-                              </table>
+                                                  <td class="status-column"
+                                                      >${fieldStatus(record, name)}</td
+                                                  >
+                                                  <th
+                                                      scope="row"
+                                                      class="field-name"
+                                                      >${name}</th
+                                                  >
+                                                  <td class="field-label"
+                                                      >${type.label(value, record)}</td
+                                                  >
+                                                  <td class="stored-value"
+                                                      >${storedValue(value)}</td
+                                                  >
+                                              </tr>`;
+                                          })}</tbody
+                                      >
+                                  </table></div
+                              >
                               ${statusLegend()}
                               <p class="validation" role="status"
                                   >Record validation:
@@ -190,25 +222,32 @@ export class FdlRecordInspector extends LitElement {
             display: none !important;
         }
         section {
-            border: 1px solid #b9d6d5;
+            --example-border: #dedede;
+            border: 1px solid #d4d4d4;
             border-radius: 12px;
             background: #fff;
-            color: #0f172a;
-            box-shadow: 0 2px 6px #0f172a08;
+            color: #262626;
+            box-shadow: 0 2px 6px #00000008;
         }
         header {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 18px 20px;
-            border-bottom: 1px solid #b9d6d5;
+            border-bottom: 1px solid #d4d4d4;
             border-radius: 11px 11px 0 0;
-            background: linear-gradient(110deg, #e6f5f3, #f1f8f8);
-            color: #134e4a;
+            background: linear-gradient(110deg, #f5f5f5, #fafafa);
+            color: #262626;
+        }
+        :host([collapsed]) section {
+            border: 0;
+            background: transparent;
+            box-shadow: none;
         }
         :host([collapsed]) header {
-            border-bottom: 0;
-            border-radius: 11px;
+            padding: 0;
+            border: 0;
+            background: transparent;
         }
         .inspector-icon {
             display: grid;
@@ -216,10 +255,10 @@ export class FdlRecordInspector extends LitElement {
             width: 40px;
             height: 40px;
             flex-shrink: 0;
-            border: 1px solid #b9d6d5;
+            border: 1px solid #d4d4d4;
             border-radius: 10px;
             background: #fff;
-            color: #0f766e;
+            color: #525252;
         }
         .inspector-icon svg {
             width: 22px;
@@ -239,7 +278,7 @@ export class FdlRecordInspector extends LitElement {
             margin: 4px 0 0;
             font-size: 0.75rem;
             line-height: 1.5;
-            color: #426561;
+            color: #666666;
         }
         #record-details,
         #recordset-details {
@@ -251,18 +290,18 @@ export class FdlRecordInspector extends LitElement {
             flex-shrink: 0;
             width: 44px;
             height: 44px;
-            border: 1px solid #b9d6d5;
+            border: 1px solid #d4d4d4;
             border-radius: 50%;
             background: white;
-            color: #0f766e;
+            color: #525252;
             cursor: pointer;
         }
         button:hover {
-            background: #ccfbf1;
-            border-color: #0f766e;
+            background: #eeeeee;
+            border-color: #525252;
         }
         button:focus-visible {
-            outline: 3px solid #0f766e;
+            outline: 3px solid #525252;
             outline-offset: 3px;
         }
         button svg {
@@ -280,7 +319,15 @@ export class FdlRecordInspector extends LitElement {
             stroke-linecap: round;
             stroke-linejoin: round;
         }
+        .table-scroll {
+            overflow-x: auto;
+        }
+        .table-scroll:focus-visible {
+            outline: 3px solid #525252;
+            outline-offset: 3px;
+        }
         table {
+            min-width: 480px;
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
@@ -296,23 +343,20 @@ export class FdlRecordInspector extends LitElement {
             overflow-wrap: anywhere;
         }
         thead th {
-            color: #426561;
+            color: #666666;
             font-size: 0.75rem;
             font-weight: 600;
         }
-        th:first-child {
-            width: 30%;
-            padding-left: 0;
+        .status-column {
+            width: 52px;
         }
-        th:last-child {
-            width: 110px;
-        }
-        tbody tr:nth-child(even) {
-            background: #f4f9f8;
-        }
-        tbody td:first-of-type {
+        .field-name,
+        .stored-value {
             font-family: ui-monospace, monospace;
             font-size: 0.8125rem;
+        }
+        tbody tr:nth-child(even) {
+            background: #fafafa;
         }
         .field-status {
             display: flex;
@@ -323,7 +367,7 @@ export class FdlRecordInspector extends LitElement {
             flex: 0 0 20px;
             width: 20px;
             height: 20px;
-            color: #475569;
+            color: #525252;
         }
         .status-icon svg {
             width: 100%;
@@ -334,20 +378,14 @@ export class FdlRecordInspector extends LitElement {
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-        .status-icon[aria-label='Invalid'] {
-            color: #b91c1c;
-        }
-        .status-icon[aria-label='Required'] {
-            color: #0f766e;
-        }
         .legend {
             padding: 16px;
             border: 1px solid var(--example-border);
             border-radius: 8px;
-            background: #f8fafc;
+            background: #fafafa;
             margin-top: 20px;
             font-size: 0.8125rem;
-            color: #475569;
+            color: #525252;
         }
         .legend p {
             margin: 0 0 8px;

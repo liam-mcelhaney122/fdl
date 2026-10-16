@@ -93,7 +93,7 @@ it('collapses accessibly and reopens with current data', async () => {
     expect(inspector.hasAttribute('collapsed')).toBe(true);
     const heading = inspector.shadowRoot!.querySelector('h3')!;
     expect(heading.textContent).toBe('Recordset Inspector');
-    expect(heading.hidden).toBe(false);
+    expect(heading.parentElement!.hasAttribute('hidden')).toBe(true);
     expect(inspector.shadowRoot!.querySelector('section')!.getAttribute('aria-label')).toBe('Recordset Inspector');
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-label')).toBe('Inspect recordset');

@@ -19,7 +19,7 @@ it('explores delivery visibility and requiredness without discarding the address
     const inspection = await inspectorRoot(demo);
     const rows = inspection.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(6);
-    expect(Array.from(rows).map(row => row.querySelector('th')!.textContent)).toEqual([
+    expect(Array.from(rows).map(row => row.querySelector('.field-label')!.textContent)).toEqual([
         'Delivery method', 'Shipping address', 'City', 'State', 'ZIP code', 'Pickup store',
     ]);
     expect(Array.from(inspection.querySelectorAll('.legend li')).map(item =>
