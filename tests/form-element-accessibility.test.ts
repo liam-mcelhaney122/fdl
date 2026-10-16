@@ -140,3 +140,42 @@ it('resolves field settings from the current value and record as dependencies ch
     expect(label).toHaveBeenCalledWith(record);
     expect(required).toHaveBeenCalledWith(record);
 });
+
+
+it('shows a spinner, busy state, and disabled select while options load, and ignores stale results', async () => {
+    let resolveFirst!: (options: { text: string; value: string }[]) => void;
+    let resolveSecond!: (options: { text: string; value: string }[]) => void;
+    const first = new Promise<{ text: string; value: string }[]>(resolve => { resolveFirst = resolve; });
+    const second = new Promise<{ text: string; value: string }[]>(resolve => { resolveSecond = resolve; });
+    const fetch = jest.fn((record: Record<any>) => record.getField('zip') === '28202' ? first : second);
+    const record = new Record({
+        zip: new FieldTypeBuilder(),
+        store: new FieldTypeBuilder().label('Pickup store').options({ fields: ['zip'], fetch }),
+    }, { zip: '28202', store: '' });
+    const element = await renderField(record, 'store');
+    const select = element.shadowRoot!.querySelector('select')!;
+    expect(select.disabled).toBe(true);
+    expect(select.getAttribute('aria-busy')).toBe('true');
+    expect(element.shadowRoot!.querySelector('.options-spinner')).not.toBeNull();
+    expect(element.shadowRoot!.querySelector('[role="status"]')!.textContent).toContain('Loading choices');
+    // Changes during the initial request must be observed immediately.
+    record.setField('zip', '10001');
+    await element.updateComplete;
+    resolveSecond([{ text: 'Chelsea store', value: 'chelsea' }]);
+    await record.fieldTypeForField('store').options(record);
+    await element.updateComplete;
+    expect(select.disabled).toBe(false);
+    expect(select.hasAttribute('aria-busy')).toBe(false);
+    expect(element.shadowRoot!.querySelector('.options-spinner')).toBeNull();
+    expect([...select.options].map(option => option.value)).toEqual(['chelsea']);
+    resolveFirst([{ text: 'Uptown store', value: 'uptown' }]);
+    await first;
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await element.updateComplete;
+    expect([...select.options].map(option => option.value)).toEqual(['chelsea']);
+    record.setField('store', 'chelsea');
+    await element.updateComplete;
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(select.disabled).toBe(false);
+    expect(select.value).toBe('chelsea');
+});

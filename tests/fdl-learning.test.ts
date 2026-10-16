@@ -140,6 +140,34 @@ it('shows state and ZIP for shipping and retains them when switching to pickup',
     expect(record.isValid()).toBe(true);
 });
 
+it('simulates two seconds of store lookup latency with a spinner', async () => {
+    const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
+    document.body.append(demo);
+    await demo.updateComplete;
+    const root = demo.shadowRoot!;
+    await editField(root, 'fulfillment', 'pickup');
+    const store = root.querySelector('fdl-field[field="store"]') as any;
+    jest.useFakeTimers();
+    try {
+        store.record.setField('zip', '28202');
+        await store.updateComplete;
+        const request = store.record.fieldTypeForField('store').options(store.record);
+        expect(store.shadowRoot.querySelector('.options-spinner')).not.toBeNull();
+        expect(store.shadowRoot.querySelector('select').disabled).toBe(true);
+        jest.advanceTimersByTime(1999);
+        await store.updateComplete;
+        expect(store.shadowRoot.querySelector('.options-spinner')).not.toBeNull();
+        jest.advanceTimersByTime(1);
+        await request;
+        await store.updateComplete;
+        expect(store.shadowRoot.querySelector('.options-spinner')).toBeNull();
+        expect(store.shadowRoot.querySelector('select').disabled).toBe(false);
+        expect(store.shadowRoot.querySelector('select').textContent).toContain('Uptown store');
+    } finally {
+        jest.useRealTimers();
+    }
+});
+
 it('reveals the FDL delivery model behind the interactive example', async () => {
     const demo = document.createElement('fdl-delivery-experiment') as FdlDeliveryExperiment;
     document.body.append(demo);
@@ -177,6 +205,9 @@ const openExplorer = async (hash: string) => {
 };
 const editField = async (root: ShadowRoot, name: string, value: string) => {
     const field = root.querySelector(`fdl-field[field="${name}"]`) as any;
+    if (name === 'store') {
+        await field.record.fieldTypeForField('store').options(field.record);
+    }
     await field.updateComplete;
     await new Promise(resolve => setTimeout(resolve, 0));
     const input = field.shadowRoot.querySelector('input,select,textarea') as HTMLInputElement;

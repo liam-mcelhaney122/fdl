@@ -36,8 +36,11 @@ Repository API references and architecture decision records remain in `docs/`.
   and connects related rules with links to their live examples. Category jump
   links preserve the section in the URL.
 
-- Home starts with a delivery experiment; `#learn` builds one example through
-  storage, parsing, validation, dependencies, and collection reuse.
+- Home starts with a delivery experiment. Pickup keeps the store selector visible
+  but disabled until a five-digit ZIP is entered. Sample store lookups for 28202
+  and 10001 simulate a two-second delay with a loading spinner; changing the ZIP
+  starts a new lookup and older results cannot overwrite it. `#learn` builds one
+  example through storage, parsing, validation, dependencies, and collection reuse.
 - `#composition` connects adjustable visibility, requiredness, and validation
   rules to six model-computed outcomes and a selected live form. Selecting an
   outcome loads its exact sample; editing the form highlights the matching

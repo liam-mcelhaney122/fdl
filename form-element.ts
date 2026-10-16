@@ -54,10 +54,13 @@ class FormElement extends ListeningElement {
                 ? 'textarea'
                 : 'input';
         this.element = document.createElement(controlTag);
-        await this.destructureFieldType();
         this.addListenersToElement();
         this.addListenersToRecord();
+        await this.destructureFieldType();
     }
+
+    private optionsRequest?: Promise<unknown>;
+    private optionsRequestVersion = 0;
 
     private composing = false;
     private parsingNativeInput = false;
@@ -251,7 +254,7 @@ class FormElement extends ListeningElement {
         this.element.inline = this.fieldType?.inline(this.record);
         this.element.segmented = this.fieldType?.segmented(this.record);
         this.element.empty = this.fieldType?.empty(this.record, this.field);
-        this.element.disabled = this.fieldType?.isDisabled(this.record?.getField(this.field), this.record, 'model');
+        this.element.disabled = Boolean(this.element.loading) || this.fieldType?.isDisabled(this.record?.getField(this.field), this.record, 'model');
         this.element.name = this.field;
         this.element.rows = this.fieldType?.rowCount();
         this.element.maxLength = this.fieldType?.maxLength(this.record?.getField(this.field), this.record, 'model');
@@ -296,30 +299,42 @@ class FormElement extends ListeningElement {
         this.element.maxValueCount = this.fieldType?.maxValueCount();
 
         if (this.fieldType?.hasOptions()) {
-            this.element.loading = true;
-            this.element.setAttribute('aria-busy', 'true');
-            this.requestUpdate();
-            const options = (await this.fieldType?.options(this.record)) as Array<{
-                text: unknown;
-                value: unknown;
-            }>;
-            if (this.element instanceof HTMLSelectElement) {
-                this.element.replaceChildren(
-                    ...options.map(option => {
-                        const nativeOption = document.createElement('option');
-                        nativeOption.value = String(option.value);
-                        nativeOption.textContent = String(option.text);
-                        return nativeOption;
-                    })
-                );
-                this.syncSelectValue();
-            } else {
-                this.element.options = options;
-                this.element.items = options; // should deprecate and use options
-                this.element.radios = options; // should deprecate and use options
+            const request = this.fieldType.options(this.record);
+            if (request !== this.optionsRequest) {
+                this.optionsRequest = request;
+                const version = ++this.optionsRequestVersion;
+                this.element.loading = true;
+                this.element.disabled = true;
+                this.element.setAttribute('aria-busy', 'true');
+                this.requestUpdate();
+                try {
+                    const options = await request as Array<{ text: unknown; value: unknown }>;
+                    // Only the latest dependency values may populate this control.
+                    if (version !== this.optionsRequestVersion) return;
+                    if (this.element instanceof HTMLSelectElement) {
+                        this.element.replaceChildren(
+                            ...options.map(option => {
+                                const nativeOption = document.createElement('option');
+                                nativeOption.value = String(option.value);
+                                nativeOption.textContent = String(option.text);
+                                return nativeOption;
+                            })
+                        );
+                        this.syncSelectValue();
+                    } else {
+                        this.element.options = options;
+                        this.element.items = options;
+                        this.element.radios = options;
+                    }
+                } finally {
+                    if (version === this.optionsRequestVersion) {
+                        this.element.loading = false;
+                        this.element.disabled = this.fieldType.isDisabled(this.record?.getField(this.field), this.record, 'model');
+                        this.element.removeAttribute('aria-busy');
+                        this.requestUpdate();
+                    }
+                }
             }
-            this.element.loading = false;
-            this.element.removeAttribute('aria-busy');
         }
         this.updateValidationAccessibility();
         this.requestUpdate();
@@ -414,7 +429,14 @@ class FormElement extends ListeningElement {
         }
         if (this.element instanceof HTMLSelectElement && this.element.multiple) return this.renderMultipleSelect(this.element);
         this.element.hidden = false;
-        return html`<div class="control">${this.element}${this.element.loading ? html`<p class="options-loading" role="status">Loading choices…</p>` : nothing}${this.renderValidationErrors()}</div>`;
+        return html`<div class="control">
+            <div class="control-input" ?data-loading=${this.element.loading}>
+                ${this.element}
+                ${this.element.loading ? html`<span class="options-spinner" aria-hidden="true"></span>` : nothing}
+            </div>
+            ${this.element.loading ? html`<p class="options-loading" role="status">Loading choices…</p>` : nothing}
+            ${this.renderValidationErrors()}
+        </div>`;
     }
 
     render() {
@@ -445,6 +467,12 @@ class FormElement extends ListeningElement {
                 font-weight: var(--field-control-font-weight);
                 flex: var(--field-control-width, 250px) 3 1;
             }
+            .control-input { position:relative; }
+            .control-input[data-loading] select { padding-right:3.5rem; }
+            .options-spinner { position:absolute; right:2rem; top:calc(50% - 8px); width:16px; height:16px; border:2px solid #94a3b8; border-top-color:#2563eb; border-radius:50%; animation:options-spin .7s linear infinite; pointer-events:none; }
+            .options-loading { margin:6px 0 0; font-size:.875rem; }
+            @keyframes options-spin { to { transform:rotate(360deg); } }
+            @media(prefers-reduced-motion:reduce) { .options-spinner { animation:none; } }
             .multiple-values { position:relative; }
             .multiple-values summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:48px; padding:10px 14px; border:1px solid #94a3b8; border-radius:6px; background:white; font:inherit; cursor:pointer; list-style:none; }
             .multiple-values summary::-webkit-details-marker { display:none; }

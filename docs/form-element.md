@@ -140,6 +140,14 @@ identities for this adapter; object-valued option identities need a compatible
 custom control. Include an empty option when the field starts empty, and use
 `.required()` or `.required(...)` if choosing an option is part of validation.
 
+While a native single-select's options are loading, the adapter disables the
+control, sets `aria-busy="true"`, and shows an inline spinner with a
+“Loading choices…” status message. Once the latest lookup finishes, it restores
+the field's declared disabled state. Results from an older lookup cannot replace
+newer choices. Declare option dependency fields with
+`options({ fields: ['zip'], fetch: loadStores })` to reuse the same lookup when
+unrelated values change.
+
 See the working example in [`examples/fdl-input`](../examples/fdl-input/) for
 the unified `fdl-field`, conditional validation, and a live `Record` preview.
 

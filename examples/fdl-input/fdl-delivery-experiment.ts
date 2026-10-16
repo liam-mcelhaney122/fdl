@@ -47,6 +47,12 @@ function storesForZip(record: Record<any>) {
     return storesByZip[record.getField('zip')] || [];
 }
 
+async function loadStoresForZip(record: Record<any>) {
+    const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
+    if (whenReadyToChooseStore(record)) await new Promise(resolve => setTimeout(resolve, 2000));
+    return [{ text: 'Select a store', value: '' }, ...stores];
+}
+
 export class FdlDeliveryExperiment extends LitElement {
     private activeTab: 'example' | 'code' = 'example';
     private readonly code = `import { field, Record } from 'digital-fdl';
@@ -93,6 +99,12 @@ function storesForZip(record) {
     return storesByZip[record.getField('zip')] || [];
 }
 
+async function loadStoresForZip(record) {
+    const stores = whenReadyToChooseStore(record) ? storesForZip(record) : [];
+    if (whenReadyToChooseStore(record)) await new Promise(resolve => setTimeout(resolve, 2000));
+    return [{ text: 'Select a store', value: '' }, ...stores];
+}
+
 const deliveryMethod = field.label('Delivery method')
     .options([
       { text: 'Ship to address', value: 'ship' },
@@ -116,7 +128,7 @@ const pickupStore = field.label('Pickup store')
     .visible(whenPickingUp)
     .disabled(record => !hasValidZip(record))
     .required(whenPickingUp)
-    .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
+    .options({ fields: ['zip', 'fulfillment'], fetch: loadStoresForZip })
     .validator({
         name: 'must be available for this ZIP code',
         validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
@@ -166,7 +178,7 @@ customElements.define('delivery-form', DeliveryForm);`;
         .visible(whenPickingUp)
         .disabled(record => !hasValidZip(record))
         .required(whenPickingUp)
-        .options(record => [{ text: 'Select a store', value: '' }, ...storesForZip(record)])
+        .options({ fields: ['zip', 'fulfillment'], fetch: loadStoresForZip })
         .validator({
             name: 'must be available for this ZIP code',
             validate: (value, _view, record) => !whenPickingUp(record) || !value || storesForZip(record).some(store => store.value === value),
@@ -212,7 +224,7 @@ customElements.define('delivery-form', DeliveryForm);`;
                         <fdl-field .record=${this.delivery} field="address" .showValidationErrors=${true}></fdl-field>
                         <fdl-field .record=${this.delivery} field="state" .showValidationErrors=${true}></fdl-field>
                         <fdl-field .record=${this.delivery} field="zip" .showValidationErrors=${true}></fdl-field>
-                        ${pickup ? html`<p class="sample-note">Sample store lookup: try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
+                        ${pickup ? html`<p class="sample-note">Sample store lookup (2-second delay): try ZIP code <strong>28202</strong> or <strong>10001</strong>.</p>` : ''}
                         <fdl-field .record=${this.delivery} field="store" .showValidationErrors=${true}></fdl-field>
                     </div>
                     <div class="state" role="status"><dl><div><dt>Delivery</dt><dd>${this.delivery.getField('fulfillment')}</dd></div><div><dt>Stored address</dt><dd>${this.delivery.getField('address') || '(empty)'}</dd></div><div><dt>Address state</dt><dd>${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'} · ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd></div><div><dt>Stored state</dt><dd>${this.delivery.getField('state') || '(empty)'}</dd></div><div><dt>Stored ZIP code</dt><dd>${this.delivery.getField('zip') || '(empty)'}</dd></div><div><dt>Store state</dt><dd>${pickup ? 'Visible' : 'Hidden'} · ${hasValidZip(this.delivery) ? 'Enabled' : 'Disabled'} · ${pickup ? 'Required' : 'Optional'}</dd></div><div><dt>Stored store</dt><dd>${availableStore?.text || store || '(empty)'}</dd></div><div><dt>Record validation</dt><dd>${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd></div></dl></div>
