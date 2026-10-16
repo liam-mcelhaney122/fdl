@@ -28,50 +28,71 @@ export class FdlExample extends LitElement {
     render() {
         const tabs = ['', ...this.filenames];
         return html`<details>
-            <summary><h2>${this.heading}</h2></summary>
-            <slot name="description"></slot>
-            <div
-                class="tabs"
-                role="tablist"
-                aria-label=${`${this.heading} views`}
-            >
-                ${tabs.map(
+            <summary>
+                <span class="example-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="m9 5-7 7 7 7m6-14 7 7-7 7" />
+                    </svg>
+                </span>
+                <span class="summary-copy">
+                    <span class="eyebrow">Live example</span>
+                    <h2>${this.heading}</h2>
+                    <span class="summary-hint"
+                        >Try it
+                        out${this.filenames.length ? ' · Explore the source' : ''}</span
+                    >
+                </span>
+                <span class="expand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </span>
+            </summary>
+            <div class="example-content">
+                <slot name="description"></slot>
+                <div
+                    class="tabs"
+                    role="tablist"
+                    aria-label=${`${this.heading} views`}
+                >
+                    ${tabs.map(
+                        (filename, index) =>
+                            html`<button
+                                id=${`example-tab-${index}`}
+                                role="tab"
+                                aria-selected=${this.activeTab === filename}
+                                aria-controls=${`example-panel-${index}`}
+                                tabindex=${this.activeTab === filename ? 0 : -1}
+                                @click=${() => this.selectTab(filename)}
+                                @keydown=${(event: KeyboardEvent) => this.navigateTabs(event, index)}
+                                >${filename || 'Interactive example'}</button
+                            >`
+                    )}
+                </div>
+                <div
+                    id="example-panel-0"
+                    class="tab-panel"
+                    role="tabpanel"
+                    aria-labelledby="example-tab-0"
+                    ?hidden=${this.activeTab !== ''}
+                >
+                    <slot></slot>
+                </div>
+                ${this.filenames.map(
                     (filename, index) =>
-                        html`<button
-                            id=${`example-tab-${index}`}
-                            role="tab"
-                            aria-selected=${this.activeTab === filename}
-                            aria-controls=${`example-panel-${index}`}
-                            tabindex=${this.activeTab === filename ? 0 : -1}
-                            @click=${() => this.selectTab(filename)}
-                            @keydown=${(event: KeyboardEvent) => this.navigateTabs(event, index)}
-                            >${filename || 'Interactive example'}</button
-                        >`
+                        html`<div
+                            id=${`example-panel-${index + 1}`}
+                            class="tab-panel"
+                            role="tabpanel"
+                            aria-labelledby=${`example-tab-${index + 1}`}
+                            ?hidden=${this.activeTab !== filename}
+                        >
+                            <pre
+                                class="code"
+                            ><code>${this.modifier && index === 0 ? highlightModifier(this.sources[filename] ?? '', this.modifier) : highlightSourceCode(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
+                        </div>`
                 )}
             </div>
-            <div
-                id="example-panel-0"
-                class="tab-panel"
-                role="tabpanel"
-                aria-labelledby="example-tab-0"
-                ?hidden=${this.activeTab !== ''}
-            >
-                <slot></slot>
-            </div>
-            ${this.filenames.map(
-                (filename, index) =>
-                    html`<div
-                        id=${`example-panel-${index + 1}`}
-                        class="tab-panel"
-                        role="tabpanel"
-                        aria-labelledby=${`example-tab-${index + 1}`}
-                        ?hidden=${this.activeTab !== filename}
-                    >
-                        <pre
-                            class="code"
-                        ><code>${this.modifier && index === 0 ? highlightModifier(this.sources[filename] ?? '', this.modifier) : highlightSourceCode(this.sources[filename] ?? 'Source unavailable.')}</code></pre>
-                    </div>`
-            )}
         </details>`;
     }
 
@@ -109,21 +130,102 @@ export class FdlExample extends LitElement {
             box-sizing: border-box;
         }
         details {
-            border: 1px solid var(--example-border);
-            border-radius: var(--example-radius);
-            padding: 24px;
-        }
-        h2 {
-            display: inline;
-            margin: 0;
-            font-size: 1.5rem;
+            border: 1px solid #bfcee8;
+            border-left: 4px solid #2563eb;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px #0f172a08;
         }
         summary {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 24px;
+            border-radius: 8px;
+            background: linear-gradient(110deg, #eff6ff, #f8fafc);
+            color: #172554;
             cursor: pointer;
+            list-style: none;
+            transition:
+                background-color 160ms,
+                box-shadow 160ms;
+        }
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        summary:hover {
+            background: #e8f0ff;
+            box-shadow: inset 0 0 0 1px #bfdbfe;
         }
         summary:focus-visible {
             outline: 3px solid #2563eb;
             outline-offset: 4px;
+        }
+        .example-icon,
+        .expand-icon {
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            color: #1d4ed8;
+        }
+        .example-icon {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            background: #fff;
+        }
+        svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .summary-copy {
+            flex: 1;
+            min-width: 0;
+        }
+        .eyebrow {
+            display: block;
+            margin-bottom: 6px;
+            color: #1d4ed8;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        h2 {
+            margin: 0;
+            font-size: 1.375rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .summary-hint {
+            display: block;
+            margin-top: 6px;
+            color: #475569;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .expand-icon {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #bfcee8;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 160ms;
+        }
+        details[open] > summary {
+            border-bottom: 1px solid #bfcee8;
+            border-radius: 8px 8px 0 0;
+        }
+        details[open] .expand-icon {
+            transform: rotate(180deg);
+        }
+        .example-content {
+            padding: 4px 24px 24px;
         }
         p {
             line-height: 1.6;
@@ -208,8 +310,38 @@ export class FdlExample extends LitElement {
             line-height: 1.6;
         }
         @media (max-width: 480px) {
-            details {
-                padding: 16px;
+            summary {
+                gap: 12px;
+                padding: 20px 16px;
+            }
+            .example-icon {
+                width: 40px;
+                height: 40px;
+            }
+            h2 {
+                font-size: 1.125rem;
+            }
+            .example-content {
+                padding: 4px 16px 16px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            summary,
+            .expand-icon {
+                transition: none;
+            }
+        }
+        @media (forced-colors: active) {
+            details,
+            details[open] > summary,
+            .example-icon,
+            .expand-icon {
+                border-color: CanvasText;
+            }
+            summary,
+            summary:hover {
+                background: Canvas;
+                color: CanvasText;
             }
         }
         ${exampleTheme}
