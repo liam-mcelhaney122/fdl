@@ -227,21 +227,21 @@ function modelFor(name: string, settings: ExampleSettings): Model {
         },
         readOnly: {
             name: 'record',
-            fields: { fixedOwner: type("label('Owner').readOnly()") },
-            values: { fixedOwner: 'Ada Lovelace' },
-        },
-        readOnlyWhen: {
-            name: 'record',
             fields: {
+                fixedOwner: type("label('Owner').readOnly()"),
                 phase: choose('Phase', [
                     ['Draft', 'draft'],
                     ['Submitted', 'submitted'],
                 ]),
                 conditionalOwner: type(
-                    "label('Request owner').readOnlyWhen(record => record.getField('phase') === 'submitted')"
+                    "label('Request owner').readOnly(record => record.getField('phase') === 'submitted')"
                 ),
             },
-            values: { phase: 'draft', conditionalOwner: 'Ada Lovelace' },
+            values: {
+                fixedOwner: 'Ada Lovelace',
+                phase: 'draft',
+                conditionalOwner: 'Ada Lovelace',
+            },
         },
         rowCount: {
             name: 'record',

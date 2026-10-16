@@ -851,17 +851,17 @@ describe('FieldType', () => {
         });
     });
 
-    describe('readOnlyWhen', () => {
+    describe('readOnly', () => {
         it("isn't readonly() by default", () => {
             const type = new FieldTypeBuilder();
             expect(type.valueOf().readonly()).toEqual(false);
         });
-        it('is readonly when readOnlyWhen returns true', () => {
-            const type = new FieldTypeBuilder().readOnlyWhen(() => true);
+        it('is readonly when readOnly returns true', () => {
+            const type = new FieldTypeBuilder().readOnly(() => true);
             expect(type.valueOf().readonly()).toEqual(true);
         });
 
-        it('alias readOnly without passing a function in', () => {
+        it('is readonly without an argument', () => {
             const a = new FieldTypeBuilder().readOnly();
             expect(a.valueOf().readonly()).toBe(true);
         });

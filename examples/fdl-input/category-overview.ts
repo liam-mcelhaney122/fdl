@@ -49,9 +49,8 @@ const relationships = {
     'Conditional state': html`<p
             >${modifier('disabled')} disables a field always or according to its
             optional field setting. ${modifier('readOnly')} accepts a fixed or
-            calculated read-only state, while ${modifier('readOnlyWhen')}
-            accepts the same field-setting callback. ${modifier('visible')}
-            determines whether a consumer shows the field.</p
+            calculated read-only state. ${modifier('visible')} determines
+            whether a consumer shows the field.</p
         ><p
             >A submitted request can remain visible and read-only; an
             unavailable action can be disabled. For a shipping-only address,

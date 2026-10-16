@@ -720,10 +720,7 @@ export default class FieldTypeBuilder<T = unknown> {
         return copy;
     }
 
-    /**
-     * Sets a field to readonly
-     *
-     */
+    /** Render a read-only value always, or when a record setting resolves to true. */
     readOnly(predicate: RecordSetting<boolean> = true) {
         const copy = this.copy();
         copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, predicate];
@@ -766,20 +763,6 @@ export default class FieldTypeBuilder<T = unknown> {
             defaultTrueFunction,
         ];
         copy.properties.descriptions = [...copy.properties.descriptions, `segmented`];
-        return copy;
-    }
-
-    /**
-     * Sets a field to readonly based on a conditional expression
-     * @param {{(record:Record) : boolean}} predicate
-     */
-    readOnlyWhen(predicate: RecordSetting<boolean>) {
-        const copy = this.copy();
-        copy.properties.readonlyFunctions = [...copy.properties.readonlyFunctions, predicate];
-        copy.properties.descriptions = [
-            ...copy.properties.descriptions,
-            `read only when ${printFunction(predicate)}}`,
-        ];
         return copy;
     }
 

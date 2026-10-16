@@ -7,6 +7,11 @@ function checkSettings() {
     const field = new FieldTypeBuilder<number>();
     field.label(label).placeholder(record => record.getField('unit'));
     field.required(true).disabled(false).readOnly(false).visible(true).emptyWhen(false);
+    field.readOnly().readOnly(record => record.getField('submitted') === true);
+    // @ts-expect-error Conditional read-only state uses readOnly.
+    field.readOnlyWhen(() => true);
+    // @ts-expect-error Read-only settings return booleans.
+    field.readOnly(() => 'yes');
     field.textAlign((value, _record, context) =>
         value < 0 && context === 'table' ? 'right' : 'left'
     );

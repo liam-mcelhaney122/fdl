@@ -34,8 +34,6 @@ export function explainModifierCall(
             return argument === 'false'
                 ? `Allows editing of ${target}.`
                 : `Displays ${target} as read-only ${argument && argument !== 'true' ? `when ${condition}` : 'instead of allowing edits'}.`;
-        case 'readOnlyWhen':
-            return `Displays ${target} as read-only when ${condition}; otherwise it can be edited.`;
         case 'validator': {
             const rule = /\bname\s*:\s*(['"])(.*?)\1/.exec(argument)?.[2];
             return rule

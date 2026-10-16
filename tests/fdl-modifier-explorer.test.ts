@@ -161,6 +161,7 @@ describe('complete explorer', () => {
             'selectionDisabledFunctions',
             'step',
             'usesCustomPrint',
+            'visibleWhen',
         ]);
         const expected = Object.getOwnPropertyNames(Object.getPrototypeOf(builder))
             .filter(
@@ -610,11 +611,11 @@ it.each(modifierPageGroups)(
     }
 );
 
-it('resets one grouped example without resetting its neighbor', async () => {
+it('resets the consolidated read-only example', async () => {
     const page = await openPage('#readOnly');
     const root = page.shadowRoot!;
     const conditional = root.querySelector(
-        'fdl-modifier-catalog[modifier="readOnlyWhen"]'
+        'fdl-modifier-catalog[modifier="readOnly"]'
     ) as FdlModifierCatalog;
     await conditional.updateComplete;
     const field = conditional.shadowRoot!.querySelector('fdl-field[field="phase"]') as any;
@@ -625,8 +626,14 @@ it('resets one grouped example without resetting its neighbor', async () => {
     await conditional.updateComplete;
     root.getElementById('readOnly')!.querySelector<HTMLButtonElement>('.reset')!.click();
     await settle(page);
-    expect(root.querySelector('fdl-modifier-catalog[modifier="readOnlyWhen"]')).toBe(conditional);
-    expect(field.record.getField('phase')).toBe('submitted');
+    const reset = root.querySelector(
+        'fdl-modifier-catalog[modifier="readOnly"]'
+    ) as FdlModifierCatalog;
+    await reset.updateComplete;
+    const resetField = reset.shadowRoot!.querySelector('fdl-field[field="phase"]') as any;
+    await resetField.updateComplete;
+    expect(resetField.record.getField('phase')).toBe('draft');
+    expect(root.querySelector('fdl-modifier-catalog[modifier="readOnlyWhen"]')).toBeNull();
 });
 
 it('changes textarea rows while retaining the comment and updating the example source', async () => {

@@ -5,7 +5,6 @@ export const modifierPageGroups = [
         title: 'Column widths',
         names: ['minColumnWidth', 'targetColumnWidth', 'maxColumnWidth'],
     },
-    { title: 'Read-only fields', names: ['readOnly', 'readOnlyWhen'] },
 ];
 
 export function modifierPage(name: string) {

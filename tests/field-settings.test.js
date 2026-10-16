@@ -12,7 +12,6 @@ const settings = [
     ['disabled', 'isDisabled', true],
     ['visible', 'visible', false],
     ['readOnly', 'readonly', true],
-    ['readOnlyWhen', 'readonly', true],
     ['emptyWhen', 'isEmpty', true],
     ['cellClass', 'cellClasses', ['amount', 'numeric']],
     ['rowClass', 'rowClasses', ['amount-row']],
@@ -146,4 +145,25 @@ it('passes the record and context through parser and formatter pipelines', () =>
     expect(record.print('text')).toBe('print:print:model:P:b');
     expect(formatter).toHaveBeenCalledWith('model:P:b', record, 'print');
     expect(template).toHaveBeenCalledWith('print:model:P:b', record, 'print');
+});
+
+it('composes read-only settings without changing the source definition', () => {
+    const base = new FieldTypeBuilder();
+    const conditional = base.readOnly(record => record.getField('submitted'));
+    const combined = conditional.readOnly(record => record.getField('locked'));
+    const record = new Record(
+        { owner: combined, submitted: base, locked: base },
+        { owner: 'Ada', submitted: false, locked: false }
+    );
+    expect(base.valueOf().readonly('Ada', record)).toBe(false);
+    expect(combined.valueOf().readonly('Ada', record)).toBe(false);
+    record.setField('submitted', true);
+    expect(combined.valueOf().readonly('Ada', record)).toBe(true);
+    record.setField('submitted', false);
+    record.setField('locked', true);
+    expect(conditional.valueOf().readonly('Ada', record)).toBe(false);
+    expect(combined.valueOf().readonly('Ada', record)).toBe(true);
+    expect(base.readOnly(false).valueOf().readonly('Ada', record)).toBe(false);
+    expect(base.readOnly().readOnly(false).valueOf().readonly('Ada', record)).toBe(true);
+    expect(base.readOnlyWhen).toBeUndefined();
 });

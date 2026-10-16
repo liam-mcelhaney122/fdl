@@ -79,6 +79,10 @@ select when a field provides options, a textarea when `rowCount()` is
 configured, and an input otherwise. Other renderers should make control
 selection in their own adapter.
 
+The `readOnlyWhen()` removal is immediate. Replace `readOnlyWhen(predicate)`
+with `readOnly(predicate)`. `readOnly()` defaults to true and also accepts a
+fixed boolean. Repeated read-only settings retain their any-true composition.
+
 FDL gains a smaller, more durable public vocabulary. Its modifiers become easier
 to understand, test, and render consistently in forms, tables, documents, and
 other consumers. The explicit inventory makes removals auditable and prevents
@@ -115,6 +119,7 @@ future retirement work from losing historical context.
 | `parseDynamicRange`          | Deprecated           | `parser(...)`                                                           | Parsing belongs in the value pipeline.                                                                                               |
 | `pattern`                    | Deprecated           | Model validation or renderer input configuration                        | Browser constraint is not model-enforced.                                                                                            |
 | `readOnlyExceptionWhen`      | Deprecated           | Renderer                                                                | Composite-control exception.                                                                                                         |
+| `readOnlyWhen`               | Removed — 2026-10-16 | `readOnly(predicate)`                                                   | Consolidate unconditional and conditional read-only state in one modifier.                                                           |
 | `requiredWhen`               | Removed — 2026-10-15 | `required(predicate)`                                                   | Consolidate unconditional and conditional requiredness while preserving model validation.                                            |
 | `rowClasses`                 | Removed — 2026-10-15 | `rowClass(classes)`                                                     | Use a singular modifier for each declaration; strings, arrays, and functions returning either compose consistently with `cellClass`. |
 | `rowCount`                   | Deprecated           | `fdl-field` presentation configuration                                  | Textarea sizing is a presentation concern rather than reusable field behavior.                                                       |

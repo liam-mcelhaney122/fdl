@@ -50,7 +50,6 @@ type DemoName =
     | 'options'
     | 'placeholder'
     | 'readOnly'
-    | 'readOnlyWhen'
     | 'reducer'
     | 'required'
     | 'parser'
@@ -228,15 +227,9 @@ field
     ),
     live(
         'readOnly',
-        'Always renders the field as a printed, non-editable value.',
+        'Renders a printed, non-editable value always or while a predicate is true.',
         'readOnly',
-        `.readOnly()`
-    ),
-    live(
-        'readOnlyWhen',
-        'Switches a field to printed, non-editable output while a predicate is true.',
-        'readOnlyWhen',
-        `.readOnlyWhen(record => record.getField('phase') === 'submitted')`
+        `.readOnly(record => record.getField('phase') === 'submitted')`
     ),
     live(
         'reducer',
@@ -436,9 +429,7 @@ export class FdlModifierCatalog extends LitElement {
             ]),
             conditionalOwner: field
                 .label('Request owner')
-                .readOnlyWhen(
-                    record => record.getField('phase') === 'submitted'
-                ),
+                .readOnly(record => record.getField('phase') === 'submitted'),
             requiredName: field.label('Legal name').required(),
             followUp: field.label('Follow-up needed?').options([
                 { text: 'No', value: 'no' },
@@ -1174,11 +1165,9 @@ export class FdlModifierCatalog extends LitElement {
             case 'placeholder':
                 return html`${this.renderField('projectName')}`;
             case 'readOnly':
-                return html`${this.renderField('fixedOwner')}`;
-            case 'readOnlyWhen':
-                return html`<p class="try"
-                        >Choose Submitted to replace the owner input with
-                        printed text.</p
+                return html`${this.renderField('fixedOwner')}<p class="try"
+                        >Choose Submitted to replace the request owner input
+                        with printed text.</p
                     >${this.renderField('phase')}${this.renderField('conditionalOwner')}${explainDependency(this.record, 'conditionalOwner', 'phase', `phase === 'submitted'`, 'readonly')}`;
             case 'reducer':
                 return html`${['firstAmount', 'secondAmount', 'thirdAmount'].map(field => this.renderField(field, this.probes))}<p
@@ -1261,8 +1250,7 @@ export class FdlModifierCatalog extends LitElement {
             options: ['department', 'assignee', 'asyncAssignee'],
             parser: ['money'],
             placeholder: ['projectName'],
-            readOnly: ['fixedOwner'],
-            readOnlyWhen: ['phase', 'conditionalOwner'],
+            readOnly: ['fixedOwner', 'phase', 'conditionalOwner'],
             required: ['requiredName', 'followUp', 'followUpNotes'],
             rowCount: ['comments'],
             validator: ['email', 'orderQuantity', 'username'],

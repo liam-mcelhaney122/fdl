@@ -26,7 +26,6 @@ export const modifierSignatures: { [name: string]: string } = {
     placeholder: 'placeholder(placeholder: RecordSetting<string>)',
     range: 'range()',
     readOnly: 'readOnly(predicate?: RecordSetting<boolean>)',
-    readOnlyWhen: 'readOnlyWhen(predicate: RecordSetting<boolean>)',
     reducer: 'reducer(nameOrFunction: "sum" | ((values: T[]) => unknown))',
     rowClass: 'rowClass(classes: RecordSetting<string | string[]>)',
     rowCount: 'rowCount(numberOfRows: number)',
@@ -51,7 +50,6 @@ export const fieldSettingResults: { [name: string]: string } = {
     disabled: 'boolean',
     visible: 'boolean',
     readOnly: 'boolean',
-    readOnlyWhen: 'boolean',
     emptyWhen: 'boolean',
     minLength: 'number',
     maxLength: 'number',
@@ -69,7 +67,6 @@ export const recordSettingNames = new Set([
     'disabled',
     'visible',
     'readOnly',
-    'readOnlyWhen',
     'minLength',
     'maxLength',
 ]);
