@@ -10,6 +10,29 @@ import {
     storesByZip,
 } from './delivery-data';
 
+const statusPaths = {
+    Visible:
+        'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12 M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+    Hidden: 'M3 3l18 18 M10 5a12 12 0 0 1 12 7s-1 2-3 4 M14 19C6 20 2 12 2 12s1-2 4-4 M10 10a3 3 0 0 0 4 4',
+    Enabled: 'M8 11V7a4 4 0 0 1 8 0 M5 11h14v10H5z M12 15v2',
+    Disabled: 'M8 11V7a4 4 0 0 1 8 0v4 M5 11h14v10H5z M12 15v2',
+    Required: 'M12 4v16 M5 8l14 8 M5 16l14-8',
+    Optional: 'M9 12h6 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+};
+
+function statusIcon(status: keyof typeof statusPaths) {
+    return html`<span
+        class="status-icon"
+        role="img"
+        aria-label=${status}
+        title=${status}
+    >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d=${statusPaths[status]}></path>
+        </svg>
+    </span>`;
+}
+
 function whenDeliveryMethodRequiresAddress(record: Record<any>) {
     return record.getField('fulfillment') === 'ship';
 }
@@ -270,7 +293,6 @@ export const shippingStateOptions = [
         this.requestUpdate();
     }
     render() {
-        const address = this.delivery.fieldTypeForField('address');
         const pickup = whenPickingUp(this.delivery);
         const zip = this.delivery.getField('zip');
         const ready = isValidZip(zip);
@@ -355,60 +377,61 @@ export const shippingStateOptions = [
                             .showValidationErrors=${true}
                         ></fdl-field>
                     </div>
-                    <div class="state" role="status"
-                        ><dl
-                            ><div
-                                ><dt>Delivery</dt
-                                ><dd
-                                    >${this.delivery.getField('fulfillment')}</dd
-                                ></div
-                            ><div
-                                ><dt>Stored address</dt
-                                ><dd
-                                    >${this.delivery.getField('address') || '(empty)'}</dd
-                                ></div
-                            ><div
-                                ><dt>Address state</dt
-                                ><dd
-                                    >${address.visible(this.delivery.getField('address'), this.delivery) ? 'Visible' : 'Hidden'}
-                                    ·
-                                    ${address.required(this.delivery.getField('address'), this.delivery) ? 'Required' : 'Optional'}</dd
-                                ></div
-                            ><div
-                                ><dt>Stored city</dt
-                                ><dd
-                                    >${this.delivery.getField('city') || '(empty)'}</dd
-                                ></div
-                            ><div
-                                ><dt>Stored state</dt
-                                ><dd
-                                    >${this.delivery.getField('state') || '(empty)'}</dd
-                                ></div
-                            ><div
-                                ><dt>Stored ZIP code</dt
-                                ><dd
-                                    >${this.delivery.getField('zip') || '(empty)'}</dd
-                                ></div
-                            ><div
-                                ><dt>Store state</dt
-                                ><dd
-                                    >${pickup ? 'Visible' : 'Hidden'} ·
-                                    ${isValidZip(this.delivery.getField('zip')) ? 'Enabled' : 'Disabled'}
-                                    · ${pickup ? 'Required' : 'Optional'}</dd
-                                ></div
-                            ><div
-                                ><dt>Stored store</dt
-                                ><dd
-                                    >${availableStore?.text || store || '(empty)'}</dd
-                                ></div
-                            ><div
-                                ><dt>Record validation</dt
-                                ><dd
-                                    >${this.delivery.isValid() ? 'Valid' : 'Invalid'}</dd
-                                ></div
-                            ></dl
-                        ></div
-                    >
+                    <div class="state">
+                        <table>
+                            <caption>Field state</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Field</th>
+                                    <th scope="col">Stored value</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(
+                                    [
+                                        'fulfillment',
+                                        'address',
+                                        'city',
+                                        'state',
+                                        'zip',
+                                        'store',
+                                    ] as const
+                                ).map(name => {
+                                    const type =
+                                        this.delivery.fieldTypeForField(name);
+                                    const value = this.delivery.getField(name);
+                                    return html`<tr data-field=${name}>
+                                        <th scope="row"
+                                            >${type.label(value, this.delivery)}</th
+                                        >
+                                        <td
+                                            >${name === 'store' ? availableStore?.text || value || '(empty)' : value || '(empty)'}</td
+                                        >
+                                        <td
+                                            ><span class="field-status">
+                                                ${statusIcon(type.visible(value, this.delivery) ? 'Visible' : 'Hidden')}
+                                                ${statusIcon(type.isDisabled(value, this.delivery) ? 'Disabled' : 'Enabled')}
+                                                ${statusIcon(type.required(value, this.delivery) ? 'Required' : 'Optional')}
+                                            </span></td
+                                        >
+                                    </tr>`;
+                                })}
+                            </tbody>
+                        </table>
+                        <div class="legend" aria-label="Status icon legend">
+                            <p>Icon legend</p>
+                            <ul>
+                                ${Object.keys(statusPaths).map(status => html`<li>${statusIcon(status as keyof typeof statusPaths)}<span>${status}</span></li>`)}
+                            </ul>
+                        </div>
+                        <p class="validation" role="status"
+                            >Record validation:
+                            <strong
+                                >${this.delivery.isValid() ? 'Valid' : 'Invalid'}</strong
+                            >
+                        </p>
+                    </div>
                 </div>
             </div>
             <div
@@ -543,7 +566,7 @@ export const shippingStateOptions = [
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
-            align-items: stretch;
+            align-items: start;
         }
         .editor {
             padding: 20px;
@@ -562,22 +585,85 @@ export const shippingStateOptions = [
             --field-label-width: 100%;
             --field-control-width: 100%;
         }
-        dl {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        caption {
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        th,
+        td {
+            padding: 12px 6px;
+            border-bottom: 1px solid var(--example-border);
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+        thead th {
+            color: #64748b;
+            font-size: 0.8125rem;
+        }
+        th:first-child {
+            width: 30%;
+            padding-left: 0;
+        }
+        th:last-child {
+            width: 84px;
+        }
+        .field-status {
+            display: flex;
+            gap: 6px;
+        }
+        .status-icon {
+            display: inline-flex;
+            flex: 0 0 20px;
+            width: 20px;
+            height: 20px;
+            color: #475569;
+        }
+        .status-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .legend {
+            margin-top: 20px;
+            font-size: 0.8125rem;
+            color: #475569;
+        }
+        .legend p {
+            margin: 0 0 8px;
+            font-weight: 600;
+        }
+        .legend ul {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px 16px;
+            gap: 8px 16px;
+            list-style: none;
+            padding: 0;
             margin: 0;
         }
-        dt {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: #64748b;
-            line-height: 1.5;
+        .legend li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        dd {
-            margin: 6px 0 0;
-            font-size: 1rem;
-            line-height: 1.5;
+        .validation {
+            padding-top: 16px;
+            border-top: 1px solid var(--example-border);
+            font-size: 0.875rem;
+            margin-bottom: 0;
         }
         p {
             margin: 16px 0;

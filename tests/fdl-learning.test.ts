@@ -10,6 +10,14 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
         'Shipping needs an address. Clear it to see the record enforce that rule.'
     );
+    const rows = demo.shadowRoot!.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(6);
+    expect(Array.from(rows).map(row => row.querySelector('th')!.textContent)).toEqual([
+        'Delivery method', 'Shipping address', 'City', 'State', 'ZIP code', 'Pickup store',
+    ]);
+    expect(Array.from(demo.shadowRoot!.querySelectorAll('.legend li')).map(item =>
+        item.textContent!.trim()
+    )).toEqual(['Visible', 'Hidden', 'Enabled', 'Disabled', 'Required', 'Optional']);
     const field = demo.shadowRoot!.querySelector('fdl-field[field="fulfillment"]') as any;
     await field.updateComplete;
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -21,9 +29,10 @@ it('explores delivery visibility and requiredness without discarding the address
     expect(demo.shadowRoot!.querySelector('.instruction')!.textContent).toBe(
         'Choose a store to complete your pickup details.'
     );
-    expect(
-        demo.shadowRoot!.querySelector('.state')!.textContent!.replace(/\s+/g, ' ').trim()
-    ).toContain('Hidden · Optional');
+    const addressRow = demo.shadowRoot!.querySelector('tr[data-field="address"]')!;
+    expect(Array.from(addressRow.querySelectorAll('[role="img"]')).map(icon =>
+        icon.getAttribute('aria-label')
+    )).toEqual(['Hidden', 'Enabled', 'Optional']);
     expect(
         demo.shadowRoot!.querySelector('.state')!.textContent!.replace(/\s+/g, ' ').trim()
     ).toContain('42 Orchard Street');
@@ -61,6 +70,8 @@ it('keeps pickup stores visible, disables invalid ZIPs, and clears unavailable s
             disabled
         );
         expect(storeField.shadowRoot.querySelector('select').disabled).toBe(disabled);
+        const status = root.querySelector('tr[data-field="store"] .field-status')!;
+        expect(status.querySelector(`[aria-label="${disabled ? 'Disabled' : 'Enabled'}"]`)).not.toBeNull();
     }
     expect(storeVisible()).toBe(false);
     await editField(root, 'zip', '');
